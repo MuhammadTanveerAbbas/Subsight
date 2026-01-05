@@ -1,13 +1,15 @@
-
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { AddSubscriptionDialog } from "@/components/subsight/subscription-form-dialog";
-import { FileDown, FileUp, PlusCircle, Sparkles, MoreVertical } from "lucide-react";
+import { SettingsDialog } from "@/components/subsight/settings-dialog";
+import { FileDown, FileUp, PlusCircle, Sparkles, MoreVertical, Settings, LogOut, User } from "lucide-react";
 import { useSubscriptions } from "@/contexts/subscription-context";
+import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import { exportToCSV, exportToJSON, exportToPDF } from "@/lib/export";
+import { findDuplicates } from "@/lib/duplicates";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,17 +17,28 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { summarizeSpending } from "@/ai/flows/summarize-spending";
 import Link from "next/link";
 import { Target } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export function AppHeader() {
-  const [isAddOpen, setIsAddOpen] = useState(false);
-  const { subscriptions, importSubscriptions } = useSubscriptions();
+  const router = useRouter();
+  const { subscriptions, importSubscriptions, incrementUsage } = useSubscriptions();
+  const { user, profile, signOut } = useAuth();
   const { toast } = useToast();
   const [isSummarizing, setIsSummarizing] = useState(false);
   const isMobile = useIsMobile();
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2)
+  }
 
   const handleImport = (file: File) => {
     const reader = new FileReader();
@@ -114,7 +127,7 @@ export function AppHeader() {
     if (format === 'pdf') exportToPDF(subscriptions);
   }
 
-  const handleAddClick = () => setIsAddOpen(true);
+  const handleAddClick = () => router.push('/dashboard/add');
 
   const renderImportOptions = (isMobile = false) => (
     <>
@@ -143,6 +156,7 @@ export function AppHeader() {
 
   const desktopMenuItems = (
     <>
+      <SettingsDialog />
       <Button variant="outline" onClick={handleSummarize} disabled={isSummarizing || subscriptions.length === 0}>
         <Sparkles className="mr-2 h-4 w-4" />
         {isSummarizing ? "Analyzing..." : "AI Summary"}
@@ -173,32 +187,112 @@ export function AppHeader() {
         <PlusCircle className="mr-2 h-4 w-4" />
         Add Subscription
       </Button>
+      
+      {/* User Avatar Dropdown */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+            <Avatar className="h-9 w-9">
+              <AvatarImage src={profile?.avatar_url || ''} />
+              <AvatarFallback className="bg-primary text-primary-foreground">
+                {profile?.full_name ? getInitials(profile.full_name) : <User className="h-4 w-4" />}
+              </AvatarFallback>
+            </Avatar>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <div className="flex items-center justify-start gap-2 p-2">
+            <div className="flex flex-col space-y-1 leading-none">
+              {profile?.full_name && (
+                <p className="font-medium">{profile.full_name}</p>
+              )}
+              {user?.email && (
+                <p className="w-[200px] truncate text-sm text-muted-foreground">
+                  {user.email}
+                </p>
+              )}
+            </div>
+          </div>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <Link href="/settings">
+              <Settings className="mr-2 h-4 w-4" />
+              Settings
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={signOut}>
+            <LogOut className="mr-2 h-4 w-4" />
+            Sign Out
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </>
   );
 
   const mobileMenuItems = (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon">
-          <MoreVertical className="h-5 w-5" />
-          <span className="sr-only">Actions</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={handleAddClick}>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Add Subscription
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={handleSummarize} disabled={isSummarizing || subscriptions.length === 0}>
-          <Sparkles className="mr-2 h-4 w-4" />
-          {isSummarizing ? "Analyzing..." : "AI Summary"}
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        {renderImportOptions(true)}
-        <DropdownMenuSeparator />
-        {renderExportOptions(true)}
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="icon" className="h-10 w-10">
+            <MoreVertical className="h-5 w-5" />
+            <span className="sr-only">Actions</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuItem onClick={handleAddClick}>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add Subscription
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleSummarize} disabled={isSummarizing || subscriptions.length === 0}>
+            <Sparkles className="mr-2 h-4 w-4" />
+            {isSummarizing ? "Analyzing..." : "AI Summary"}
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          {renderImportOptions(true)}
+          <DropdownMenuSeparator />
+          {renderExportOptions(true)}
+        </DropdownMenuContent>
+      </DropdownMenu>
+      
+      {/* User Avatar Dropdown */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={profile?.avatar_url || ''} />
+              <AvatarFallback className="bg-primary text-primary-foreground">
+                {profile?.full_name ? getInitials(profile.full_name) : <User className="h-4 w-4" />}
+              </AvatarFallback>
+            </Avatar>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <div className="flex items-center justify-start gap-2 p-2">
+            <div className="flex flex-col space-y-1 leading-none">
+              {profile?.full_name && (
+                <p className="font-medium">{profile.full_name}</p>
+              )}
+              {user?.email && (
+                <p className="w-[200px] truncate text-sm text-muted-foreground">
+                  {user.email}
+                </p>
+              )}
+            </div>
+          </div>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <Link href="/settings">
+              <Settings className="mr-2 h-4 w-4" />
+              Settings
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={signOut}>
+            <LogOut className="mr-2 h-4 w-4" />
+            Sign Out
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </>
   );
 
   return (
@@ -208,11 +302,13 @@ export function AppHeader() {
           <Target className="w-6 h-6 text-primary" />
           <h1 className="text-2xl font-semibold tracking-tight font-headline">Subsight</h1>
         </Link>
-        <div className="ml-auto">
+        <div className="ml-auto hidden md:flex items-center gap-2">
           {isMobile ? mobileMenuItems : desktopMenuItems}
         </div>
+        <div className="ml-auto flex md:hidden items-center gap-2">
+          {mobileMenuItems}
+        </div>
       </header>
-      <AddSubscriptionDialog isOpen={isAddOpen} onOpenChange={setIsAddOpen} />
        <input
         type="file"
         id="import-json"

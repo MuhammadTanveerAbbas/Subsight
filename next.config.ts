@@ -1,6 +1,12 @@
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
+  webpack: (config) => {
+    config.ignoreWarnings = [
+      { module: /node_modules\/handlebars\/lib\/index\.js/ },
+    ];
+    return config;
+  },
   typescript: {
     ignoreBuildErrors: false,
   },

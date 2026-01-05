@@ -22,7 +22,7 @@ const steps = [
     icon: Sparkles,
   },
   {
-    title: "AI-Powered Assistant",
+    title: "AI Powered Assistant",
     description:
       "Just type a subscription name and click the sparkle icon. Our AI will auto fill all the details for you.",
     icon: Sparkles,

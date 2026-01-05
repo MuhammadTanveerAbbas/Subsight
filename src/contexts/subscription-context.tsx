@@ -8,7 +8,7 @@ import React, {
   useCallback,
   useMemo,
 } from "react";
-import type { Subscription } from "@/lib/types";
+import type { Subscription, SpendingGoal, CustomCategory, Currency } from "@/lib/types";
 import { logError } from "@/lib/error-logger";
 
 const IS_SERVER = typeof window === "undefined";
@@ -53,6 +53,16 @@ interface SubscriptionContextType {
   updateSubscription: (id: string, updates: Partial<Subscription>) => void;
   deleteSubscription: (id: string) => void;
   importSubscriptions: (newSubscriptions: Subscription[]) => void;
+  incrementUsage: (id: string) => void;
+  spendingGoals: SpendingGoal[];
+  addSpendingGoal: (goal: Omit<SpendingGoal, "id">) => void;
+  updateSpendingGoal: (id: string, updates: Partial<SpendingGoal>) => void;
+  deleteSpendingGoal: (id: string) => void;
+  customCategories: CustomCategory[];
+  addCustomCategory: (category: Omit<CustomCategory, "id">) => void;
+  deleteCustomCategory: (id: string) => void;
+  displayCurrency: Currency;
+  setDisplayCurrency: (currency: Currency) => void;
 }
 
 const SubscriptionContext = createContext<SubscriptionContextType | undefined>(
@@ -61,6 +71,9 @@ const SubscriptionContext = createContext<SubscriptionContextType | undefined>(
 
 export function SubscriptionProvider({ children }: { children: ReactNode }) {
   const [subscriptions, setSubscriptions] = useLocalStorage<Subscription[]>("subscriptions", []);
+  const [spendingGoals, setSpendingGoals] = useLocalStorage<SpendingGoal[]>("spendingGoals", []);
+  const [customCategories, setCustomCategories] = useLocalStorage<CustomCategory[]>("customCategories", []);
+  const [displayCurrency, setDisplayCurrency] = useLocalStorage<Currency>("displayCurrency", "USD");
 
   const addSubscription = useCallback(
     (subscription: Omit<Subscription, "id">) => {
@@ -99,6 +112,40 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     }
   }, [setSubscriptions]);
 
+  const incrementUsage = useCallback((id: string) => {
+    setSubscriptions((prev: Subscription[]) =>
+      prev.map((sub: Subscription) => 
+        sub.id === id 
+          ? { ...sub, usageCount: (sub.usageCount || 0) + 1, lastUsed: new Date().toISOString() }
+          : sub
+      )
+    );
+  }, [setSubscriptions]);
+
+  const addSpendingGoal = useCallback((goal: Omit<SpendingGoal, "id">) => {
+    const newGoal = { ...goal, id: crypto.randomUUID() };
+    setSpendingGoals((prev: SpendingGoal[]) => [...prev, newGoal]);
+  }, [setSpendingGoals]);
+
+  const updateSpendingGoal = useCallback((id: string, updates: Partial<SpendingGoal>) => {
+    setSpendingGoals((prev: SpendingGoal[]) =>
+      prev.map((goal: SpendingGoal) => (goal.id === id ? { ...goal, ...updates } : goal))
+    );
+  }, [setSpendingGoals]);
+
+  const deleteSpendingGoal = useCallback((id: string) => {
+    setSpendingGoals((prev: SpendingGoal[]) => prev.filter((goal: SpendingGoal) => goal.id !== id));
+  }, [setSpendingGoals]);
+
+  const addCustomCategory = useCallback((category: Omit<CustomCategory, "id">) => {
+    const newCategory = { ...category, id: crypto.randomUUID() };
+    setCustomCategories((prev: CustomCategory[]) => [...prev, newCategory]);
+  }, [setCustomCategories]);
+
+  const deleteCustomCategory = useCallback((id: string) => {
+    setCustomCategories((prev: CustomCategory[]) => prev.filter((cat: CustomCategory) => cat.id !== id));
+  }, [setCustomCategories]);
+
   const importSubscriptions = useCallback((newSubscriptions: Subscription[]) => {
     if (Array.isArray(newSubscriptions)) {
         const validSubs = newSubscriptions.filter(s => s.id && s.name && s.amount);
@@ -115,6 +162,16 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       updateSubscription,
       deleteSubscription,
       importSubscriptions,
+      incrementUsage,
+      spendingGoals,
+      addSpendingGoal,
+      updateSpendingGoal,
+      deleteSpendingGoal,
+      customCategories,
+      addCustomCategory,
+      deleteCustomCategory,
+      displayCurrency,
+      setDisplayCurrency,
     }),
     [
       subscriptions,
@@ -122,6 +179,16 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       updateSubscription,
       deleteSubscription,
       importSubscriptions,
+      incrementUsage,
+      spendingGoals,
+      addSpendingGoal,
+      updateSpendingGoal,
+      deleteSpendingGoal,
+      customCategories,
+      addCustomCategory,
+      deleteCustomCategory,
+      displayCurrency,
+      setDisplayCurrency,
     ]
   );
 

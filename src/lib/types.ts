@@ -129,6 +129,27 @@ export interface Subscription {
   notes: string;
   activeStatus: boolean;
   autoRenew: boolean;
+  usageCount?: number;
+  lastUsed?: string;
+}
+
+export interface SpendingGoal {
+  id: string;
+  type: 'monthly' | 'annual';
+  amount: number;
+  currency: Currency;
+  category?: string;
+}
+
+export interface CustomCategory {
+  id: string;
+  name: string;
+  color: string;
+  icon: string;
+}
+
+export interface CurrencyRate {
+  [key: string]: number;
 }
 
 export type SubscriptionFormData = Omit<Subscription, "id">;

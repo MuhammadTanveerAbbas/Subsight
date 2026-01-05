@@ -69,6 +69,14 @@
   body {
     @apply bg-background text-foreground;
   }
+  /* Hide scrollbar but allow scrolling */
+  html, body {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+  html::-webkit-scrollbar, body::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
 }
 
 @layer utilities {
@@ -81,6 +89,19 @@
   .animate-gradient {
     background-size: 200% 200%;
     animation: gradient 3s ease infinite;
+  }
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+  .scrollbar-thumb-zinc-700::-webkit-scrollbar-thumb {
+    background-color: #3f3f46;
+    border-radius: 4px;
+  }
+  .scrollbar-track-zinc-900::-webkit-scrollbar-track {
+    background-color: #18181b;
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
   }
   @keyframes gradient {
     0%, 100% { background-position: 0% 50%; }

@@ -1,5 +1,4 @@
 import { Dashboard } from "@/components/subsight/dashboard";
-import { SubscriptionProvider } from "@/contexts/subscription-context";
 import { OnboardingTour } from "@/components/onboarding-tour";
 import type { Metadata } from "next";
 
@@ -15,10 +14,8 @@ export const metadata: Metadata = {
 export default function DashboardPage() {
   return (
     <main>
-      <SubscriptionProvider>
-        <Dashboard />
-        <OnboardingTour />
-      </SubscriptionProvider>
+      <Dashboard />
+      <OnboardingTour />
     </main>
   );
 }

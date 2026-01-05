@@ -41,19 +41,33 @@ const summarizeSpendingPrompt = ai.definePrompt({
   name: 'summarizeSpendingPrompt',
   input: {schema: SummarizeSpendingInputSchema},
   output: {schema: SummarizeSpendingOutputSchema},
-  prompt: `You are an AI assistant that analyzes subscription data and provides a summary of spending habits.
+  prompt: `You are a financial advisor specializing in subscription management. Analyze the subscription data and provide actionable insights.
 
-  Analyze the following subscription data (provided as a JSON string):
-  {{subscriptionData}}
+  Subscription Data: {{subscriptionData}}
 
-  Provide a detailed summary of the user's spending habits, including:
-  - Key trends in spending
-  - Potential areas for savings
-  - Overall insights into their subscription expenses.
-
-  Focus on actionable insights and recommendations for the user.
-  Ensure the summary is clear, concise, and easy to understand.
-`,
+  Provide a comprehensive analysis including:
+  
+  📊 SPENDING OVERVIEW:
+  - Total monthly/annual costs
+  - Average cost per subscription
+  - Most expensive categories
+  
+  💡 KEY INSIGHTS:
+  - Spending patterns and trends
+  - Underutilized or duplicate services
+  - Seasonal or irregular charges
+  
+  💰 SAVINGS OPPORTUNITIES:
+  - Specific subscriptions to review/cancel
+  - Bundle opportunities
+  - Annual vs monthly savings potential
+  
+  🎯 RECOMMENDATIONS:
+  - Immediate actions to reduce costs
+  - Budget optimization strategies
+  - Alternative service suggestions
+  
+  Keep the summary concise (under 200 words) but actionable. Focus on concrete steps the user can take today.`,
 });
 
 const summarizeSpendingFlow = ai.defineFlow(

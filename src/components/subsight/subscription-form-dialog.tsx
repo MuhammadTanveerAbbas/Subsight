@@ -39,6 +39,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useSubscriptions } from "@/contexts/subscription-context";
+import { findDuplicates } from "@/lib/duplicates";
 import {
   BILLING_CYCLES,
   CURRENCIES,
@@ -57,6 +58,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "../ui/accordion";
+import { Alert, AlertDescription } from "../ui/alert";
+import { AlertTriangle } from "lucide-react";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -85,9 +88,10 @@ function SubscriptionForm({
   onDone: () => void;
   subscription?: Subscription;
 }) {
-  const { addSubscription, updateSubscription } = useSubscriptions();
+  const { addSubscription, updateSubscription, subscriptions } = useSubscriptions();
   const { toast } = useToast();
   const [isAiLoading, setIsAiLoading] = useState(false);
+  const [duplicateWarnings, setDuplicateWarnings] = useState<any[]>([]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -113,12 +117,29 @@ function SubscriptionForm({
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    // Check for duplicates before adding
+    if (!subscription) {
+      const formData = {
+        ...values,
+        icon: values.icon || "default",
+        notes: values.notes || "",
+        startDate: values.startDate.toISOString(),
+      };
+      const duplicates = findDuplicates(formData, subscriptions);
+      if (duplicates.length > 0) {
+        setDuplicateWarnings(duplicates);
+        return;
+      }
+    }
+
     const data: SubscriptionFormData = {
       ...values,
       icon: values.icon || "default",
       startDate: values.startDate.toISOString(),
       notes: values.notes || "",
+      usageCount: 0,
     };
+    
     if (subscription) {
       updateSubscription(subscription.id, data);
       toast({ title: "Success", description: "Subscription updated." });
@@ -183,6 +204,51 @@ function SubscriptionForm({
         onSubmit={form.handleSubmit(onSubmit)}
         className="space-y-3 sm:space-y-4"
       >
+        {/* Duplicate Warning */}
+        {duplicateWarnings.length > 0 && (
+          <Alert className="border-orange-200 bg-orange-50">
+            <AlertTriangle className="h-4 w-4 text-orange-600" />
+            <AlertDescription className="text-orange-800">
+              <div className="space-y-2">
+                <p className="font-medium">Possible duplicates found:</p>
+                {duplicateWarnings.map((dup, i) => (
+                  <p key={i} className="text-sm">
+                    • {dup.subscription.name} ({dup.reason})
+                  </p>
+                ))}
+                <div className="flex gap-2 mt-3">
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => {
+                      setDuplicateWarnings([]);
+                      const data: SubscriptionFormData = {
+                        ...form.getValues(),
+                        icon: form.getValues().icon || "default",
+                        startDate: form.getValues().startDate.toISOString(),
+                        notes: form.getValues().notes || "",
+                        usageCount: 0,
+                      };
+                      addSubscription(data);
+                      toast({ title: "Success", description: "Subscription added anyway." });
+                      onDone();
+                    }}
+                  >
+                    Add Anyway
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setDuplicateWarnings([])}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
         {/* Subscription Name with AI Fill */}
         <FormField
           control={form.control}
