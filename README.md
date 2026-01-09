@@ -1,16 +1,16 @@
 # Subsight 🎯 Subscription Tracker
 
-A modern subscription tracking app that helps you manage recurring payments with AI-powered insights. Secure cloud storage with user authentication.
+A modern subscription tracking app that helps you manage recurring payments with AI-powered insights.
 
 ## ✨ Features
 
 - 📊 **Interactive Dashboard** – Real-time spending charts and analytics
-- 🤖 **AI Assistant** – Auto-fill subscription details using Google Gemini
+- 🤖 **AI Assistant** – Auto-fill subscription details using Google Gemini (requires your own API key)
 - 🎭 **Simulation Mode** – Preview budget changes by toggling subscriptions
 - 🔄 **Import/Export** – JSON, CSV, and PDF export capabilities
 - 🔍 **Search & Filter** – Find subscriptions by name, category, or status
 - ⌨️ **Keyboard Shortcuts** – Quick actions for power users (Ctrl+E, Ctrl+S, Ctrl+P, Ctrl+R)
-- 🔒 **Secure Cloud Storage** – Data stored securely with Supabase authentication
+- 🔒 **Supabase Authentication** – Secure user authentication and data storage
 - 📱 **Fully Responsive** – Works seamlessly on all devices
 
 ## 🚀 Quick Start
@@ -38,17 +38,19 @@ Visit [http://localhost:3000](http://localhost:3000) to start tracking your subs
 Create a `.env.local` file with:
 
 ```env
-# Gemini API Key (for AI features)
+# Gemini API Key (optional - for AI features)
 GEMINI_API_KEY=your_gemini_api_key
 
-# Supabase Configuration
+# Supabase Configuration (required)
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
 **Get API keys:**
-- [Google AI Studio](https://aistudio.google.com/app/apikey) - Free Gemini API key
-- [Supabase](https://supabase.com) - Free cloud database
+- [Google AI Studio](https://aistudio.google.com/app/apikey) - Free Gemini API key (optional, for AI features)
+- [Supabase](https://supabase.com) - Free database and authentication (required)
+
+**Important:** After setting up Supabase, run the SQL commands from `supabase-setup.sql` in your Supabase SQL editor to create the required tables.
 
 ## 🛠️ Tech Stack
 
@@ -69,20 +71,22 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 - `Ctrl+R` - Reset simulation
 - `Ctrl+A` - Add subscription
 
-## 🔒 Privacy & Security
+## 🔒 Data Storage & Privacy
 
-- **Account required** - Secure authentication via Supabase
-- **Cloud storage** - Data stored securely in Supabase database
-- **Industry-standard encryption** - Your data is protected
-- **Open source** - Fully transparent codebase
+- **Account Required** - You must create an account to use Subsight
+- **Supabase Backend** - All subscription data is stored in your Supabase database
+- **Authentication** - Secure authentication via Supabase Auth
+- **Your Data** - Data is tied to your account and protected by Supabase's security
+- **Open Source** - Fully transparent codebase - you can see exactly how your data is handled
 
 ## 🚫 What Subsight Cannot Do
 
 We believe in transparency. Here are the current limitations:
 
-- ❌ **No Bank Integration** - Cannot automatically detect subscriptions from your bank
+- ❌ **No Bank Integration** - Cannot automatically detect subscriptions from your bank account
 - ❌ **No Auto-Cancellation** - Cannot cancel subscriptions for you
-- ❌ **AI Requires Setup** - You need to provide your own Google Gemini API key
+- ❌ **AI Requires Setup** - You need to provide your own Google Gemini API key for AI features
+- ❌ **Requires Supabase** - You must set up your own Supabase project to use this app
 
 ## 📝 Contributing
 
@@ -100,4 +104,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Built with ❤️ by [Muhammad Tanveer Abbas](https://muhammadtanveerabbas.vercel.app/)**
 
-**100% Free • Open Source • Secure**
+**100% Free • Open Source • Self-Hosted**

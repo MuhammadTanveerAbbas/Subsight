@@ -61,61 +61,64 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-3 sm:p-4">
       <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Target className="w-8 h-8 text-primary" />
-            <h1 className="text-3xl font-semibold tracking-tight font-headline">
+        <CardHeader className="text-center space-y-2 sm:space-y-3 px-4 sm:px-6 pt-6">
+          <div className="flex items-center justify-center gap-2 mb-2 sm:mb-4">
+            <Target className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight font-headline">
               Subsight
             </h1>
           </div>
-          <CardTitle>Create your account</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-lg sm:text-xl">Create your account</CardTitle>
+          <CardDescription className="text-xs sm:text-sm">
             Start tracking your subscriptions with AI powered insights
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="fullName">Full Name</Label>
+        <CardContent className="px-4 sm:px-6 pb-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="fullName" className="text-xs sm:text-sm">Full Name</Label>
               <Input
                 id="fullName"
                 type="text"
                 placeholder="Enter your full name"
+                className="text-sm"
                 {...register("fullName")}
                 disabled={isLoading}
               />
               {errors.fullName && (
-                <p className="text-sm text-destructive">
+                <p className="text-xs sm:text-sm text-destructive">
                   {errors.fullName.message}
                 </p>
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="email" className="text-xs sm:text-sm">Email</Label>
               <Input
                 id="email"
                 type="email"
                 placeholder="Enter your email"
+                className="text-sm"
                 {...register("email")}
                 disabled={isLoading}
               />
               {errors.email && (
-                <p className="text-sm text-destructive">
+                <p className="text-xs sm:text-sm text-destructive">
                   {errors.email.message}
                 </p>
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="password" className="text-xs sm:text-sm">Password</Label>
               <div className="relative">
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
+                  className="text-sm"
                   {...register("password")}
                   disabled={isLoading}
                 />
@@ -135,19 +138,20 @@ export default function SignUpPage() {
                 </Button>
               </div>
               {errors.password && (
-                <p className="text-sm text-destructive">
+                <p className="text-xs sm:text-sm text-destructive">
                   {errors.password.message}
                 </p>
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="confirmPassword" className="text-xs sm:text-sm">Confirm Password</Label>
               <div className="relative">
                 <Input
                   id="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
                   placeholder="Confirm your password"
+                  className="text-sm"
                   {...register("confirmPassword")}
                   disabled={isLoading}
                 />
@@ -167,18 +171,18 @@ export default function SignUpPage() {
                 </Button>
               </div>
               {errors.confirmPassword && (
-                <p className="text-sm text-destructive">
+                <p className="text-xs sm:text-sm text-destructive">
                   {errors.confirmPassword.message}
                 </p>
               )}
             </div>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button type="submit" className="w-full text-sm sm:text-base" disabled={isLoading}>
               {isLoading ? "Creating account..." : "Create account"}
             </Button>
           </form>
 
-          <div className="mt-6 text-center text-sm">
+          <div className="mt-4 sm:mt-6 text-center text-xs sm:text-sm">
             <span className="text-muted-foreground">
               Already have an account?{" "}
             </span>

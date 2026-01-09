@@ -584,17 +584,17 @@ export function AddSubscriptionDialog({
 }: SubscriptionDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-[400px] sm:max-w-md md:max-w-xl max-h-[95dvh] overflow-y-auto p-0">
-        <DialogHeader className="p-4 sm:p-6 pb-0">
-          <DialogTitle className="text-lg sm:text-xl">
+      <DialogContent className="w-[calc(100vw-2rem)] max-w-[400px] sm:max-w-md md:max-w-xl max-h-[90vh] overflow-y-auto p-0">
+        <DialogHeader className="p-4 sm:p-6 pb-2 sm:pb-3">
+          <DialogTitle className="text-base sm:text-lg md:text-xl">
             Add Subscription
           </DialogTitle>
-          <DialogDescription className="text-sm text-muted-foreground">
+          <DialogDescription className="text-xs sm:text-sm text-muted-foreground">
             Enter the details of your subscription below. Use the magic wand to
             autofill with AI.
           </DialogDescription>
         </DialogHeader>
-        <div className="p-4 sm:p-6 pt-0">
+        <div className="p-4 sm:p-6 pt-2">
           <SubscriptionForm onDone={() => onOpenChange(false)} />
         </div>
       </DialogContent>
@@ -609,16 +609,16 @@ export function EditSubscriptionDialog({
 }: Required<SubscriptionDialogProps>) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-[400px] sm:max-w-md md:max-w-xl max-h-[95dvh] overflow-y-auto p-0">
-        <DialogHeader className="p-4 sm:p-6 pb-0">
-          <DialogTitle className="text-lg sm:text-xl">
+      <DialogContent className="w-[calc(100vw-2rem)] max-w-[400px] sm:max-w-md md:max-w-xl max-h-[90vh] overflow-y-auto p-0">
+        <DialogHeader className="p-4 sm:p-6 pb-2 sm:pb-3">
+          <DialogTitle className="text-base sm:text-lg md:text-xl">
             Edit Subscription
           </DialogTitle>
-          <DialogDescription className="text-sm text-muted-foreground">
+          <DialogDescription className="text-xs sm:text-sm text-muted-foreground">
             Update the details of your subscription.
           </DialogDescription>
         </DialogHeader>
-        <div className="p-4 sm:p-6 pt-0">
+        <div className="p-4 sm:p-6 pt-2">
           <SubscriptionForm
             onDone={() => onOpenChange(false)}
             subscription={subscription}

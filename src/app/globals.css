@@ -22,7 +22,7 @@
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 20%;
     --input: 0 0% 20%;
-    --ring: 142 76% 36%;
+    --ring: 0 0% 30%;
     --radius: 0.5rem;
     --chart-1: 142 76% 36%;
     --chart-2: 173 58% 39%;
@@ -50,7 +50,7 @@
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 20%;
     --input: 0 0% 20%;
-    --ring: 142 76% 36%;
+    --ring: 0 0% 30%;
     --chart-1: 142 76% 36%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
@@ -68,6 +68,14 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+  /* Remove colored focus rings from all inputs */
+  input:focus,
+  textarea:focus,
+  select:focus,
+  button:focus {
+    outline: none;
+    box-shadow: none;
   }
   /* Hide scrollbar but allow scrolling */
   html, body {

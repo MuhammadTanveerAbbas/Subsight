@@ -2,6 +2,8 @@
 
 import { createContext, useContext, useEffect, useState } from 'react'
 import { useToast } from '@/hooks/use-toast'
+import { supabase } from '@/lib/supabase'
+import type { User as SupabaseUser } from '@supabase/supabase-js'
 
 interface User {
   id: string
@@ -35,54 +37,70 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { toast } = useToast()
 
   useEffect(() => {
-    // Check for existing session in localStorage
-    const savedUser = localStorage.getItem('subsight_user')
-    const savedProfile = localStorage.getItem('subsight_profile')
-    
-    if (savedUser) {
-      setUser(JSON.parse(savedUser))
-    }
-    if (savedProfile) {
-      setProfile(JSON.parse(savedProfile))
-    }
-    setLoading(false)
+    // Check active session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser({ id: session.user.id, email: session.user.email! })
+        fetchProfile(session.user.id)
+      }
+      setLoading(false)
+    })
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser({ id: session.user.id, email: session.user.email! })
+        fetchProfile(session.user.id)
+      } else {
+        setUser(null)
+        setProfile(null)
+      }
+    })
+
+    return () => subscription.unsubscribe()
   }, [])
 
+  const fetchProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single()
 
+      if (error && error.code !== 'PGRST116') throw error
+      if (data) setProfile(data)
+    } catch (error: any) {
+      console.error('Error fetching profile:', error.message)
+    }
+  }
 
   const signUp = async (email: string, password: string, fullName: string) => {
     try {
-      // Check if user already exists
-      const existingUsers = JSON.parse(localStorage.getItem('subsight_users') || '[]')
-      if (existingUsers.find((u: any) => u.email === email)) {
-        throw new Error('User already exists')
-      }
-
-      const userId = crypto.randomUUID()
-      const newUser = { id: userId, email }
-      const newProfile = {
-        id: userId,
-        full_name: fullName,
-        avatar_url: null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }
-
-      // Store user credentials (in real app, hash password)
-      existingUsers.push({ ...newUser, password })
-      localStorage.setItem('subsight_users', JSON.stringify(existingUsers))
-      
-      // Store user session
-      localStorage.setItem('subsight_user', JSON.stringify(newUser))
-      localStorage.setItem('subsight_profile', JSON.stringify(newProfile))
-      
-      setUser(newUser)
-      setProfile(newProfile)
-
-      toast({
-        title: 'Success',
-        description: 'Account created successfully!',
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
       })
+
+      if (error) throw error
+
+      if (data.user) {
+        // Create profile
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            id: data.user.id,
+            full_name: fullName,
+            avatar_url: null,
+          })
+
+        if (profileError) throw profileError
+
+        toast({
+          title: 'Success',
+          description: 'Account created successfully!',
+        })
+      }
     } catch (error: any) {
       toast({
         variant: 'destructive',
@@ -95,24 +113,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const existingUsers = JSON.parse(localStorage.getItem('subsight_users') || '[]')
-      const user = existingUsers.find((u: any) => u.email === email && u.password === password)
-      
-      if (!user) {
-        throw new Error('Invalid email or password')
-      }
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
 
-      const userSession = { id: user.id, email: user.email }
-      const profiles = JSON.parse(localStorage.getItem('subsight_profiles') || '[]')
-      const userProfile = profiles.find((p: any) => p.id === user.id)
-      
-      localStorage.setItem('subsight_user', JSON.stringify(userSession))
-      if (userProfile) {
-        localStorage.setItem('subsight_profile', JSON.stringify(userProfile))
-        setProfile(userProfile)
-      }
-      
-      setUser(userSession)
+      if (error) throw error
 
       toast({
         title: 'Success',
@@ -130,8 +136,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     try {
-      localStorage.removeItem('subsight_user')
-      localStorage.removeItem('subsight_profile')
+      const { error } = await supabase.auth.signOut()
+      if (error) throw error
+
       setUser(null)
       setProfile(null)
 
@@ -150,16 +157,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const updateProfile = async (updates: { full_name?: string; avatar_url?: string }) => {
     try {
-      if (!user || !profile) throw new Error('No user logged in')
+      if (!user) throw new Error('No user logged in')
 
-      const updatedProfile = {
-        ...profile,
-        ...updates,
-        updated_at: new Date().toISOString(),
-      }
+      const { error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', user.id)
 
-      localStorage.setItem('subsight_profile', JSON.stringify(updatedProfile))
-      setProfile(updatedProfile)
+      if (error) throw error
+
+      await fetchProfile(user.id)
       
       toast({
         title: 'Success',

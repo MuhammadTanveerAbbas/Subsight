@@ -20,7 +20,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { summarizeSpending } from "@/ai/flows/summarize-spending";
 import Link from "next/link";
-import { Target } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export function AppHeader() {
@@ -297,10 +296,14 @@ export function AppHeader() {
 
   return (
     <>
-      <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 md:px-8">
+      <header className="sticky top-0 z-30 flex h-14 sm:h-16 items-center gap-3 sm:gap-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 px-3 sm:px-4 md:px-6 lg:px-8">
         <Link href="/" className="flex items-center gap-2">
-          <Target className="w-6 h-6 text-primary" />
-          <h1 className="text-2xl font-semibold tracking-tight font-headline">Subsight</h1>
+          <div className="relative w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center flex-shrink-0">
+            <div className="absolute inset-0 rounded-full border-2 border-primary"></div>
+            <div className="absolute inset-[5px] rounded-full border-[1.5px] border-primary"></div>
+            <div className="absolute inset-[10px] rounded-full bg-primary"></div>
+          </div>
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight font-headline">Subsight</h1>
         </Link>
         <div className="ml-auto hidden md:flex items-center gap-2">
           {isMobile ? mobileMenuItems : desktopMenuItems}

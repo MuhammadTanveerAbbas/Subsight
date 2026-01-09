@@ -172,23 +172,23 @@ export default function AddSubscriptionPage() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <div className="flex flex-col lg:flex-row h-screen">
+      <div className="flex flex-col lg:flex-row lg:h-screen">
         {/* Form Section */}
         <div className="flex-1 lg:w-2/3 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-zinc-900">
-          <div className="max-w-3xl mx-auto p-4 sm:p-6 lg:p-12">
-            <div className="mb-8">
+          <div className="max-w-3xl mx-auto p-3 sm:p-4 md:p-6 lg:p-12 pb-6 sm:pb-8">
+            <div className="mb-6 sm:mb-8">
               <Button
                 variant="ghost"
                 onClick={() => router.push("/dashboard")}
-                className="mb-6 text-gray-400 hover:text-white"
+                className="mb-4 sm:mb-6 text-gray-400 hover:text-white text-sm"
               >
-                <ArrowLeft className="mr-2 h-4 w-4" />
+                <ArrowLeft className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 Back to Dashboard
               </Button>
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2">
+              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-2">
                 Add Subscription
               </h1>
-              <p className="text-sm sm:text-base text-gray-400">
+              <p className="text-xs sm:text-sm md:text-base text-gray-400">
                 Track your recurring payments with AI powered insights
               </p>
             </div>
@@ -196,7 +196,7 @@ export default function AddSubscriptionPage() {
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-4 sm:space-y-6"
+                className="space-y-3 sm:space-y-4 md:space-y-6"
               >
                 {duplicateWarnings.length > 0 && (
                   <Alert className="border-orange-500 bg-orange-950/50">
@@ -255,13 +255,13 @@ export default function AddSubscriptionPage() {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Subscription Name</FormLabel>
+                      <FormLabel className="text-sm">Subscription Name</FormLabel>
                       <div className="flex gap-2">
                         <FormControl>
                           <Input
                             placeholder="e.g. Netflix"
                             {...field}
-                            className="bg-zinc-900 border-zinc-800 h-10 sm:h-12"
+                            className="bg-zinc-900 border-zinc-800 h-9 sm:h-10 md:h-12 text-sm"
                           />
                         </FormControl>
                         <Button
@@ -269,7 +269,7 @@ export default function AddSubscriptionPage() {
                           variant="outline"
                           onClick={handleAiFill}
                           disabled={isAiLoading}
-                          className="h-10 sm:h-12 px-3 sm:px-4 bg-zinc-900 border-zinc-800 hover:bg-zinc-800"
+                          className="h-9 sm:h-10 md:h-12 px-2.5 sm:px-3 md:px-4 bg-zinc-900 border-zinc-800 hover:bg-zinc-800"
                         >
                           {isAiLoading ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -288,7 +288,7 @@ export default function AddSubscriptionPage() {
                   name="icon"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Icon</FormLabel>
+                      <FormLabel className="text-sm">Icon</FormLabel>
                       <FormControl>
                         <RadioGroup
                           onValueChange={field.onChange}
@@ -302,11 +302,11 @@ export default function AddSubscriptionPage() {
                                   key={category}
                                   className="border-zinc-800"
                                 >
-                                  <AccordionTrigger className="hover:no-underline text-gray-300">
+                                  <AccordionTrigger className="hover:no-underline text-gray-300 text-sm py-3">
                                     {category}
                                   </AccordionTrigger>
                                   <AccordionContent>
-                                    <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2">
+                                    <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-1.5 sm:gap-2">
                                       {Object.entries(icons).map(
                                         ([key, IconComp]) => (
                                           <FormItem
@@ -326,13 +326,13 @@ export default function AddSubscriptionPage() {
                                             >
                                               <div
                                                 className={cn(
-                                                  "p-3 rounded-lg border-2 transition-all",
+                                                  "p-2 sm:p-3 rounded-lg border-2 transition-all",
                                                   field.value === key
                                                     ? "border-primary bg-primary/20"
                                                     : "border-zinc-800 hover:bg-zinc-900"
                                                 )}
                                               >
-                                                <IconComp className="w-6 h-6" />
+                                                <IconComp className="w-5 h-5 sm:w-6 sm:h-6" />
                                               </div>
                                             </FormLabel>
                                           </FormItem>
@@ -357,12 +357,12 @@ export default function AddSubscriptionPage() {
                     name="provider"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Provider</FormLabel>
+                        <FormLabel className="text-sm">Provider</FormLabel>
                         <FormControl>
                           <Input
                             placeholder="e.g. Netflix, Inc."
                             {...field}
-                            className="bg-zinc-900 border-zinc-800 h-10 sm:h-12"
+                            className="bg-zinc-900 border-zinc-800 h-9 sm:h-10 md:h-12 text-sm"
                           />
                         </FormControl>
                         <FormMessage />
@@ -374,12 +374,12 @@ export default function AddSubscriptionPage() {
                     name="category"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Category</FormLabel>
+                        <FormLabel className="text-sm">Category</FormLabel>
                         <FormControl>
                           <Input
                             placeholder="e.g. Entertainment"
                             {...field}
-                            className="bg-zinc-900 border-zinc-800 h-10 sm:h-12"
+                            className="bg-zinc-900 border-zinc-800 h-9 sm:h-10 md:h-12 text-sm"
                           />
                         </FormControl>
                         <FormMessage />
@@ -394,13 +394,13 @@ export default function AddSubscriptionPage() {
                     name="amount"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Amount</FormLabel>
+                        <FormLabel className="text-sm">Amount</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
                             step="0.01"
                             {...field}
-                            className="bg-zinc-900 border-zinc-800 h-10 sm:h-12"
+                            className="bg-zinc-900 border-zinc-800 h-9 sm:h-10 md:h-12 text-sm"
                           />
                         </FormControl>
                         <FormMessage />
@@ -412,13 +412,13 @@ export default function AddSubscriptionPage() {
                     name="currency"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Currency</FormLabel>
+                        <FormLabel className="text-sm">Currency</FormLabel>
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value}
                         >
                           <FormControl>
-                            <SelectTrigger className="bg-zinc-900 border-zinc-800 h-10 sm:h-12">
+                            <SelectTrigger className="bg-zinc-900 border-zinc-800 h-9 sm:h-10 md:h-12 text-sm">
                               <SelectValue />
                             </SelectTrigger>
                           </FormControl>
@@ -439,13 +439,13 @@ export default function AddSubscriptionPage() {
                     name="billingCycle"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Cycle</FormLabel>
+                        <FormLabel className="text-sm">Cycle</FormLabel>
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value}
                         >
                           <FormControl>
-                            <SelectTrigger className="bg-zinc-900 border-zinc-800 h-10 sm:h-12">
+                            <SelectTrigger className="bg-zinc-900 border-zinc-800 h-9 sm:h-10 md:h-12 text-sm">
                               <SelectValue />
                             </SelectTrigger>
                           </FormControl>
@@ -472,14 +472,14 @@ export default function AddSubscriptionPage() {
                   name="startDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Start Date</FormLabel>
+                      <FormLabel className="text-sm">Start Date</FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button
                               variant="outline"
                               className={cn(
-                                "w-full justify-start text-left font-normal h-10 sm:h-12 bg-zinc-900 border-zinc-800",
+                                "w-full justify-start text-left font-normal h-9 sm:h-10 md:h-12 bg-zinc-900 border-zinc-800 text-sm",
                                 !field.value && "text-muted-foreground"
                               )}
                             >
@@ -517,12 +517,12 @@ export default function AddSubscriptionPage() {
                   name="notes"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Notes</FormLabel>
+                      <FormLabel className="text-sm">Notes</FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder="Any notes about this subscription..."
                           {...field}
-                          className="min-h-[80px] sm:min-h-[100px] bg-zinc-900 border-zinc-800 resize-none"
+                          className="min-h-[70px] sm:min-h-[80px] md:min-h-[100px] bg-zinc-900 border-zinc-800 resize-none text-sm"
                         />
                       </FormControl>
                       <FormMessage />
@@ -530,13 +530,13 @@ export default function AddSubscriptionPage() {
                   )}
                 />
 
-                <div className="flex gap-4">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                   <FormField
                     control={form.control}
                     name="activeStatus"
                     render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border border-zinc-800 p-4 flex-1 bg-zinc-900">
-                        <FormLabel className="font-normal">Active</FormLabel>
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border border-zinc-800 p-3 sm:p-4 flex-1 bg-zinc-900">
+                        <FormLabel className="font-normal text-sm">Active</FormLabel>
                         <FormControl>
                           <Switch
                             checked={field.value}
@@ -550,8 +550,8 @@ export default function AddSubscriptionPage() {
                     control={form.control}
                     name="autoRenew"
                     render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border border-zinc-800 p-4 flex-1 bg-zinc-900">
-                        <FormLabel className="font-normal">
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border border-zinc-800 p-3 sm:p-4 flex-1 bg-zinc-900">
+                        <FormLabel className="font-normal text-sm">
                           Auto Renew
                         </FormLabel>
                         <FormControl>
@@ -565,7 +565,7 @@ export default function AddSubscriptionPage() {
                   />
                 </div>
 
-                <Button type="submit" className="w-full h-12 text-base">
+                <Button type="submit" className="w-full h-10 sm:h-11 md:h-12 text-sm sm:text-base">
                   Add Subscription
                 </Button>
               </form>

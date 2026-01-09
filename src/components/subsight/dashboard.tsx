@@ -88,32 +88,34 @@ export function Dashboard() {
   );
 
   return (
-    <div className="min-h-screen w-full">
+    <div className="min-h-screen w-full flex flex-col">
       <AppHeader />
-      <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
-        <KpiGrid
-          subscriptions={subscriptions}
-          simulatedSubscriptions={simulatedSubscriptions}
-        />
-        <ChartsGrid subscriptions={simulatedSubscriptions} />
-        <SubscriptionsTable
-          subscriptions={subscriptions}
-          simulation={simulation}
-          setSimulation={setSimulation}
-        />
-        
-        {/* Keyboard shortcuts help */}
-        <div className="hidden md:block text-xs text-muted-foreground mt-4 p-3 bg-muted/30 rounded-md">
-          <div className="flex items-center">
-            <svg className="w-4 h-4 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-            <div className="flex-1 flex justify-between">
-              <span>Ctrl+E: Export JSON</span>
-              <span>Ctrl+S: Export CSV</span>
-              <span>Ctrl+P: Export PDF</span>
-              <span>Ctrl+R: Reset Simulation</span>
-              <span>Ctrl+A: Add Subscription</span>
+      <main className="flex-1 p-3 sm:p-4 md:p-6 lg:p-8 max-w-[1600px] mx-auto w-full">
+        <div className="space-y-4 sm:space-y-6 md:space-y-8">
+          <KpiGrid
+            subscriptions={subscriptions}
+            simulatedSubscriptions={simulatedSubscriptions}
+          />
+          <ChartsGrid subscriptions={simulatedSubscriptions} />
+          <SubscriptionsTable
+            subscriptions={subscriptions}
+            simulation={simulation}
+            setSimulation={setSimulation}
+          />
+          
+          {/* Keyboard shortcuts help */}
+          <div className="hidden lg:block text-xs text-muted-foreground p-3 sm:p-4 bg-muted/20 rounded-lg border border-border/50">
+            <div className="flex items-center gap-2">
+              <svg className="w-4 h-4 text-primary flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              <div className="flex flex-wrap gap-x-6 gap-y-1">
+                <span className="whitespace-nowrap"><kbd className="px-1.5 py-0.5 text-xs bg-muted rounded">Ctrl+E</kbd> Export JSON</span>
+                <span className="whitespace-nowrap"><kbd className="px-1.5 py-0.5 text-xs bg-muted rounded">Ctrl+S</kbd> Export CSV</span>
+                <span className="whitespace-nowrap"><kbd className="px-1.5 py-0.5 text-xs bg-muted rounded">Ctrl+P</kbd> Export PDF</span>
+                <span className="whitespace-nowrap"><kbd className="px-1.5 py-0.5 text-xs bg-muted rounded">Ctrl+R</kbd> Reset Simulation</span>
+                <span className="whitespace-nowrap"><kbd className="px-1.5 py-0.5 text-xs bg-muted rounded">Ctrl+A</kbd> Add Subscription</span>
+              </div>
             </div>
           </div>
         </div>
