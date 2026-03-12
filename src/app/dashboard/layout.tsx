@@ -1,5 +1,6 @@
 import { SubscriptionProvider } from "@/contexts/subscription-context";
 import { ProtectedRoute } from "@/components/protected-route";
+import { UpgradePromptGate } from "@/components/subsight/upgrade-prompt-gate";
 
 export default function DashboardLayout({
   children,
@@ -10,6 +11,7 @@ export default function DashboardLayout({
     <ProtectedRoute>
       <SubscriptionProvider>
         {children}
+        <UpgradePromptGate />
       </SubscriptionProvider>
     </ProtectedRoute>
   );

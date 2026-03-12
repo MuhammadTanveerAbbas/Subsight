@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { SettingsDialog } from "@/components/subsight/settings-dialog";
-import { FileDown, FileUp, PlusCircle, Sparkles, MoreVertical, Settings, LogOut, User } from "lucide-react";
+import { FileDown, FileUp, PlusCircle, Sparkles, MoreVertical, Settings, LogOut, User, Lock, Keyboard } from "lucide-react";
 import { useSubscriptions } from "@/contexts/subscription-context";
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/hooks/use-toast";
@@ -18,17 +18,18 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { summarizeSpending } from "@/ai/flows/summarize-spending";
 import Link from "next/link";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export function AppHeader() {
   const router = useRouter();
-  const { subscriptions, importSubscriptions, incrementUsage } = useSubscriptions();
+  const { subscriptions, importSubscriptions, incrementUsage, showUpgradePrompt } = useSubscriptions();
   const { user, profile, signOut } = useAuth();
   const { toast } = useToast();
   const [isSummarizing, setIsSummarizing] = useState(false);
   const isMobile = useIsMobile();
+  const isPro = profile?.subscription_tier === "pro";
 
   const getInitials = (name: string) => {
     return name
@@ -85,6 +86,11 @@ export function AppHeader() {
   };
 
   const handleSummarize = async () => {
+    if (!isPro) {
+      showUpgradePrompt("AI spending analysis is available on the Pro plan.");
+      return;
+    }
+
     if (subscriptions.length === 0) {
       toast({
         variant: "destructive",
@@ -95,7 +101,20 @@ export function AppHeader() {
     }
     setIsSummarizing(true);
     try {
-      const result = await summarizeSpending({subscriptionData: JSON.stringify(subscriptions)});
+      const res = await fetch("/api/ai/summary", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subscriptions: subscriptions.map((s) => ({
+            name: s.name,
+            amount: s.amount,
+            billingCycle: s.billingCycle,
+            category: s.category,
+          })),
+        }),
+      });
+      if (!res.ok) throw new Error("AI request failed");
+      const result = await res.json();
       toast({
         title: "AI Spending Summary",
         description: result.summary,
@@ -113,11 +132,11 @@ export function AppHeader() {
   }
 
   const handleExport = (format: 'json' | 'csv' | 'pdf') => {
-    if (subscriptions.length === 0) {
+    if (!subscriptions || subscriptions.length === 0) {
       toast({
         variant: "destructive",
-        title: "No subscriptions",
-        description: "There are no subscriptions to export.",
+        title: 'Nothing to export',
+        description: 'Add some subscriptions first.',
       });
       return;
     }
@@ -156,10 +175,31 @@ export function AppHeader() {
   const desktopMenuItems = (
     <>
       <SettingsDialog />
-      <Button variant="outline" onClick={handleSummarize} disabled={isSummarizing || subscriptions.length === 0}>
-        <Sparkles className="mr-2 h-4 w-4" />
-        {isSummarizing ? "Analyzing..." : "AI Summary"}
-      </Button>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span>
+              <Button
+                variant="outline"
+                onClick={handleSummarize}
+                disabled={isSummarizing || subscriptions.length === 0}
+              >
+                {isPro ? (
+                  <Sparkles className="mr-2 h-4 w-4" />
+                ) : (
+                  <Lock className="mr-2 h-4 w-4" />
+                )}
+                {isSummarizing ? "Analyzing..." : "AI Summary"}
+              </Button>
+            </span>
+          </TooltipTrigger>
+          {!isPro && (
+            <TooltipContent>
+              <p>Pro feature</p>
+            </TooltipContent>
+          )}
+        </Tooltip>
+      </TooltipProvider>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline">
@@ -180,6 +220,39 @@ export function AppHeader() {
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           {renderExportOptions()}
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="sm" className="gap-2">
+            <Keyboard className="w-4 h-4" />
+            Shortcuts
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          <div className="px-2 py-1.5 text-sm font-semibold">Export</div>
+          <DropdownMenuItem onSelect={() => handleExport('json')} disabled={subscriptions.length === 0}>
+            <FileDown className="mr-2 h-4 w-4" />
+            <span>JSON</span>
+            <span className="ml-auto text-xs text-muted-foreground">Ctrl+E</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => handleExport('csv')} disabled={subscriptions.length === 0}>
+            <FileDown className="mr-2 h-4 w-4" />
+            <span>CSV</span>
+            <span className="ml-auto text-xs text-muted-foreground">Ctrl+S</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => handleExport('pdf')} disabled={subscriptions.length === 0}>
+            <FileDown className="mr-2 h-4 w-4" />
+            <span>PDF</span>
+            <span className="ml-auto text-xs text-muted-foreground">Ctrl+P</span>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <div className="px-2 py-1.5 text-sm font-semibold">Actions</div>
+          <DropdownMenuItem onSelect={() => handleAddClick}>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            <span>Add Subscription</span>
+            <span className="ml-auto text-xs text-muted-foreground">Ctrl+A</span>
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
       <Button onClick={handleAddClick}>
@@ -242,8 +315,15 @@ export function AppHeader() {
             <PlusCircle className="mr-2 h-4 w-4" />
             Add Subscription
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleSummarize} disabled={isSummarizing || subscriptions.length === 0}>
-            <Sparkles className="mr-2 h-4 w-4" />
+          <DropdownMenuItem
+            onClick={handleSummarize}
+            disabled={isSummarizing || subscriptions.length === 0}
+          >
+            {isPro ? (
+              <Sparkles className="mr-2 h-4 w-4" />
+            ) : (
+              <Lock className="mr-2 h-4 w-4" />
+            )}
             {isSummarizing ? "Analyzing..." : "AI Summary"}
           </DropdownMenuItem>
           <DropdownMenuSeparator />

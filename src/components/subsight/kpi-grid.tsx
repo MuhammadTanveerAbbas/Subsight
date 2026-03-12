@@ -20,11 +20,7 @@ const calculateTotals = (subs: Subscription[]) => {
     .reduce((sum, s) => sum + s.amount, 0);
 
   const oneTime = activeSubs
-    .filter(
-      (s) =>
-        s.billingCycle === "one-time" &&
-        new Date(s.startDate).getFullYear() === new Date().getFullYear()
-    )
+    .filter((s) => s.billingCycle === "one-time")
     .reduce((sum, s) => sum + s.amount, 0);
 
   return {
@@ -38,8 +34,10 @@ export function KpiGrid({ subscriptions, simulatedSubscriptions }: KpiGridProps)
   const originalTotals = useMemo(() => calculateTotals(subscriptions), [subscriptions]);
   const simulatedTotals = useMemo(() => calculateTotals(simulatedSubscriptions), [simulatedSubscriptions]);
 
-  const deltaMonthly = simulatedTotals.monthly - originalTotals.monthly;
-  const deltaYearly = simulatedTotals.yearly - originalTotals.yearly;
+  const round2 = (value: number) => Math.round(value * 100) / 100;
+
+  const deltaMonthly = round2(simulatedTotals.monthly - originalTotals.monthly);
+  const deltaYearly = round2(simulatedTotals.yearly - originalTotals.yearly);
   const currency = subscriptions[0]?.currency || 'USD';
 
 
@@ -48,7 +46,7 @@ export function KpiGrid({ subscriptions, simulatedSubscriptions }: KpiGridProps)
       <KpiCard title="Active Subscriptions" value={simulatedTotals.count.toString()} />
       <KpiCard
         title="Monthly Cost"
-        value={simulatedTotals.monthly.toLocaleString("en-US", {
+        value={round2(simulatedTotals.monthly).toLocaleString("en-US", {
           style: "currency",
           currency: currency,
         })}
@@ -56,7 +54,7 @@ export function KpiGrid({ subscriptions, simulatedSubscriptions }: KpiGridProps)
         deltaType={deltaMonthly > 0 ? "increase" : "decrease"}
         deltaText={
           deltaMonthly !== 0
-            ? `${deltaMonthly.toLocaleString("en-US", {
+            ? `${round2(deltaMonthly).toLocaleString("en-US", {
                 style: "currency",
                 currency: currency,
               })} from original`
@@ -65,7 +63,7 @@ export function KpiGrid({ subscriptions, simulatedSubscriptions }: KpiGridProps)
       />
       <KpiCard
         title="Annual Cost"
-        value={simulatedTotals.yearly.toLocaleString("en-US", {
+        value={round2(simulatedTotals.yearly).toLocaleString("en-US", {
           style: "currency",
           currency: currency,
         })}
@@ -73,7 +71,7 @@ export function KpiGrid({ subscriptions, simulatedSubscriptions }: KpiGridProps)
         deltaType={deltaYearly > 0 ? "increase" : "decrease"}
         deltaText={
           deltaYearly !== 0
-            ? `${deltaYearly.toLocaleString("en-US", {
+            ? `${round2(deltaYearly).toLocaleString("en-US", {
                 style: "currency",
                 currency: currency,
               })} from original`
@@ -82,12 +80,12 @@ export function KpiGrid({ subscriptions, simulatedSubscriptions }: KpiGridProps)
       />
       <KpiCard 
         title="Potential Savings"
-        value={(-deltaYearly).toLocaleString("en-US", {
+        value={round2(-deltaYearly).toLocaleString("en-US", {
           style: "currency",
           currency: currency,
         })}
-        delta={-deltaYearly}
-        deltaType={-deltaYearly > 0 ? "increase" : "decrease"}
+        delta={round2(-deltaYearly)}
+        deltaType={round2(-deltaYearly) > 0 ? "increase" : "decrease"}
         deltaText="Per year by deactivating"
       />
     </div>

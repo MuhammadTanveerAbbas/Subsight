@@ -1,59 +1,59 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { format } from "date-fns";
-import { CalendarIcon, Loader2, Sparkles, ArrowLeft } from "lucide-react";
-import { cn } from "@/lib/utils";
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import { Card } from "@/components/ui/card";
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
 } from "@/components/ui/popover";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useAuth } from "@/contexts/auth-context";
 import { useSubscriptions } from "@/contexts/subscription-context";
+import { useToast } from "@/hooks/use-toast";
 import { findDuplicates } from "@/lib/duplicates";
 import {
-  BILLING_CYCLES,
-  CURRENCIES,
-  SubscriptionFormData,
-  ICON_CATEGORIES,
-  CATEGORY_ICONS,
+    BILLING_CYCLES,
+    CATEGORY_ICONS,
+    CURRENCIES,
+    ICON_CATEGORIES,
+    SubscriptionFormData,
 } from "@/lib/types";
-import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
-import { getSubscriptionDetails } from "@/ai/flows/subscription-assistant";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertTriangle } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
+import { AlertTriangle, ArrowLeft, CalendarIcon, Loader2, Lock, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Card } from "@/components/ui/card";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -71,10 +71,12 @@ const formSchema = z.object({
 
 export default function AddSubscriptionPage() {
   const router = useRouter();
-  const { addSubscription, subscriptions } = useSubscriptions();
+  const { addSubscription, subscriptions, showUpgradePrompt } = useSubscriptions();
+  const { profile } = useAuth();
   const { toast } = useToast();
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [duplicateWarnings, setDuplicateWarnings] = useState<any[]>([]);
+  const isPro = profile?.subscription_tier === "pro";
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -113,12 +115,27 @@ export default function AddSubscriptionPage() {
       usageCount: 0,
     };
 
-    addSubscription(data);
-    toast({ title: "Success", description: "Subscription added." });
-    router.push("/dashboard");
+    try {
+      await addSubscription(data);
+      toast({ title: "Success", description: "Subscription added." });
+      router.push("/dashboard");
+    } catch (e: any) {
+      if (e?.upgrade) return;
+      const errorMessage = e?.message || "Failed to add subscription";
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: errorMessage,
+      });
+    }
   }
 
   const handleAiFill = async () => {
+    if (!isPro) {
+      showUpgradePrompt("AI auto fill is available on the Pro plan.");
+      return;
+    }
+
     const name = form.getValues("name");
     if (!name) {
       toast({
@@ -130,22 +147,26 @@ export default function AddSubscriptionPage() {
     }
     setIsAiLoading(true);
     try {
-      const details = await getSubscriptionDetails({ subscriptionName: name });
-      form.setValue("provider", details.provider, { shouldValidate: true });
-      form.setValue("category", details.category, { shouldValidate: true });
-      form.setValue("amount", details.amount, { shouldValidate: true });
-      form.setValue("currency", details.currency as any, {
-        shouldValidate: true,
+      const res = await fetch("/api/ai/autofill", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
       });
-      form.setValue("billingCycle", details.billingCycle as any, {
-        shouldValidate: true,
-      });
-      form.setValue("startDate", new Date(details.startDate), {
-        shouldValidate: true,
-      });
-      form.setValue("autoRenew", details.autoRenew, { shouldValidate: true });
+      if (!res.ok) throw new Error("AI request failed");
+      const details = await res.json();
 
-      const categoryLower = details.category.toLowerCase();
+      form.setValue("provider", details.provider || "", { shouldValidate: true });
+      form.setValue("category", details.category || "", { shouldValidate: true });
+      form.setValue("amount", Number(details.amount) || 0, { shouldValidate: true });
+      form.setValue("currency", (details.currency || "USD") as any, {
+        shouldValidate: true,
+      });
+      form.setValue("billingCycle", (details.billingCycle || "monthly") as any, {
+        shouldValidate: true,
+      });
+      form.setValue("autoRenew", Boolean(details.autoRenew), { shouldValidate: true });
+
+      const categoryLower = String(details.category || "").toLowerCase();
       const matchedIcon = Object.keys(CATEGORY_ICONS).find((key) =>
         categoryLower.includes(key)
       );
@@ -172,10 +193,10 @@ export default function AddSubscriptionPage() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <div className="flex flex-col lg:flex-row lg:h-screen">
+      <div className="flex flex-col lg:flex-row h-screen">
         {/* Form Section */}
-        <div className="flex-1 lg:w-2/3 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-zinc-900">
-          <div className="max-w-3xl mx-auto p-3 sm:p-4 md:p-6 lg:p-12 pb-6 sm:pb-8">
+        <div className="flex-1 lg:w-2/3 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-zinc-900 h-screen lg:h-auto">
+          <div className="max-w-3xl mx-auto p-3 sm:p-4 md:p-6 lg:p-12 pb-20 sm:pb-24">
             <div className="mb-6 sm:mb-8">
               <Button
                 variant="ghost"
@@ -226,12 +247,24 @@ export default function AddSubscriptionPage() {
                                 notes: form.getValues().notes || "",
                                 usageCount: 0,
                               };
-                              addSubscription(data);
-                              toast({
-                                title: "Success",
-                                description: "Subscription added.",
-                              });
-                              router.push("/dashboard");
+                              (async () => {
+                                try {
+                                  await addSubscription(data);
+                                  toast({
+                                    title: "Success",
+                                    description: "Subscription added.",
+                                  });
+                                  router.push("/dashboard");
+                                } catch (e: any) {
+                                  if (e?.upgrade) return;
+                                  const errorMessage = e?.message || "Failed to add subscription";
+                                  toast({
+                                    variant: "destructive",
+                                    title: "Error",
+                                    description: errorMessage,
+                                  });
+                                }
+                              })();
                             }}
                           >
                             Add Anyway
@@ -271,11 +304,26 @@ export default function AddSubscriptionPage() {
                           disabled={isAiLoading}
                           className="h-9 sm:h-10 md:h-12 px-2.5 sm:px-3 md:px-4 bg-zinc-900 border-zinc-800 hover:bg-zinc-800"
                         >
-                          {isAiLoading ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <Sparkles className="h-4 w-4" />
-                          )}
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="inline-flex">
+                                  {isAiLoading ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : isPro ? (
+                                    <Sparkles className="h-4 w-4" />
+                                  ) : (
+                                    <Lock className="h-4 w-4" />
+                                  )}
+                                </span>
+                              </TooltipTrigger>
+                              {!isPro && (
+                                <TooltipContent>
+                                  <p>Pro feature</p>
+                                </TooltipContent>
+                              )}
+                            </Tooltip>
+                          </TooltipProvider>
                         </Button>
                       </div>
                       <FormMessage />
@@ -565,17 +613,19 @@ export default function AddSubscriptionPage() {
                   />
                 </div>
 
-                <Button type="submit" className="w-full h-10 sm:h-11 md:h-12 text-sm sm:text-base">
-                  Add Subscription
-                </Button>
+                <div className="sticky bottom-0 bg-black pt-4 -mx-3 sm:-mx-4 md:-mx-6 lg:-mx-12 px-3 sm:px-4 md:px-6 lg:px-12 pb-3 sm:pb-4 md:pb-6 lg:pb-12">
+                  <Button type="submit" className="w-full h-10 sm:h-11 md:h-12 text-sm sm:text-base">
+                    Add Subscription
+                  </Button>
+                </div>
               </form>
             </Form>
           </div>
         </div>
 
         {/* Preview Sidebar */}
-        <div className="hidden lg:block w-1/3 border-l border-zinc-800 bg-zinc-950 p-8 overflow-y-auto">
-          <div className="sticky top-8">
+        <div className="hidden lg:block w-1/3 border-l border-zinc-800 bg-zinc-950 p-8 overflow-y-auto h-screen">
+          <div className="sticky top-0 pt-8">
             <h2 className="text-2xl font-bold mb-6">Preview</h2>
             <Card className="bg-zinc-900 border-zinc-800 p-6">
               <div className="flex items-start gap-4 mb-6">

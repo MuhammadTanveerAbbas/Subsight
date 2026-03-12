@@ -34,6 +34,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { EditSubscriptionDialog } from "@/components/subsight/subscription-form-dialog";
+import { calculateNextRenewalDate, getDaysUntilRenewal } from "@/lib/renewal-calculator";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -80,6 +81,24 @@ export function SubscriptionsTable({
 
   const getIconForSubscription = useCallback((sub: Subscription) => {
     return CATEGORY_ICONS[sub.icon] || CATEGORY_ICONS.default;
+  }, []);
+
+  const getRenewalInfo = useCallback((sub: Subscription) => {
+    if (sub.billingCycle === "one-time") return null;
+    const renewalDate =
+      sub.nextRenewalDate ? new Date(sub.nextRenewalDate) : calculateNextRenewalDate(sub.startDate, sub.billingCycle);
+    if (!renewalDate) return null;
+
+    const days = getDaysUntilRenewal(renewalDate);
+    const label =
+      days === 0 ? "Renews today" : days === 1 ? "Renews in 1 day" : days < 0 ? "Renewal passed" : `Renews in ${days} days`;
+
+    let className = "bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20";
+    if (days <= 14) className = "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20";
+    if (days < 7) className = "bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20";
+    if (days < 0) className = "bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20";
+
+    return { label, className };
   }, []);
 
   // Get unique categories for filter
@@ -211,7 +230,18 @@ export function SubscriptionsTable({
                           </TableCell>
                           <TableCell className="font-medium flex items-center gap-2">
                             <Icon className="w-5 h-5 text-foreground" />
-                            {sub.name}
+                            <div className="flex items-center gap-2">
+                              <span>{sub.name}</span>
+                              {(() => {
+                                const renewal = getRenewalInfo(sub);
+                                if (!renewal) return null;
+                                return (
+                                  <Badge variant="outline" className={renewal.className}>
+                                    {renewal.label}
+                                  </Badge>
+                                );
+                              })()}
+                            </div>
                           </TableCell>
                           <TableCell>
                             <Badge variant="secondary">{sub.category}</Badge>
@@ -315,7 +345,20 @@ export function SubscriptionsTable({
                       <div className="flex items-center justify-between pt-4">
                         <div className="font-medium flex items-center gap-2">
                           <Icon className="w-5 h-5 text-foreground" />
-                          {sub.name}
+                          <div className="flex flex-col">
+                            <span>{sub.name}</span>
+                            {(() => {
+                              const renewal = getRenewalInfo(sub);
+                              if (!renewal) return null;
+                              return (
+                                <span className="mt-1">
+                                  <Badge variant="outline" className={renewal.className}>
+                                    {renewal.label}
+                                  </Badge>
+                                </span>
+                              );
+                            })()}
+                          </div>
                         </div>
                         <AlertDialog>
                           <DropdownMenu>

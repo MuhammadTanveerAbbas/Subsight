@@ -28,11 +28,13 @@ export const exportToCSV = (subscriptions: Subscription[]) => {
     ...subscriptions.map((sub) =>
       headers
         .map((header) => {
-          let value = sub[header as keyof Subscription];
-          if (typeof value === "string" && value.includes(",")) {
-            return `"${value}"`;
+          const value = sub[header as keyof Subscription];
+          if (value === null || value === undefined) return "";
+          const str = String(value);
+          if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+            return `"${str.replace(/"/g, '""')}"`;
           }
-          return value;
+          return str;
         })
         .join(",")
     ),

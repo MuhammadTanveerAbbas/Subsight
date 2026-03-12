@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Target, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
+import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -62,23 +63,34 @@ export default function SignUpPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-3 sm:p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center space-y-2 sm:space-y-3 px-4 sm:px-6 pt-6">
-          <div className="flex items-center justify-center gap-2 mb-2 sm:mb-4">
-            <Target className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight font-headline">
+      <Card className="w-full max-w-sm">
+        <CardHeader className="text-center space-y-1.5 sm:space-y-2 px-4 sm:px-5 pt-5">
+          <div className="flex items-center justify-center gap-2 mb-1 sm:mb-2">
+            <Target className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+            <h1 className="text-xl sm:text-2xl font-semibold tracking-tight font-headline">
               Subsight
             </h1>
           </div>
-          <CardTitle className="text-lg sm:text-xl">Create your account</CardTitle>
-          <CardDescription className="text-xs sm:text-sm">
+          <CardTitle className="text-base sm:text-lg">Create your account</CardTitle>
+          <CardDescription className="text-xs">
             Start tracking your subscriptions with AI powered insights
           </CardDescription>
         </CardHeader>
-        <CardContent className="px-4 sm:px-6 pb-6">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
-            <div className="space-y-1.5 sm:space-y-2">
-              <Label htmlFor="fullName" className="text-xs sm:text-sm">Full Name</Label>
+        <CardContent className="px-4 sm:px-5 pb-5">
+          <GoogleSignInButton mode="signup" />
+
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-gray-200 dark:border-gray-700" />
+            </div>
+            <div className="relative flex justify-center text-xs text-gray-400">
+              <span className="bg-white dark:bg-gray-900 px-2">or continue with email</span>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-2.5 sm:space-y-3">
+            <div className="space-y-1 sm:space-y-1.5">
+              <Label htmlFor="fullName" className="text-xs">Full Name</Label>
               <Input
                 id="fullName"
                 type="text"
@@ -88,14 +100,14 @@ export default function SignUpPage() {
                 disabled={isLoading}
               />
               {errors.fullName && (
-                <p className="text-xs sm:text-sm text-destructive">
+                <p className="text-xs text-destructive">
                   {errors.fullName.message}
                 </p>
               )}
             </div>
 
-            <div className="space-y-1.5 sm:space-y-2">
-              <Label htmlFor="email" className="text-xs sm:text-sm">Email</Label>
+            <div className="space-y-1 sm:space-y-1.5">
+              <Label htmlFor="email" className="text-xs">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -105,14 +117,14 @@ export default function SignUpPage() {
                 disabled={isLoading}
               />
               {errors.email && (
-                <p className="text-xs sm:text-sm text-destructive">
+                <p className="text-xs text-destructive">
                   {errors.email.message}
                 </p>
               )}
             </div>
 
-            <div className="space-y-1.5 sm:space-y-2">
-              <Label htmlFor="password" className="text-xs sm:text-sm">Password</Label>
+            <div className="space-y-1 sm:space-y-1.5">
+              <Label htmlFor="password" className="text-xs">Password</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -138,14 +150,14 @@ export default function SignUpPage() {
                 </Button>
               </div>
               {errors.password && (
-                <p className="text-xs sm:text-sm text-destructive">
+                <p className="text-xs text-destructive">
                   {errors.password.message}
                 </p>
               )}
             </div>
 
-            <div className="space-y-1.5 sm:space-y-2">
-              <Label htmlFor="confirmPassword" className="text-xs sm:text-sm">Confirm Password</Label>
+            <div className="space-y-1 sm:space-y-1.5">
+              <Label htmlFor="confirmPassword" className="text-xs">Confirm Password</Label>
               <div className="relative">
                 <Input
                   id="confirmPassword"
@@ -171,18 +183,18 @@ export default function SignUpPage() {
                 </Button>
               </div>
               {errors.confirmPassword && (
-                <p className="text-xs sm:text-sm text-destructive">
+                <p className="text-xs text-destructive">
                   {errors.confirmPassword.message}
                 </p>
               )}
             </div>
 
-            <Button type="submit" className="w-full text-sm sm:text-base" disabled={isLoading}>
+            <Button type="submit" className="w-full text-xs sm:text-sm" disabled={isLoading}>
               {isLoading ? "Creating account..." : "Create account"}
             </Button>
           </form>
 
-          <div className="mt-4 sm:mt-6 text-center text-xs sm:text-sm">
+          <div className="mt-3 sm:mt-4 text-center text-xs">
             <span className="text-muted-foreground">
               Already have an account?{" "}
             </span>

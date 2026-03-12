@@ -24,6 +24,7 @@ export function Dashboard() {
   const { setIsLoading } = useLoading();
   const { toast } = useToast();
   const [simulation, setSimulation] = useState<Record<string, boolean>>({});
+  const [showShortcuts, setShowShortcuts] = useState(false);
 
   useEffect(() => {
     setIsLoading(false);
@@ -102,22 +103,6 @@ export function Dashboard() {
             simulation={simulation}
             setSimulation={setSimulation}
           />
-          
-          {/* Keyboard shortcuts help */}
-          <div className="hidden lg:block text-xs text-muted-foreground p-3 sm:p-4 bg-muted/20 rounded-lg border border-border/50">
-            <div className="flex items-center gap-2">
-              <svg className="w-4 h-4 text-primary flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-              <div className="flex flex-wrap gap-x-6 gap-y-1">
-                <span className="whitespace-nowrap"><kbd className="px-1.5 py-0.5 text-xs bg-muted rounded">Ctrl+E</kbd> Export JSON</span>
-                <span className="whitespace-nowrap"><kbd className="px-1.5 py-0.5 text-xs bg-muted rounded">Ctrl+S</kbd> Export CSV</span>
-                <span className="whitespace-nowrap"><kbd className="px-1.5 py-0.5 text-xs bg-muted rounded">Ctrl+P</kbd> Export PDF</span>
-                <span className="whitespace-nowrap"><kbd className="px-1.5 py-0.5 text-xs bg-muted rounded">Ctrl+R</kbd> Reset Simulation</span>
-                <span className="whitespace-nowrap"><kbd className="px-1.5 py-0.5 text-xs bg-muted rounded">Ctrl+A</kbd> Add Subscription</span>
-              </div>
-            </div>
-          </div>
         </div>
       </main>
     </div>

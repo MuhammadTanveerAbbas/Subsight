@@ -1,65 +1,65 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { format } from "date-fns";
-import { CalendarIcon, Loader2, Sparkles } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
 } from "@/components/ui/popover";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useAuth } from "@/contexts/auth-context";
 import { useSubscriptions } from "@/contexts/subscription-context";
+import { useToast } from "@/hooks/use-toast";
 import { findDuplicates } from "@/lib/duplicates";
 import {
-  BILLING_CYCLES,
-  CURRENCIES,
-  Subscription,
-  SubscriptionFormData,
-  ICON_CATEGORIES,
-  CATEGORY_ICONS,
+    BILLING_CYCLES,
+    CATEGORY_ICONS,
+    CURRENCIES,
+    ICON_CATEGORIES,
+    Subscription,
+    SubscriptionFormData,
 } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
+import { AlertTriangle, CalendarIcon, Loader2, Lock, Sparkles } from "lucide-react";
 import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
-import { getSubscriptionDetails } from "@/ai/flows/subscription-assistant";
-import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
 } from "../ui/accordion";
 import { Alert, AlertDescription } from "../ui/alert";
-import { AlertTriangle } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -73,6 +73,12 @@ const formSchema = z.object({
   notes: z.string().optional(),
   activeStatus: z.boolean(),
   autoRenew: z.boolean(),
+  reminderEnabled: z.boolean().optional(),
+  reminderDaysBefore: z
+    .coerce
+    .number()
+    .refine((v) => [1, 3, 7, 14].includes(v), { message: "Invalid reminder timing." })
+    .optional(),
 });
 
 interface SubscriptionDialogProps {
@@ -88,10 +94,12 @@ function SubscriptionForm({
   onDone: () => void;
   subscription?: Subscription;
 }) {
-  const { addSubscription, updateSubscription, subscriptions } = useSubscriptions();
+  const { addSubscription, updateSubscription, subscriptions, showUpgradePrompt } = useSubscriptions();
+  const { profile } = useAuth();
   const { toast } = useToast();
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [duplicateWarnings, setDuplicateWarnings] = useState<any[]>([]);
+  const isPro = profile?.subscription_tier === "pro";
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -100,6 +108,8 @@ function SubscriptionForm({
           ...subscription,
           startDate: new Date(subscription.startDate),
           amount: subscription.amount,
+          reminderEnabled: subscription.reminderEnabled ?? false,
+          reminderDaysBefore: subscription.reminderDaysBefore ?? 3,
         }
       : {
           name: "",
@@ -113,8 +123,13 @@ function SubscriptionForm({
           notes: "",
           activeStatus: true,
           autoRenew: true,
+          reminderEnabled: false,
+          reminderDaysBefore: 3,
         },
   });
+
+  const billingCycle = form.watch("billingCycle");
+  const reminderEnabled = form.watch("reminderEnabled");
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     // Check for duplicates before adding
@@ -124,6 +139,7 @@ function SubscriptionForm({
         icon: values.icon || "default",
         notes: values.notes || "",
         startDate: values.startDate.toISOString(),
+        reminderDaysBefore: (values.reminderDaysBefore ?? 3) as 1 | 3 | 7 | 14,
       };
       const duplicates = findDuplicates(formData, subscriptions);
       if (duplicates.length > 0) {
@@ -138,19 +154,36 @@ function SubscriptionForm({
       startDate: values.startDate.toISOString(),
       notes: values.notes || "",
       usageCount: 0,
+      reminderEnabled: values.reminderEnabled ?? false,
+      reminderDaysBefore: (values.reminderDaysBefore ?? 3) as 1 | 3 | 7 | 14,
     };
-    
+
     if (subscription) {
-      updateSubscription(subscription.id, data);
+      await updateSubscription(subscription.id, data);
       toast({ title: "Success", description: "Subscription updated." });
     } else {
-      addSubscription(data);
-      toast({ title: "Success", description: "Subscription added." });
+      try {
+        await addSubscription(data);
+        toast({ title: "Success", description: "Subscription added." });
+      } catch (e: any) {
+        if (e?.upgrade) return;
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to add subscription.",
+        });
+        return;
+      }
     }
     onDone();
   }
 
   const handleAiFill = async () => {
+    if (!isPro) {
+      showUpgradePrompt("AI auto fill is available on the Pro plan.");
+      return;
+    }
+
     const name = form.getValues("name");
     if (!name) {
       toast({
@@ -162,22 +195,26 @@ function SubscriptionForm({
     }
     setIsAiLoading(true);
     try {
-      const details = await getSubscriptionDetails({ subscriptionName: name });
-      form.setValue("provider", details.provider, { shouldValidate: true });
-      form.setValue("category", details.category, { shouldValidate: true });
-      form.setValue("amount", details.amount, { shouldValidate: true });
-      form.setValue("currency", details.currency as any, {
-        shouldValidate: true,
+      const res = await fetch("/api/ai/autofill", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
       });
-      form.setValue("billingCycle", details.billingCycle as any, {
-        shouldValidate: true,
-      });
-      form.setValue("startDate", new Date(details.startDate), {
-        shouldValidate: true,
-      });
-      form.setValue("autoRenew", details.autoRenew, { shouldValidate: true });
+      if (!res.ok) throw new Error("AI request failed");
+      const details = await res.json();
 
-      const categoryLower = details.category.toLowerCase();
+      form.setValue("provider", details.provider || "", { shouldValidate: true });
+      form.setValue("category", details.category || "", { shouldValidate: true });
+      form.setValue("amount", Number(details.amount) || 0, { shouldValidate: true });
+      form.setValue("currency", (details.currency || "USD") as any, {
+        shouldValidate: true,
+      });
+      form.setValue("billingCycle", (details.billingCycle || "monthly") as any, {
+        shouldValidate: true,
+      });
+      form.setValue("autoRenew", Boolean(details.autoRenew), { shouldValidate: true });
+
+      const categoryLower = String(details.category || "").toLowerCase();
       const matchedIcon = Object.keys(CATEGORY_ICONS).find((key) =>
         categoryLower.includes(key)
       );
@@ -228,10 +265,25 @@ function SubscriptionForm({
                         startDate: form.getValues().startDate.toISOString(),
                         notes: form.getValues().notes || "",
                         usageCount: 0,
+                        reminderDaysBefore: (form.getValues().reminderDaysBefore ?? 3) as 1 | 3 | 7 | 14,
                       };
-                      addSubscription(data);
-                      toast({ title: "Success", description: "Subscription added anyway." });
-                      onDone();
+                      (async () => {
+                        try {
+                          await addSubscription(data);
+                          toast({
+                            title: "Success",
+                            description: "Subscription added anyway.",
+                          });
+                          onDone();
+                        } catch (e: any) {
+                          if (e?.upgrade) return;
+                          toast({
+                            variant: "destructive",
+                            title: "Error",
+                            description: "Failed to add subscription.",
+                          });
+                        }
+                      })();
                     }}
                   >
                     Add Anyway
@@ -272,11 +324,26 @@ function SubscriptionForm({
                   disabled={isAiLoading}
                   className="h-9 sm:h-10 w-9 sm:w-10 p-0"
                 >
-                  {isAiLoading ? (
-                    <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
-                  ) : (
-                    <Sparkles className="h-3 w-3 sm:h-4 sm:w-4" />
-                  )}
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="inline-flex">
+                          {isAiLoading ? (
+                            <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
+                          ) : isPro ? (
+                            <Sparkles className="h-3 w-3 sm:h-4 sm:w-4" />
+                          ) : (
+                            <Lock className="h-3 w-3 sm:h-4 sm:w-4" />
+                          )}
+                        </span>
+                      </TooltipTrigger>
+                      {!isPro && (
+                        <TooltipContent>
+                          <p>Pro feature</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </TooltipProvider>
                   <span className="sr-only">AI Fill</span>
                 </Button>
               </div>
@@ -568,6 +635,51 @@ function SubscriptionForm({
             )}
           />
         </div>
+
+        {/* Pro-only reminders (edit only) */}
+        {subscription && isPro && billingCycle !== "one-time" && (
+          <div className="space-y-2 rounded-lg border p-3 shadow-sm">
+            <FormField
+              control={form.control}
+              name="reminderEnabled"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between">
+                  <FormLabel className="text-sm font-normal">Email reminder</FormLabel>
+                  <FormControl>
+                    <Switch checked={!!field.value} onCheckedChange={field.onChange} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            {reminderEnabled && (
+              <FormField
+                control={form.control}
+                name="reminderDaysBefore"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm">Remind me</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={String(field.value ?? 3)}>
+                      <FormControl>
+                        <SelectTrigger className="h-9 text-sm">
+                          <SelectValue placeholder="Select days" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {[1, 3, 7, 14].map((d) => (
+                          <SelectItem key={d} value={String(d)} className="text-sm">
+                            {d} day{d === 1 ? "" : "s"} before
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage className="text-xs" />
+                  </FormItem>
+                )}
+              />
+            )}
+          </div>
+        )}
 
         {/* Submit Button */}
         <Button type="submit" className="w-full h-10 text-sm font-medium">

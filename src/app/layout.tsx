@@ -3,7 +3,6 @@ import { Sora } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
 import { LoadingProvider } from "@/contexts/loading-context";
 import { AuthProvider } from "@/contexts/auth-context";
-import { LoadingScreen } from "@/components/subsight/loading-screen";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { cn } from "@/lib/utils";
 import "./globals.css";
@@ -86,7 +85,6 @@ export default function RootLayout({
           <AuthProvider>
             <LoadingProvider>
               {children}
-              <LoadingScreen />
             </LoadingProvider>
           </AuthProvider>
         </ErrorBoundary>

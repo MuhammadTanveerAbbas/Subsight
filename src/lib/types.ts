@@ -129,6 +129,10 @@ export interface Subscription {
   notes: string;
   activeStatus: boolean;
   autoRenew: boolean;
+  reminderEnabled?: boolean;
+  reminderDaysBefore?: 1 | 3 | 7 | 14;
+  nextRenewalDate?: string | null; // ISO date (YYYY-MM-DD) or null
+  lastReminderSent?: string | null;
   usageCount?: number;
   lastUsed?: string;
 }

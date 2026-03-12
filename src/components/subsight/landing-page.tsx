@@ -1,42 +1,31 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useLoading } from "@/contexts/loading-context";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  ArrowRight,
-  Check,
-  Sparkles,
-  TrendingUp,
-  ShieldX,
-  Server,
-  FileCog,
-  Bell,
-  Github,
-  Linkedin,
-  Database,
-  LogIn,
-  X,
-} from "lucide-react";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useLoading } from "@/contexts/loading-context";
 import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-} from "@/components/ui/carousel";
+  ArrowRight,
+  Bell,
+  Check,
+  Database,
+  FileCog,
+  Github,
+  Linkedin,
+  LogIn,
+  Server,
+  ShieldX,
+  Sparkles,
+  TrendingUp,
+  X,
+} from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const XIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
@@ -107,7 +96,7 @@ export function LandingPage() {
                 </h1>
                 <p className="max-w-[600px] text-muted-foreground text-sm sm:text-base md:text-lg mx-auto leading-relaxed px-4">
                   Track, manage, and optimize all your recurring payments with
-                  AI powered insights. Free and open source.
+                  AI-powered insights. Free, open source, and fully transparent.
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-4 md:pt-6 w-full sm:w-auto px-4">
@@ -144,7 +133,7 @@ export function LandingPage() {
                     </CardHeader>
                     <CardContent className="text-center pt-0">
                       <p className="text-muted-foreground text-xs hidden sm:block">
-                        Export to JSON, CSV, PDF formats and visualize spending
+                        Export to JSON, CSV, PDF and visualize spending patterns
                         with interactive charts.
                       </p>
                     </CardContent>
@@ -176,8 +165,8 @@ export function LandingPage() {
                     </CardHeader>
                     <CardContent className="text-center pt-0">
                       <p className="text-muted-foreground text-xs hidden sm:block">
-                        Power user features: Ctrl+E (JSON), Ctrl+S (CSV), Ctrl+P
-                        (PDF), Ctrl+R (Reset).
+                        Quick actions: Ctrl+E (JSON), Ctrl+S (CSV), Ctrl+P (PDF),
+                        Ctrl+R (Reset), Ctrl+A (Add).
                       </p>
                     </CardContent>
                   </Card>
@@ -199,8 +188,8 @@ export function LandingPage() {
                   Your All In One Subscription Dashboard
                 </h2>
                 <p className="max-w-[900px] text-muted-foreground text-sm sm:text-base md:text-lg px-4">
-                  From AI powered data entry to powerful analytics, we give you
-                  the tools to take back control.
+                  From AI-powered data entry to powerful analytics, take control
+                  of your subscription spending.
                 </p>
               </div>
             </div>
@@ -216,8 +205,8 @@ export function LandingPage() {
                 </CardHeader>
                 <CardContent className="text-center">
                   <p className="text-muted-foreground text-xs sm:text-sm">
-                    Interactive charts showing monthly/annual spending patterns
-                    and trends.
+                    Interactive charts showing monthly and annual spending
+                    patterns and trends.
                   </p>
                 </CardContent>
               </Card>
@@ -227,13 +216,13 @@ export function LandingPage() {
                     <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
                   </div>
                   <CardTitle className="text-base sm:text-lg">
-                    AI Assistant
+                    Groq AI Assistant
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="text-center">
                   <p className="text-muted-foreground text-xs sm:text-sm">
-                    AI helps auto-fill subscription details and analyze spending
-                    patterns.
+                    Auto-fill subscription details and analyze spending patterns
+                    with Groq AI (requires your own free API key).
                   </p>
                 </CardContent>
               </Card>
@@ -248,8 +237,8 @@ export function LandingPage() {
                 </CardHeader>
                 <CardContent className="text-center">
                   <p className="text-muted-foreground text-xs sm:text-sm">
-                    Export to JSON, CSV, PDF formats. Import from JSON/CSV
-                    files.
+                    Export to JSON, CSV, or PDF. Import your data from JSON or
+                    CSV files.
                   </p>
                 </CardContent>
               </Card>
@@ -268,7 +257,7 @@ export function LandingPage() {
                 What Subsight <span className="text-orange-600">Cannot</span> Do
               </h2>
               <p className="max-w-[700px] text-muted-foreground text-sm sm:text-base md:text-lg px-4">
-                We believe in transparency. Here are the current limitations:
+                We believe in transparency. Here's what we can't do (yet):
               </p>
             </div>
             <div className="mx-auto grid max-w-5xl items-start gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 px-4">
@@ -284,7 +273,7 @@ export function LandingPage() {
                 <CardContent className="text-center">
                   <p className="text-muted-foreground text-xs sm:text-sm">
                     Cannot automatically detect subscriptions from your bank
-                    account. Manual entry required.
+                    account. You'll need to add them manually.
                   </p>
                 </CardContent>
               </Card>
@@ -294,13 +283,13 @@ export function LandingPage() {
                     <X className="w-6 h-6 sm:w-8 sm:h-8 text-orange-600" />
                   </div>
                   <CardTitle className="text-orange-800 dark:text-orange-200 text-sm sm:text-base">
-                    No Auto-Cancellation
+                    No Auto Cancellation
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="text-center">
                   <p className="text-muted-foreground text-xs sm:text-sm">
-                    Cannot automatically cancel subscriptions for you. You must
-                    cancel them yourself.
+                    Cannot cancel subscriptions for you. You must cancel them
+                    directly with the service providers.
                   </p>
                 </CardContent>
               </Card>
@@ -310,13 +299,13 @@ export function LandingPage() {
                     <X className="w-6 h-6 sm:w-8 sm:h-8 text-orange-600" />
                   </div>
                   <CardTitle className="text-orange-800 dark:text-orange-200 text-sm sm:text-base">
-                    AI Requires Setup
+                    Groq API Key Required
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="text-center">
                   <p className="text-muted-foreground text-xs sm:text-sm">
-                    AI features require you to provide your own Google Gemini
-                    API key.
+                    You need to provide your own Groq API key for AI features
+                    (free tier available at console.groq.com).
                   </p>
                 </CardContent>
               </Card>
@@ -534,10 +523,10 @@ export function LandingPage() {
                       </td>
                     </tr>
                     <tr className="border-b border-border/50 hover:bg-muted/30 transition-colors">
-                      <td className="p-4 text-sm">AI Setup Required</td>
+                      <td className="p-4 text-sm">Groq API Key Required</td>
                       <td className="p-4 text-center">
                         <span className="text-orange-600 text-xs font-medium">
-                          API Key
+                          Free Tier
                         </span>
                       </td>
                       <td className="p-4 text-center">
@@ -591,7 +580,7 @@ export function LandingPage() {
                   </Link>
                 </Button>
                 <p className="text-sm text-muted-foreground">
-                  Sign up required • 100% Free • Open Source
+                  100% Free • Open Source • No Credit Card Required
                 </p>
               </div>
             </div>
@@ -648,8 +637,8 @@ export function LandingPage() {
                 Secure Data Management
               </h2>
               <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl/relaxed">
-                Subsight requires account signup and stores your subscription
-                data securely using Supabase authentication and database.
+                Your subscription data is stored securely in Supabase with
+                industry-standard encryption and authentication.
               </p>
             </div>
             <div className="grid w-full grid-cols-1 md:grid-cols-3 gap-6 pt-8 max-w-4xl">
@@ -721,10 +710,10 @@ export function LandingPage() {
                     Do I need to provide my own AI API key?
                   </AccordionTrigger>
                   <AccordionContent className="text-sm text-muted-foreground pb-4">
-                    Yes, to use AI features you need to provide your own Google
-                    Gemini API key. You can get a free key from Google AI
-                    Studio. The app works without AI, but you'll need to
-                    manually enter subscription details.
+                    Yes, to use AI features you need to provide your own Groq
+                    API key. You can get a free key from console.groq.com. The
+                    app works without AI, but you'll need to manually enter
+                    subscription details.
                   </AccordionContent>
                 </AccordionItem>
                 <AccordionItem
@@ -797,7 +786,7 @@ export function LandingPage() {
               </Link>
               <p className="text-xs sm:text-sm text-muted-foreground max-w-sm leading-relaxed">
                 Your intelligent subscription management platform. Track,
-                analyze, and optimize recurring payments with AI-powered
+                analyze, and optimize recurring payments with AI powered
                 insights.
               </p>
               <div className="flex flex-wrap gap-2 pt-2">

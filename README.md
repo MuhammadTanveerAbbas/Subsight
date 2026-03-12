@@ -1,11 +1,11 @@
 # Subsight 🎯 Subscription Tracker
 
-A modern subscription tracking app that helps you manage recurring payments with AI-powered insights.
+A modern subscription tracking app that helps you manage recurring payments with AI-powered insights (powered by Groq).
 
 ## ✨ Features
 
 - 📊 **Interactive Dashboard** – Real-time spending charts and analytics
-- 🤖 **AI Assistant** – Auto-fill subscription details using Google Gemini (requires your own API key)
+- 🤖 **AI Assistant** – Auto-fill subscription details using Groq AI (requires your own free API key)
 - 🎭 **Simulation Mode** – Preview budget changes by toggling subscriptions
 - 🔄 **Import/Export** – JSON, CSV, and PDF export capabilities
 - 🔍 **Search & Filter** – Find subscriptions by name, category, or status
@@ -38,8 +38,8 @@ Visit [http://localhost:3000](http://localhost:3000) to start tracking your subs
 Create a `.env.local` file with:
 
 ```env
-# Gemini API Key (optional - for AI features)
-GEMINI_API_KEY=your_gemini_api_key
+# Groq API Key (optional - for AI features)
+GROQ_API_KEY=your_groq_api_key
 
 # Supabase Configuration (required)
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
@@ -47,7 +47,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
 **Get API keys:**
-- [Google AI Studio](https://aistudio.google.com/app/apikey) - Free Gemini API key (optional, for AI features)
+
+- [Groq Console](https://console.groq.com) - Free Groq API key (optional, for AI features)
 - [Supabase](https://supabase.com) - Free database and authentication (required)
 
 **Important:** After setting up Supabase, run the SQL commands from `supabase-setup.sql` in your Supabase SQL editor to create the required tables.
@@ -59,7 +60,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 - **Styling:** Tailwind CSS + ShadCN UI
 - **Database:** Supabase (PostgreSQL)
 - **Authentication:** Supabase Auth
-- **AI:** Google Gemini (via Genkit)
+- **AI:** Groq (Llama 3.3 70B)
 - **Charts:** Recharts
 - **Forms:** React Hook Form + Zod validation
 
@@ -84,8 +85,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 We believe in transparency. Here are the current limitations:
 
 - ❌ **No Bank Integration** - Cannot automatically detect subscriptions from your bank account
-- ❌ **No Auto-Cancellation** - Cannot cancel subscriptions for you
-- ❌ **AI Requires Setup** - You need to provide your own Google Gemini API key for AI features
+- ❌ **No Auto Cancellation** - Cannot cancel subscriptions for you
+- ❌ **Groq API Key Required** - You need to provide your own Groq API key for AI features (free tier available)
 - ❌ **Requires Supabase** - You must set up your own Supabase project to use this app
 
 ## 📝 Contributing
