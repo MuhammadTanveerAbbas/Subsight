@@ -96,7 +96,7 @@ export function LandingPage() {
                 </h1>
                 <p className="max-w-[600px] text-muted-foreground text-sm sm:text-base md:text-lg mx-auto leading-relaxed px-4">
                   Track, manage, and optimize all your recurring payments with
-                  AI-powered insights. Free, open source, and fully transparent.
+                  AI-powered insights, advanced analytics, and simulation mode. Free, open source, and fully transparent.
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-4 md:pt-6 w-full sm:w-auto px-4">
@@ -121,20 +121,34 @@ export function LandingPage() {
               </div>
               {/* Info Boxes Section */}
               <div className="pt-8 md:pt-12 lg:pt-14 w-full max-w-5xl">
-                <div className="mx-auto grid gap-4 sm:gap-6 grid-cols-3 lg:grid-cols-3 px-4">
+                <div className="mx-auto grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 px-4">
                   <Card className="bg-card/50 backdrop-blur-sm border-primary/10 h-full hover:border-primary/30 transition-all hover:shadow-lg hover:shadow-primary/5">
                     <CardHeader className="items-center pb-3">
                       <div className="p-2 rounded-full bg-primary/10 mb-2">
-                        <Server className="w-5 h-5 text-primary" />
+                        <TrendingUp className="w-5 h-5 text-primary" />
                       </div>
                       <CardTitle className="text-xs sm:text-sm text-center">
-                        Export & Analytics
+                        KPI Metrics
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="text-center pt-0">
                       <p className="text-muted-foreground text-xs hidden sm:block">
-                        Export to JSON, CSV, PDF and visualize spending patterns
-                        with interactive charts.
+                        Track total spending, active subscriptions, and upcoming renewals at a glance.
+                      </p>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-card/50 backdrop-blur-sm border-primary/10 h-full hover:border-primary/30 transition-all hover:shadow-lg hover:shadow-primary/5">
+                    <CardHeader className="items-center pb-3">
+                      <div className="p-2 rounded-full bg-primary/10 mb-2">
+                        <Sparkles className="w-5 h-5 text-primary" />
+                      </div>
+                      <CardTitle className="text-xs sm:text-sm text-center">
+                        AI-Powered Insights
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-center pt-0">
+                      <p className="text-muted-foreground text-xs hidden sm:block">
+                        Auto-fill subscription details and get spending analysis with Groq AI.
                       </p>
                     </CardContent>
                   </Card>
@@ -149,8 +163,22 @@ export function LandingPage() {
                     </CardHeader>
                     <CardContent className="text-center pt-0">
                       <p className="text-muted-foreground text-xs hidden sm:block">
-                        Preview budget changes by toggling subscriptions on/off
-                        before making decisions.
+                        Preview budget changes by toggling subscriptions on/off before making decisions.
+                      </p>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-card/50 backdrop-blur-sm border-primary/10 h-full hover:border-primary/30 transition-all hover:shadow-lg hover:shadow-primary/5">
+                    <CardHeader className="items-center pb-3">
+                      <div className="p-2 rounded-full bg-primary/10 mb-2">
+                        <Server className="w-5 h-5 text-primary" />
+                      </div>
+                      <CardTitle className="text-xs sm:text-sm text-center">
+                        Multi-Format Export
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-center pt-0">
+                      <p className="text-muted-foreground text-xs hidden sm:block">
+                        Export to JSON, CSV, PDF and visualize spending patterns with interactive charts.
                       </p>
                     </CardContent>
                   </Card>
@@ -165,8 +193,7 @@ export function LandingPage() {
                     </CardHeader>
                     <CardContent className="text-center pt-0">
                       <p className="text-muted-foreground text-xs hidden sm:block">
-                        Quick actions: Ctrl+E (JSON), Ctrl+S (CSV), Ctrl+P (PDF),
-                        Ctrl+R (Reset), Ctrl+A (Add).
+                        Power user shortcuts: Ctrl+E (JSON), Ctrl+S (CSV), Ctrl+P (PDF), Ctrl+R (Reset), Ctrl+A (Add).
                       </p>
                     </CardContent>
                   </Card>
@@ -200,13 +227,12 @@ export function LandingPage() {
                     <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
                   </div>
                   <CardTitle className="text-base sm:text-lg">
-                    Analytics Dashboard
+                    Advanced Analytics
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="text-center">
                   <p className="text-muted-foreground text-xs sm:text-sm">
-                    Interactive charts showing monthly and annual spending
-                    patterns and trends.
+                    Interactive charts showing monthly and annual spending patterns, category breakdowns, and trends.
                   </p>
                 </CardContent>
               </Card>
@@ -221,8 +247,52 @@ export function LandingPage() {
                 </CardHeader>
                 <CardContent className="text-center">
                   <p className="text-muted-foreground text-xs sm:text-sm">
-                    Auto-fill subscription details and analyze spending patterns
-                    with Groq AI (requires your own free API key).
+                    Auto-fill subscription details and analyze spending patterns with Groq AI (requires your own free API key).
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="h-full bg-background border-primary/10 hover:border-primary/30 transition-all hover:shadow-lg hover:shadow-primary/5 group">
+                <CardHeader className="items-center">
+                  <div className="p-3 sm:p-4 rounded-full bg-primary/10 mb-3 sm:mb-4 group-hover:bg-primary/20 transition-colors">
+                    <FileCog className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
+                  </div>
+                  <CardTitle className="text-base sm:text-lg">
+                    Simulation Mode
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="text-center">
+                  <p className="text-muted-foreground text-xs sm:text-sm">
+                    Preview budget changes by toggling subscriptions on/off to see real-time impact on spending.
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="h-full bg-background border-primary/10 hover:border-primary/30 transition-all hover:shadow-lg hover:shadow-primary/5 group">
+                <CardHeader className="items-center">
+                  <div className="p-3 sm:p-4 rounded-full bg-primary/10 mb-3 sm:mb-4 group-hover:bg-primary/20 transition-colors">
+                    <Server className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
+                  </div>
+                  <CardTitle className="text-base sm:text-lg">
+                    Multi-Format Export
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="text-center">
+                  <p className="text-muted-foreground text-xs sm:text-sm">
+                    Export to JSON, CSV, or PDF. Import your data from JSON or CSV files.
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="h-full bg-background border-primary/10 hover:border-primary/30 transition-all hover:shadow-lg hover:shadow-primary/5 group">
+                <CardHeader className="items-center">
+                  <div className="p-3 sm:p-4 rounded-full bg-primary/10 mb-3 sm:mb-4 group-hover:bg-primary/20 transition-colors">
+                    <Bell className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
+                  </div>
+                  <CardTitle className="text-base sm:text-lg">
+                    Keyboard Shortcuts
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="text-center">
+                  <p className="text-muted-foreground text-xs sm:text-sm">
+                    Power user shortcuts for quick actions: Ctrl+E, Ctrl+S, Ctrl+P, Ctrl+R, Ctrl+A.
                   </p>
                 </CardContent>
               </Card>
@@ -232,13 +302,12 @@ export function LandingPage() {
                     <ShieldX className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
                   </div>
                   <CardTitle className="text-base sm:text-lg">
-                    Export & Import
+                    KPI Metrics
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="text-center">
                   <p className="text-muted-foreground text-xs sm:text-sm">
-                    Export to JSON, CSV, or PDF. Import your data from JSON or
-                    CSV files.
+                    Track total spending, active subscriptions, renewal dates, and more at a glance.
                   </p>
                 </CardContent>
               </Card>
@@ -751,10 +820,29 @@ export function LandingPage() {
                     Can Subsight cancel subscriptions for me?
                   </AccordionTrigger>
                   <AccordionContent className="text-sm text-muted-foreground pb-4">
-                    No, Subsight cannot automatically cancel subscriptions. It
-                    helps you track and analyze your subscriptions, but you must
-                    cancel them yourself through the respective service
-                    providers.
+                    No, Subsight cannot automatically cancel subscriptions. It helps you track and analyze your subscriptions, but you must cancel them yourself through the respective service providers.
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem
+                  value="item-7"
+                  className="border rounded-lg px-4 bg-card"
+                >
+                  <AccordionTrigger className="text-left text-sm sm:text-base hover:no-underline py-4">
+                    What analytics does Subsight provide?
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm text-muted-foreground pb-4">
+                    Subsight provides comprehensive analytics including monthly and annual spending trends, category breakdowns, KPI metrics (total spending, active subscriptions, renewal dates), and interactive charts to visualize your subscription patterns.
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem
+                  value="item-8"
+                  className="border rounded-lg px-4 bg-card"
+                >
+                  <AccordionTrigger className="text-left text-sm sm:text-base hover:no-underline py-4">
+                    How does Simulation Mode work?
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm text-muted-foreground pb-4">
+                    Simulation Mode lets you toggle subscriptions on/off to see real-time impact on your total spending and analytics. Changes are temporary and don't affect your actual data. Use Ctrl+R to reset the simulation.
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>

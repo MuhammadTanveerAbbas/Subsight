@@ -4,14 +4,16 @@ A modern subscription tracking app that helps you manage recurring payments with
 
 ## ✨ Features
 
-- 📊 **Interactive Dashboard** – Real-time spending charts and analytics
+- 📊 **Interactive Dashboard** – Real-time spending charts, KPI metrics, and analytics
 - 🤖 **AI Assistant** – Auto-fill subscription details using Groq AI (requires your own free API key)
-- 🎭 **Simulation Mode** – Preview budget changes by toggling subscriptions
-- 🔄 **Import/Export** – JSON, CSV, and PDF export capabilities
+- 🎭 **Simulation Mode** – Preview budget changes by toggling subscriptions on/off
+- 🔄 **Multi-Format Export** – Export to JSON, CSV, and PDF with one click
 - 🔍 **Search & Filter** – Find subscriptions by name, category, or status
-- ⌨️ **Keyboard Shortcuts** – Quick actions for power users (Ctrl+E, Ctrl+S, Ctrl+P, Ctrl+R)
+- ⌨️ **Keyboard Shortcuts** – Power user shortcuts (Ctrl+E, Ctrl+S, Ctrl+P, Ctrl+R, Ctrl+A)
+- 📈 **Advanced Analytics** – Monthly/annual spending trends and category breakdowns
 - 🔒 **Supabase Authentication** – Secure user authentication and data storage
-- 📱 **Fully Responsive** – Works seamlessly on all devices
+- 📱 **Fully Responsive** – Works seamlessly on desktop, tablet, and mobile
+- 🎯 **Smart KPI Metrics** – Track total spending, active subscriptions, and renewal dates
 
 ## 🚀 Quick Start
 
@@ -25,7 +27,7 @@ npm install
 
 # Set up environment variables
 cp .env.example .env.local
-# Add your GEMINI_API_KEY and Supabase credentials to .env.local
+# Add your GROQ_API_KEY and Supabase credentials to .env.local
 
 # Start development server
 npm run dev
@@ -70,7 +72,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 - `Ctrl+S` - Export to CSV
 - `Ctrl+P` - Export to PDF
 - `Ctrl+R` - Reset simulation
-- `Ctrl+A` - Add subscription
+- `Ctrl+A` - Add subscription (navigate to add form)
 
 ## 🔒 Data Storage & Privacy
 
@@ -86,8 +88,9 @@ We believe in transparency. Here are the current limitations:
 
 - ❌ **No Bank Integration** - Cannot automatically detect subscriptions from your bank account
 - ❌ **No Auto Cancellation** - Cannot cancel subscriptions for you
-- ❌ **Groq API Key Required** - You need to provide your own Groq API key for AI features (free tier available)
+- ❌ **Groq API Key Required** - You need to provide your own Groq API key for AI features (free tier available at console.groq.com)
 - ❌ **Requires Supabase** - You must set up your own Supabase project to use this app
+- ❌ **No Mobile App** - Currently web-only (responsive design works on mobile browsers)
 
 ## 📝 Contributing
 
