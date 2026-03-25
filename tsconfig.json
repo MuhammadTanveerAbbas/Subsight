@@ -36,6 +36,10 @@
   ],
   "exclude": [
     "node_modules",
-    ".next"
+    ".next",
+    "UI/authpages.tsx",
+    "UI/dashboard.tsx",
+    "UI/landingpage.tsx",
+    "UI/pages.tsx"
   ]
 }

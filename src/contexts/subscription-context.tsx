@@ -128,7 +128,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
           setSubscriptions(formattedSubs);
         }
       } catch (error) {
-        console.error('Fetch subscriptions error:', error);
+        logError(error, { context: 'fetchSubscriptions', userId: user.id });
       } finally {
         setLoading(false);
       }
@@ -243,7 +243,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       } catch (error) {
         if ((error as any)?.upgrade) throw error;
         const errorMessage = error instanceof Error ? error.message : String(error) || 'Unknown error';
-        console.error('Add subscription error:', errorMessage);
+        logError(error, { context: 'addSubscription' });
         throw new Error(errorMessage);
       }
     },
@@ -306,7 +306,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
           (window as any).analytics.track('subscription_updated', { id });
         }
       } catch (error) {
-        console.error('Update subscription error:', error);
+        logError(error, { context: 'updateSubscription', id });
         throw error;
       }
     },
@@ -328,7 +328,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
           (window as any).analytics.track('subscription_deleted', { id });
         }
       } catch (error) {
-        console.error('Delete subscription error:', error);
+        logError(error, { context: 'deleteSubscription', id });
         throw error;
       }
     },
@@ -369,7 +369,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
   const importSubscriptions = useCallback(
     async (newSubscriptions: Subscription[]) => {
       if (!user || !Array.isArray(newSubscriptions)) {
-        console.error("Import failed: no user or data is not an array.");
+        logError(new Error('Import failed: no user or data is not an array'), { context: 'importSubscriptions' });
         return;
       }
 
@@ -392,7 +392,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
           });
         }
       } catch (error) {
-        console.error('Import subscriptions error:', error);
+        logError(error, { context: 'importSubscriptions' });
       }
     },
     [user, addSubscription]

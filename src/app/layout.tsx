@@ -3,6 +3,7 @@ import { Sora } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
 import { LoadingProvider } from "@/contexts/loading-context";
 import { AuthProvider } from "@/contexts/auth-context";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { cn } from "@/lib/utils";
 import "./globals.css";
@@ -78,13 +79,18 @@ export default function RootLayout({
     <html lang="en" className={cn("dark", sora.variable)}>
       <head>
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#8b5cf6" />
+        <meta name="theme-color" content="#22c55e" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased">
         <ErrorBoundary>
           <AuthProvider>
             <LoadingProvider>
-              {children}
+              <ThemeProvider>
+                {children}
+              </ThemeProvider>
             </LoadingProvider>
           </AuthProvider>
         </ErrorBoundary>

@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { useToast } from '@/hooks/use-toast'
 import { createClient } from '@/lib/supabase/client'
-import type { User as SupabaseUser } from '@supabase/supabase-js'
+import { logError } from '@/lib/error-logger'
 
 interface User {
   id: string
@@ -77,7 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error && error.code !== 'PGRST116') throw error
       if (data) setProfile(data)
     } catch (error: any) {
-      console.error('Error fetching profile:', error.message)
+      logError(error, { context: 'fetchProfile', userId })
     }
   }
 

@@ -23,7 +23,6 @@ class Analytics {
 
   track(event: EventName, properties?: EventProperties) {
     if (!this.enabled) {
-      console.log('[Analytics]', event, properties);
       return;
     }
 

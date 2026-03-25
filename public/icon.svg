@@ -1,10 +1,13 @@
 <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="512" height="512" rx="128" fill="#000000"/>
-  <circle cx="256" cy="256" r="180" stroke="#10B981" stroke-width="24" fill="none"/>
-  <circle cx="256" cy="256" r="120" stroke="#10B981" stroke-width="20" fill="none"/>
-  <circle cx="256" cy="256" r="60" fill="#10B981"/>
-  <path d="M256 76 L256 156" stroke="#10B981" stroke-width="16" stroke-linecap="round"/>
-  <path d="M256 356 L256 436" stroke="#10B981" stroke-width="16" stroke-linecap="round"/>
-  <path d="M76 256 L156 256" stroke="#10B981" stroke-width="16" stroke-linecap="round"/>
-  <path d="M356 256 L436 256" stroke="#10B981" stroke-width="16" stroke-linecap="round"/>
+  <!-- Green rounded square background -->
+  <rect width="512" height="512" rx="112" fill="#22c55e"/>
+  <!-- PieChart icon centered (lucide-react PieChart, scaled to ~300px) -->
+  <!-- Pie slice (filled quarter) -->
+  <path d="M256 106 L256 256 L406 256 A150 150 0 0 0 256 106 Z" fill="#000000"/>
+  <!-- Full circle outline -->
+  <circle cx="256" cy="256" r="150" stroke="#000000" stroke-width="28" fill="none"/>
+  <!-- Line from center to top (12 o'clock) -->
+  <line x1="256" y1="106" x2="256" y2="256" stroke="#000000" stroke-width="28" stroke-linecap="round"/>
+  <!-- Line from center to right (3 o'clock) -->
+  <line x1="256" y1="256" x2="406" y2="256" stroke="#000000" stroke-width="28" stroke-linecap="round"/>
 </svg>
