@@ -200,16 +200,14 @@ function EditModal({ sub, onSave, onClose, t }: { sub:Sub; onSave:(s:Sub)=>void;
 function OverviewView({ t, subs, onNav }: { t:T; subs:Sub[]; onNav:(id:string)=>void }) {
   const active  = subs.filter(s => s.status !== "inactive");
   const monthly = active.reduce((a,s) => a + s.amount, 0);
-  const dueCount= subs.filter(s => s.status === "warning").length;
 
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
       {/* KPI row */}
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(210px,1fr))", gap:14 }}>
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))", gap:14 }}>
         <KPI t={t} label="Monthly Spend"  value={`$${monthly.toFixed(2)}`} sub="+12.4% vs last month" trend="up"      Icon={DollarSign}  />
         <KPI t={t} label="Active Subs"    value={`${active.length}`}        sub={`${subs.length} total tracked`}       Icon={CreditCard}  />
         <KPI t={t} label="Annual Cost"    value={`$${(monthly*12).toFixed(0)}`} sub="Projected this year"             Icon={TrendingUp}  />
-        <KPI t={t} label="Potential Save" value={`$${(dueCount*20).toFixed(0)}`} sub="By cancelling unused" trend="down" Icon={Target} />
         <KPI t={t} label="Avg per Sub"    value={`$${active.length ? (monthly / active.length).toFixed(2) : "0.00"}`} sub="Monthly average cost" trend="neutral" Icon={Zap} />
       </div>
 
@@ -1169,7 +1167,7 @@ export default function Dashboard() {
     <div style={{ display:"flex", minHeight:"100vh", background:t.bg, color:t.text, fontFamily:"var(--font-display)", transition:"background 0.4s, color 0.4s" }}>
       <style>{`
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-        :root{--font-display:'Plus Jakarta Sans',system-ui,sans-serif;--font-mono:'DM Mono','Courier New',monospace}
+        :root{--font-display:var(--font-inter),system-ui,sans-serif;--font-mono:var(--font-jetbrains-mono),'Courier New',monospace}
         @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
         @keyframes slideUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
         a{color:inherit;text-decoration:none}
@@ -1200,7 +1198,7 @@ export default function Dashboard() {
       <aside className="sidebar-desk" style={{ width:SBW, minHeight:"100vh", background:t.sidebarBg, borderRight:`1px solid ${t.border}`, flexDirection:"column", position:"fixed", left:0, top:0, bottom:0, zIndex:50, transition:"width 0.25s cubic-bezier(0.4,0,0.2,1)", overflow:"hidden", flexShrink:0, display:"flex" }}>
         {/* Logo */}
         <div style={{ height:62, display:"flex", alignItems:"center", padding:collapsed?"0 0 0 16px":"0 18px", gap:9, borderBottom:`1px solid ${t.border}`, flexShrink:0 }}>
-          <div style={{ width:28, height:28, background:t.green, borderRadius:6, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}><PieChart size={14} color="#000" strokeWidth={2.5}/></div>
+          <img src="/icon.svg" alt="Subsight" width={28} height={28} style={{ borderRadius:6, flexShrink:0, display:"block" }} />
           {!collapsed && <span style={{ fontFamily:"var(--font-display)", fontSize:17, fontWeight:800, color:t.text, letterSpacing:-0.5, whiteSpace:"nowrap" }}>Subsight</span>}
         </div>
 
@@ -1229,7 +1227,7 @@ export default function Dashboard() {
           <aside style={{ position:"absolute", left:0, top:0, bottom:0, width:236, background:t.sidebarBg, borderRight:`1px solid ${t.border}`, display:"flex", flexDirection:"column", zIndex:201 }}>
             <div style={{ height:62, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"0 18px", borderBottom:`1px solid ${t.border}` }}>
               <div style={{ display:"flex", alignItems:"center", gap:9 }}>
-                <div style={{ width:26, height:26, background:t.green, borderRadius:6, display:"flex", alignItems:"center", justifyContent:"center" }}><PieChart size={13} color="#000" strokeWidth={2.5}/></div>
+                <img src="/icon.svg" alt="Subsight" width={26} height={26} style={{ borderRadius:6, display:"block" }} />
                 <span style={{ fontFamily:"var(--font-display)", fontSize:16, fontWeight:800, color:t.text }}>Subsight</span>
               </div>
               <button onClick={()=>setMobileSB(false)} style={{ background:"none", border:"none", color:t.text3, cursor:"pointer" }}><X size={18}/></button>

@@ -30,7 +30,7 @@ type TK = "dark" | "light";
 
 const PAGE_CSS = `
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  :root{--font-display:'Plus Jakarta Sans',system-ui,sans-serif;--font-mono:'DM Mono','Courier New',monospace}
+  :root{--font-display:var(--font-inter),system-ui,sans-serif;--font-mono:var(--font-jetbrains-mono),'Courier New',monospace}
   @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
   a{color:inherit;text-decoration:none}
   ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#2a2a2a;border-radius:3px}
@@ -58,9 +58,7 @@ function PageNav({ t, themeKey, toggle }: { t:T; themeKey:TK; toggle:()=>void })
   return (
     <nav className="nav-wrap" style={{ position:"fixed", top:0, left:0, right:0, zIndex:100, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"0 48px", height:62, background:scrolled?t.navBg:"transparent", borderBottom:scrolled?`1px solid ${t.border}`:"none", backdropFilter:scrolled?"blur(14px)":"none", WebkitBackdropFilter:scrolled?"blur(14px)":"none", transition:"all 0.35s" }}>
       <Link href="/" style={{ display:"flex", alignItems:"center", gap:9, textDecoration:"none" }}>
-        <div style={{ width:28, height:28, background:t.green, borderRadius:7, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-          <PieChart size={14} color="#000" strokeWidth={2.5}/>
-        </div>
+        <img src="/icon.svg" alt="Subsight" width={28} height={28} style={{ borderRadius:7, flexShrink:0, display:"block" }} />
         <span style={{ fontFamily:"var(--font-display)", fontSize:17, fontWeight:800, color:t.text, letterSpacing:-0.5 }}>Subsight</span>
       </Link>
 
@@ -91,7 +89,7 @@ function PageFooter({ t }: { t:T }) {
     <footer style={{ borderTop:`1px solid ${t.border}`, padding:"36px 24px" }}>
       <div className="footer-row" style={{ maxWidth:1080, margin:"0 auto", display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:16 }}>
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-          <div style={{ width:24, height:24, background:t.green, borderRadius:5, display:"flex", alignItems:"center", justifyContent:"center" }}><PieChart size={12} color="#000" strokeWidth={2.5}/></div>
+          <img src="/icon.svg" alt="Subsight" width={24} height={24} style={{ borderRadius:5, display:"block" }} />
           <span style={{ fontFamily:"var(--font-display)", fontSize:15, fontWeight:800, color:t.text }}>Subsight</span>
         </div>
         <div style={{ display:"flex", gap:20, flexWrap:"wrap", justifyContent:"center" }}>

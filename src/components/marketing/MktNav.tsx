@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Sun, Moon, ArrowRight, PieChart } from "lucide-react";
+import { Sun, Moon, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 type T = {
@@ -20,9 +20,7 @@ export function MktNav({ t, themeKey, toggle }: { t: T; themeKey: TK; toggle: ()
   return (
     <nav style={{ position:"fixed", top:0, left:0, right:0, zIndex:100, display:"grid", gridTemplateColumns:"1fr auto 1fr", alignItems:"center", padding:"0 48px", height:62, background:scrolled?t.navBg:"transparent", borderBottom:scrolled?`1px solid ${t.border}`:"none", backdropFilter:scrolled?"blur(14px)":"none", WebkitBackdropFilter:scrolled?"blur(14px)":"none", transition:"all 0.35s" }}>
       <Link href="/" style={{ display:"flex", alignItems:"center", gap:9, textDecoration:"none" }}>
-        <div style={{ width:28, height:28, background:t.green, borderRadius:7, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-          <PieChart size={14} color={t.onGreen} strokeWidth={2.5}/>
-        </div>
+        <img src="/icon.svg" alt="Subsight" width={28} height={28} style={{ borderRadius:7, flexShrink:0, display:"block" }} />
         <span style={{ fontFamily:"var(--font-display)", fontSize:17, fontWeight:800, color:t.text, letterSpacing:-0.5 }}>Subsight</span>
       </Link>
 

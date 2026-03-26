@@ -44,9 +44,7 @@ function AuthShell({ t, children }: { t: T; children: React.ReactNode }) {
       </div>
       <div style={{ position:"absolute", top:"-20%", left:"50%", transform:"translateX(-50%)", width:560, height:560, background:`radial-gradient(circle, ${t.greenBorder} 0%, transparent 65%)`, pointerEvents:"none" }}/>
       <Link href="/" style={{ display:"flex", alignItems:"center", gap:9, marginBottom:32, position:"relative", zIndex:1, textDecoration:"none" }}>
-        <div style={{ width:32, height:32, background:t.green, borderRadius:8, display:"flex", alignItems:"center", justifyContent:"center" }}>
-          <PieChart size={16} color={t.onGreen} strokeWidth={2.5}/>
-        </div>
+        <img src="/icon.svg" alt="Subsight" width={32} height={32} style={{ borderRadius:8, display:"block" }} />
         <span style={{ fontFamily:"var(--font-display)", fontSize:20, fontWeight:800, color:t.text, letterSpacing:-0.5 }}>Subsight</span>
       </Link>
       <div style={{ position:"relative", zIndex:1, animation:"fadeUp 0.6s ease both" }}>{children}</div>

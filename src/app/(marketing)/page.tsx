@@ -6,7 +6,7 @@
 // Sections: Nav · Hero · Ticker · Features · Dashboard Preview ·
 //           Comparison Table · Pricing · FAQ · Final CTA · Footer
 //
-// Fonts: Plus Jakarta Sans (display) + DM Mono (mono/UI)
+// Fonts: Inter (display) + JetBrains Mono (mono/UI)
 // Theme: dark / light toggle — persisted to localStorage
 // Responsive: 480 / 768 / 900 / 1440 breakpoints
 // Browser: Safari backdrop-filter, Firefox scrollbar, all modern browsers
@@ -15,7 +15,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import {
   LayoutDashboard, Sparkles, ToggleLeft, Download, Search, Shield,
-  Github, ArrowRight, Check, X, ChevronDown, ChevronUp,
+  ArrowRight, Check, X, ChevronDown, ChevronUp,
   TrendingUp, Zap, Sun, Moon, Menu, PieChart, Bell, CreditCard,
   BarChart3, ArrowUpRight, Lock, Globe, RefreshCw, Target,
 } from "lucide-react";
@@ -371,7 +371,7 @@ export default function LandingPage() {
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
         html{scroll-behavior:smooth}
         body{overflow-x:hidden}
-        :root{--font-display:'Plus Jakarta Sans',system-ui,sans-serif;--font-mono:'DM Mono','Courier New',monospace}
+        :root{--font-display:var(--font-inter),system-ui,sans-serif;--font-mono:var(--font-jetbrains-mono),'Courier New',monospace}
         @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.6)}}
         @keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-33.333%)}}
         @keyframes heroIn{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
@@ -409,29 +409,27 @@ export default function LandingPage() {
       `}</style>
 
       {/* ═══ NAV ════════════════════════════════════════════════════════════════ */}
-      <nav className="nav-wrap" style={{ position:"fixed", top:0, left:0, right:0, zIndex:100, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"0 40px", height:68, background:scrolled?t.navBg:"transparent", borderBottom:scrolled?`1px solid ${t.border}`:"none", backdropFilter:scrolled?"blur(20px)":"none", WebkitBackdropFilter:scrolled?"blur(20px)":"none", transition:"all 0.4s cubic-bezier(0.4,0,0.2,1)" }}>
+      <nav className="nav-wrap" style={{ position:"fixed", top:0, left:0, right:0, zIndex:100, display:"grid", gridTemplateColumns:"1fr auto 1fr", alignItems:"center", padding:"0 40px", height:68, background:scrolled?t.navBg:"transparent", borderBottom:scrolled?`1px solid ${t.border}`:"none", backdropFilter:scrolled?"blur(20px)":"none", WebkitBackdropFilter:scrolled?"blur(20px)":"none", transition:"all 0.4s cubic-bezier(0.4,0,0.2,1)" }}>
 
         {/* Logo */}
         <Link href="/" style={{ display:"flex", alignItems:"center", gap:10, textDecoration:"none", flexShrink:0 }}>
-          <div style={{ width:32, height:32, background:t.green, borderRadius:9, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, boxShadow:`0 0 16px ${t.greenGlow}` }}>
-            <PieChart size={15} color="#000" strokeWidth={2.5} />
-          </div>
+          <img src="/icon.svg" alt="Subsight" width={32} height={32} style={{ borderRadius:9, flexShrink:0, boxShadow:`0 0 16px ${t.greenGlow}`, display:"block" }} />
           <span style={{ fontFamily:"var(--font-display)", fontSize:18, fontWeight:800, color:t.text, letterSpacing:-0.6 }}>Subsight</span>
         </Link>
 
-        {/* Center pill nav */}
-        <div className="nav-desktop" style={{ display:"flex", alignItems:"center", gap:2, background:t.surface2, border:`1px solid ${t.border2}`, borderRadius:999, padding:"5px 6px" }}>
+        {/* Center nav links */}
+        <div className="nav-desktop" style={{ display:"flex", alignItems:"center", gap:6 }}>
           {["Features","Compare","Pricing","FAQ"].map(l => (
             <a key={l} href={`#${l.toLowerCase()}`}
-              style={{ fontSize:13, color:t.text2, fontFamily:"var(--font-display)", fontWeight:500, padding:"6px 16px", borderRadius:999, transition:"all 0.2s", whiteSpace:"nowrap" }}
-              onMouseEnter={e=>{ (e.currentTarget as HTMLElement).style.color=t.text; (e.currentTarget as HTMLElement).style.background=t.surface3; }}
+              style={{ fontSize:13, color:t.text2, fontFamily:"var(--font-display)", fontWeight:500, padding:"7px 16px", borderRadius:8, transition:"all 0.2s", whiteSpace:"nowrap", textDecoration:"none" }}
+              onMouseEnter={e=>{ (e.currentTarget as HTMLElement).style.color=t.text; (e.currentTarget as HTMLElement).style.background=t.surface2; }}
               onMouseLeave={e=>{ (e.currentTarget as HTMLElement).style.color=t.text2; (e.currentTarget as HTMLElement).style.background="transparent"; }}
             >{l}</a>
           ))}
         </div>
 
         {/* Right actions */}
-        <div style={{ display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:8, flexShrink:0, justifyContent:"flex-end" }}>
           <button onClick={toggle} aria-label="Toggle theme"
             style={{ width:36, height:36, border:`1px solid ${t.border2}`, borderRadius:10, background:t.surface2, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", transition:"all 0.2s", flexShrink:0 }}
             onMouseEnter={e=>{ (e.currentTarget as HTMLElement).style.borderColor=t.green; (e.currentTarget as HTMLElement).style.background=t.surface3; }}
@@ -497,9 +495,6 @@ export default function LandingPage() {
           <Link href="/sign-up" style={btnPrimary} onMouseEnter={e=>{ (e.currentTarget as HTMLElement).style.background=t.green2; (e.currentTarget as HTMLElement).style.transform="translateY(-2px)"; }} onMouseLeave={e=>{ (e.currentTarget as HTMLElement).style.background=t.green; (e.currentTarget as HTMLElement).style.transform="translateY(0px)"; }}>
             Track My Subscriptions <ArrowRight size={14} />
           </Link>
-          <a href="https://github.com/MuhammadTanveerAbbas/Subsight-Tracker" target="_blank" rel="noopener" style={btnGhost} onMouseEnter={e=>{ (e.currentTarget as HTMLElement).style.borderColor=t.green; (e.currentTarget as HTMLElement).style.color=t.green; }} onMouseLeave={e=>{ (e.currentTarget as HTMLElement).style.borderColor=t.border2; (e.currentTarget as HTMLElement).style.color=t.text; }}>
-            <Github size={14} /> View Source
-          </a>
         </div>
 
         <div className="stats-grid" style={{ animation:"heroIn 0.65s ease 0.34s both", position:"relative", zIndex:1, display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:1, marginTop:80, background:t.border, border:`1px solid ${t.border}`, borderRadius:14, overflow:"hidden", maxWidth:760, width:"100%" }}>
@@ -646,7 +641,7 @@ export default function LandingPage() {
           <div className="footer-grid" style={{ display:"grid", gridTemplateColumns:"2fr 1fr 1fr 1fr", gap:48, marginBottom:48 }}>
             <div>
               <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14 }}>
-                <div style={{ width:28, height:28, background:t.green, borderRadius:6, display:"flex", alignItems:"center", justifyContent:"center" }}><PieChart size={14} color="#000" strokeWidth={2.5} /></div>
+                <img src="/icon.svg" alt="Subsight" width={28} height={28} style={{ borderRadius:6, display:"block" }} />
                 <span style={{ fontFamily:"var(--font-display)", fontSize:18, fontWeight:800, color:t.text }}>Subsight</span>
               </div>
               <p style={{ fontSize:13, color:t.text3, fontFamily:"var(--font-mono)", lineHeight:1.7, maxWidth:240 }}>A real-time subscription tracker with AI insights. Open source. Free forever.</p>

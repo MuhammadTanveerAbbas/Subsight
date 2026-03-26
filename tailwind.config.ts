@@ -17,9 +17,10 @@ export default {
     },
     extend: {
       fontFamily: {
-        body: ['var(--font-sora)', 'sans-serif'],
-        headline: ['var(--font-sora)', 'sans-serif'],
-        code: ['monospace'],
+        body: ['var(--font-inter)', 'sans-serif'],
+        headline: ['var(--font-inter)', 'sans-serif'],
+        mono: ['var(--font-jetbrains-mono)', 'monospace'],
+        code: ['var(--font-jetbrains-mono)', 'monospace'],
       },
       colors: {
         background: 'hsl(var(--background))',
