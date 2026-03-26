@@ -54,14 +54,8 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
-  icons: {
-    icon: [
-      { url: '/icon.svg', type: 'image/svg+xml' },
-      { url: '/favicon.png', sizes: '32x32', type: 'image/png' },
-    ],
-    apple: '/apple-touch-icon.png',
-    shortcut: '/icon.svg',
-  },
+  // Icons are handled via src/app/favicon.png, icon.svg, apple-icon.png
+  // Next.js App Router auto-detects these with cache-busting hashes on each deploy
 };
 
 const inter = Inter({
