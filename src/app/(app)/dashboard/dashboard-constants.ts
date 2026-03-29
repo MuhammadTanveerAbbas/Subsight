@@ -1,5 +1,3 @@
-// Extracted constants to reduce module size and improve webpack cache performance
-
 export const DARK = {
   bg:"#080808", surface:"#111111", surface2:"#181818", surface3:"#1e1e1e",
   border:"#1f1f1f", border2:"#2a2a2a",
@@ -31,36 +29,18 @@ export type T  = typeof DARK | typeof LIGHT;
 export type SubStatus = "active" | "inactive" | "warning" | "renewal_passed";
 
 export interface Sub {
-  id: string; name: string; category: string; amount: number;
-  cycle: string; nextDate: string; status: SubStatus;
-  autoRenew: boolean; currency: string; provider: string; notes: string;
+  id: string;
+  name: string;
+  category: string;
+  amount: number;
+  cycle: string;
+  nextDate: string;
+  status: SubStatus;
+  autoRenew: boolean;
+  currency: string;
+  provider: string;
+  notes: string;
 }
-
-export const MOCK_SUBS: Sub[] = [
-  { id:"1", name:"Netflix",   category:"Streaming",    amount:15.99, cycle:"Monthly",   nextDate:"Apr 3, 2026",  status:"active",          autoRenew:true,  currency:"USD", provider:"Netflix Inc.",   notes:"" },
-  { id:"2", name:"Notion",    category:"Productivity", amount:16.00, cycle:"Monthly",   nextDate:"Apr 8, 2026",  status:"active",          autoRenew:true,  currency:"USD", provider:"Notion Labs",    notes:"" },
-  { id:"3", name:"AWS",       category:"Cloud",        amount:43.20, cycle:"Monthly",   nextDate:"Apr 1, 2026",  status:"warning",         autoRenew:true,  currency:"USD", provider:"Amazon",         notes:"Check usage before renewal" },
-  { id:"4", name:"Spotify",   category:"Music",        amount:9.99,  cycle:"Monthly",   nextDate:"Apr 12, 2026", status:"active",          autoRenew:true,  currency:"USD", provider:"Spotify AB",     notes:"" },
-  { id:"5", name:"Figma",     category:"Design",       amount:15.00, cycle:"Monthly",   nextDate:"Apr 5, 2026",  status:"active",          autoRenew:false, currency:"USD", provider:"Figma Inc.",     notes:"" },
-  { id:"6", name:"GitHub",    category:"Development",  amount:4.00,  cycle:"Monthly",   nextDate:"Apr 15, 2026", status:"active",          autoRenew:true,  currency:"USD", provider:"Microsoft",      notes:"" },
-  { id:"7", name:"Cursor AI", category:"Development",  amount:29.00, cycle:"Monthly",   nextDate:"Mar 12, 2026", status:"renewal_passed",  autoRenew:true,  currency:"USD", provider:"Anysphere Inc.", notes:"" },
-  { id:"8", name:"Adobe CC",  category:"Design",       amount:54.99, cycle:"Monthly",   nextDate:"Apr 20, 2026", status:"active",          autoRenew:true,  currency:"USD", provider:"Adobe Inc.",     notes:"Considering cancellation" },
-];
-
-export const MONTHLY_DATA = [
-  { month:"Jan",spend:290 },{ month:"Feb",spend:310 },{ month:"Mar",spend:275 },
-  { month:"Apr",spend:340 },{ month:"May",spend:420 },{ month:"Jun",spend:380 },
-  { month:"Jul",spend:310 },{ month:"Aug",spend:460 },{ month:"Sep",spend:390 },
-  { month:"Oct",spend:350 },{ month:"Nov",spend:430 },{ month:"Dec",spend:388 },
-];
-
-export const CAT_DATA = [
-  { name:"Development", value:33, color:"#22c55e" },
-  { name:"Design",      value:27, color:"#3b82f6" },
-  { name:"Cloud",       value:22, color:"#f59e0b" },
-  { name:"Streaming",   value:11, color:"#ef4444" },
-  { name:"Other",       value:7,  color:"#8b5cf6" },
-];
 
 import {
   LayoutDashboard, CreditCard, BarChart3, Sparkles, Download,

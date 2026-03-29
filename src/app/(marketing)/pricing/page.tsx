@@ -1,7 +1,4 @@
 "use client";
-// ─────────────────────────────────────────────────────────────────────────────
-// src/app/(marketing)/pricing/page.tsx
-// ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useEffect } from "react";
 import { Check, X, ArrowRight, ChevronDown, ChevronUp, PieChart, Sun, Moon } from "lucide-react";

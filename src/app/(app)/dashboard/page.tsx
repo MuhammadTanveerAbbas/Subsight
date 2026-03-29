@@ -1,37 +1,14 @@
 "use client";
-// ─────────────────────────────────────────────────────────────────────────────
-// dashboard.tsx  —  Subsight App Shell
-// Place at: src/app/(app)/dashboard/page.tsx
-//
-// Views (all rendered in-page, toggled by sidebar):
-//   overview · subscriptions · analytics · ai-summary
-//   add · export · settings · profile
-//
-// Features:
-//   • Collapsible sidebar, mobile overlay sidebar
-//   • Dark / light theme toggle (localStorage + TODO: sync to profiles.theme)
-//   • Edit subscription modal
-//   • Simulation mode
-//   • Animated Recharts (AreaChart, BarChart, PieChart)
-//   • AI Summary with mock Groq call stub
-//   • Export JSON / CSV / PDF
-//   • Keyboard shortcuts: Ctrl+E, Ctrl+S, Ctrl+A
-//   • Toast notifications
-//   • Fully responsive (mobile, tablet, desktop)
-//
-// All Supabase calls are stubbed with TODO comments.
-// Kiro wires real data in PROMPT 3.
-// ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { createClient } from "@/lib/supabase/client";
 import {
   Bell, Search, Sun, Moon, Menu, X,
   ChevronRight, ChevronLeft, ChevronDown, Trash2, Edit3,
   Check, AlertTriangle, TrendingUp, TrendingDown, RefreshCw,
-  Copy, FileText, LogOut, ArrowRight, PieChart, Zap, Globe,
+  Copy, FileText, LogOut, ArrowRight, Zap, Globe,
   Lock, Shield, Target, Tag, DollarSign, ToggleLeft, ToggleRight,
-  CheckCircle, XCircle, Save, KeyRound,
-  CreditCard, Plus, Sparkles, Download, BarChart3, User
+  CheckCircle, XCircle, Save, CreditCard, Plus, Sparkles, Download, BarChart3, User
 } from "lucide-react";
 import {
   AreaChart, Area, BarChart, Bar,
@@ -40,11 +17,10 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import {
-  DARK, LIGHT, MOCK_SUBS, MONTHLY_DATA, CAT_DATA, NAV_MAIN, NAV_BOTTOM,
+  DARK, LIGHT, NAV_MAIN, NAV_BOTTOM,
   type TK, type T, type Sub, type SubStatus,
 } from "./dashboard-constants";
 
-// ─── Shared micro-components ──────────────────────────────────────────────────
 function Badge({ status, t }: { status: SubStatus; t: T }) {
   const cfg: Record<SubStatus,{ color:string; bg:string; label:string }> = {
     active:          { color:t.green, bg:t.greenDim,  label:"Active"          },
@@ -119,18 +95,38 @@ function SelectRow({ label, value, onChange, options, t }: { label:string; value
   );
 }
 
-// ─── Edit Subscription Modal ──────────────────────────────────────────────────
 function EditModal({ sub, onSave, onClose, t }: { sub:Sub; onSave:(s:Sub)=>void; onClose:()=>void; t:T }) {
   const [form, setForm] = useState<Sub>({ ...sub });
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string|null>(null);
   const f = <K extends keyof Sub>(k:K) => (v: Sub[K]) => setForm(p=>({ ...p, [k]:v }));
 
   const handleSave = async () => {
     setSaving(true);
-    // TODO PROMPT 3: await supabase.from('subscriptions').update({...form}).eq('id', form.id);
-    await new Promise(r => setTimeout(r, 700));
-    onSave(form);
-    setSaving(false);
+    setError(null);
+    try {
+      const supabase = createClient();
+      const { error: dbError } = await supabase
+        .from('subscriptions')
+        .update({
+          name: form.name,
+          category: form.category,
+          amount: form.amount,
+          billing_cycle: form.cycle,
+          provider: form.provider,
+          notes: form.notes,
+          auto_renew: form.autoRenew,
+          currency: form.currency,
+          status: form.status,
+        })
+        .eq('id', form.id);
+      if (dbError) throw dbError;
+      onSave(form);
+    } catch (err: any) {
+      setError(err.message || 'Failed to save changes');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -144,7 +140,9 @@ function EditModal({ sub, onSave, onClose, t }: { sub:Sub; onSave:(s:Sub)=>void;
           </div>
           <button onClick={onClose} style={{ background:"none", border:"none", color:t.text3, cursor:"pointer", padding:4 }}><X size={18}/></button>
         </div>
-
+        {error && (
+          <div style={{ background:t.redDim, border:`1px solid ${t.red}44`, borderRadius:8, padding:"10px 14px", marginBottom:16, fontSize:12, color:t.red, fontFamily:"var(--font-mono)" }}>{error}</div>
+        )}
         <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
           <InputRow label="Subscription Name *" value={form.name} onChange={v=>f("name")(v)} placeholder="e.g. Netflix" t={t} />
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
@@ -180,7 +178,6 @@ function EditModal({ sub, onSave, onClose, t }: { sub:Sub; onSave:(s:Sub)=>void;
             </button>
           </div>
         </div>
-
         <div style={{ display:"flex", gap:10, marginTop:24 }}>
           <button onClick={handleSave} disabled={saving || !form.name} style={{ flex:1, background:t.green, color:"#000", border:"none", borderRadius:8, padding:"12px", fontSize:13, fontWeight:700, fontFamily:"var(--font-display)", cursor:saving||!form.name?"not-allowed":"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:7, opacity:!form.name?0.6:1 }}>
             {saving ? <><RefreshCw size={13} style={{ animation:"spin 1s linear infinite" }}/> Saving...</> : <><Save size={13}/> Save Changes</>}
@@ -192,39 +189,71 @@ function EditModal({ sub, onSave, onClose, t }: { sub:Sub; onSave:(s:Sub)=>void;
   );
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// VIEWS
-// ═══════════════════════════════════════════════════════════════════════════════
+function buildMonthlyData(subs: Sub[]) {
+  const now = new Date();
+  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  return months.map((month, i) => {
+    const spend = subs
+      .filter(s => s.status === "active")
+      .reduce((acc, s) => {
+        if (s.cycle === "Monthly" || s.cycle === "Daily" || s.cycle === "Weekly") return acc + s.amount;
+        if (s.cycle === "Annually") return acc + s.amount / 12;
+        if (s.cycle === "Quarterly") return acc + s.amount / 3;
+        return acc;
+      }, 0);
+    return { month, spend: Math.round(spend * 100) / 100 };
+  });
+}
 
-// ─── Overview View ────────────────────────────────────────────────────────────
+function buildCatData(subs: Sub[]) {
+  const active = subs.filter(s => s.status === "active");
+  const total = active.reduce((a, s) => a + s.amount, 0);
+  if (total === 0) return [];
+  const catMap: Record<string, number> = {};
+  active.forEach(s => {
+    const cat = s.category || "Other";
+    catMap[cat] = (catMap[cat] || 0) + s.amount;
+  });
+  const colors = ["#22c55e","#3b82f6","#f59e0b","#ef4444","#8b5cf6","#06b6d4","#ec4899","#14b8a6"];
+  return Object.entries(catMap)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8)
+    .map(([name, value], i) => ({
+      name,
+      value: Math.round((value / total) * 100),
+      color: colors[i % colors.length],
+    }));
+}
+
 function OverviewView({ t, subs, onNav }: { t:T; subs:Sub[]; onNav:(id:string)=>void }) {
   const active  = subs.filter(s => s.status !== "inactive");
   const monthly = active.reduce((a,s) => a + s.amount, 0);
+  const monthlyData = buildMonthlyData(subs);
+  const catData = buildCatData(subs);
+  const dueSoon = subs.filter(s => s.status === "warning" || s.status === "renewal_passed");
 
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
-      {/* KPI row */}
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))", gap:14 }}>
-        <KPI t={t} label="Monthly Spend"  value={`$${monthly.toFixed(2)}`} sub="+12.4% vs last month" trend="up"      Icon={DollarSign}  />
-        <KPI t={t} label="Active Subs"    value={`${active.length}`}        sub={`${subs.length} total tracked`}       Icon={CreditCard}  />
-        <KPI t={t} label="Annual Cost"    value={`$${(monthly*12).toFixed(0)}`} sub="Projected this year"             Icon={TrendingUp}  />
+      <div className="kpi-grid" style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))", gap:14 }}>
+        <KPI t={t} label="Monthly Spend"  value={`$${monthly.toFixed(2)}`} sub={`${active.length} active subscriptions`} trend="neutral" Icon={DollarSign} />
+        <KPI t={t} label="Active Subs"    value={`${active.length}`} sub={`${subs.length} total tracked`} Icon={CreditCard} />
+        <KPI t={t} label="Annual Cost"    value={`$${(monthly*12).toFixed(0)}`} sub="Projected this year" Icon={TrendingUp} />
         <KPI t={t} label="Avg per Sub"    value={`$${active.length ? (monthly / active.length).toFixed(2) : "0.00"}`} sub="Monthly average cost" trend="neutral" Icon={Zap} />
       </div>
 
-      {/* Spending chart + donut */}
-      <div style={{ display:"grid", gridTemplateColumns:"2fr 1fr", gap:14 }}>
+      <div className="chart-2col" style={{ display:"grid", gridTemplateColumns:"2fr 1fr", gap:14 }}>
         <div style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:12, padding:"20px 22px" }}>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:18 }}>
             <div>
               <div style={{ fontSize:13, fontWeight:700, color:t.text, fontFamily:"var(--font-display)" }}>Monthly Spending</div>
-              <div style={{ fontSize:10, color:t.text3, fontFamily:"var(--font-mono)", marginTop:2 }}>Projected for 2026</div>
+              <div style={{ fontSize:10, color:t.text3, fontFamily:"var(--font-mono)", marginTop:2 }}>Based on your active subscriptions</div>
             </div>
             <button onClick={()=>onNav("analytics")} style={{ fontSize:11, color:t.green, background:t.greenDim, border:`1px solid ${t.greenBorder}`, borderRadius:6, padding:"5px 10px", cursor:"pointer", fontFamily:"var(--font-mono)", display:"flex", alignItems:"center", gap:4 }}>
               View Full <ChevronRight size={11} />
             </button>
           </div>
           <ResponsiveContainer width="100%" height={180}>
-            <AreaChart data={MONTHLY_DATA}>
+            <AreaChart data={monthlyData}>
               <defs>
                 <linearGradient id="aGrad" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%"  stopColor={t.green} stopOpacity={0.18}/>
@@ -242,28 +271,33 @@ function OverviewView({ t, subs, onNav }: { t:T; subs:Sub[]; onNav:(id:string)=>
 
         <div style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:12, padding:"20px 22px" }}>
           <div style={{ fontSize:13, fontWeight:700, color:t.text, fontFamily:"var(--font-display)", marginBottom:4 }}>By Category</div>
-          <div style={{ fontSize:10, color:t.text3, fontFamily:"var(--font-mono)", marginBottom:14 }}>Annual breakdown</div>
-          <ResponsiveContainer width="100%" height={120}>
-            <RechartsPie>
-              <Pie data={CAT_DATA} cx="50%" cy="50%" innerRadius={34} outerRadius={54} dataKey="value" paddingAngle={2}>
-                {CAT_DATA.map((c,i) => <Cell key={i} fill={c.color}/>)}
-              </Pie>
-              <Tooltip contentStyle={{ background:t.surface2, border:`1px solid ${t.border2}`, borderRadius:8, fontSize:11, fontFamily:"var(--font-mono)", color:t.text }} formatter={(v:number)=>[`${v}%`,""]} />
-            </RechartsPie>
-          </ResponsiveContainer>
-          <div style={{ display:"flex", flexDirection:"column", gap:5, marginTop:8 }}>
-            {CAT_DATA.map(c => (
-              <div key={c.name} style={{ display:"flex", alignItems:"center", gap:7 }}>
-                <span style={{ width:7, height:7, borderRadius:2, background:c.color, flexShrink:0 }}/>
-                <span style={{ fontSize:10, color:t.text2, fontFamily:"var(--font-mono)", flex:1 }}>{c.name}</span>
-                <span style={{ fontSize:10, color:t.text, fontFamily:"var(--font-mono)" }}>{c.value}%</span>
+          <div style={{ fontSize:10, color:t.text3, fontFamily:"var(--font-mono)", marginBottom:14 }}>Spending breakdown</div>
+          {catData.length > 0 ? (
+            <>
+              <ResponsiveContainer width="100%" height={120}>
+                <RechartsPie>
+                  <Pie data={catData} cx="50%" cy="50%" innerRadius={34} outerRadius={54} dataKey="value" paddingAngle={2}>
+                    {catData.map((c,i) => <Cell key={i} fill={c.color}/>)}
+                  </Pie>
+                  <Tooltip contentStyle={{ background:t.surface2, border:`1px solid ${t.border2}`, borderRadius:8, fontSize:11, fontFamily:"var(--font-mono)", color:t.text }} formatter={(v:number)=>[`${v}%`,""]} />
+                </RechartsPie>
+              </ResponsiveContainer>
+              <div style={{ display:"flex", flexDirection:"column", gap:5, marginTop:8 }}>
+                {catData.map(c => (
+                  <div key={c.name} style={{ display:"flex", alignItems:"center", gap:7 }}>
+                    <span style={{ width:7, height:7, borderRadius:2, background:c.color, flexShrink:0 }}/>
+                    <span style={{ fontSize:10, color:t.text2, fontFamily:"var(--font-mono)", flex:1 }}>{c.name}</span>
+                    <span style={{ fontSize:10, color:t.text, fontFamily:"var(--font-mono)" }}>{c.value}%</span>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </>
+          ) : (
+            <div style={{ textAlign:"center", padding:"24px 0", color:t.text3, fontSize:12, fontFamily:"var(--font-mono)" }}>No data yet</div>
+          )}
         </div>
       </div>
 
-      {/* Recent subs table */}
       <div style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:12, overflow:"hidden" }}>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"15px 20px", borderBottom:`1px solid ${t.border}` }}>
           <div style={{ fontSize:13, fontWeight:700, color:t.text, fontFamily:"var(--font-display)" }}>My Subscriptions</div>
@@ -271,42 +305,42 @@ function OverviewView({ t, subs, onNav }: { t:T; subs:Sub[]; onNav:(id:string)=>
             View all <ChevronRight size={11}/>
           </button>
         </div>
-        <div style={{ overflowX:"auto" }}>
-          <table style={{ width:"100%", borderCollapse:"collapse", minWidth:560 }}>
-            <thead>
-              <tr style={{ background:t.surface2 }}>
-                {["Name","Category","Amount","Next Renewal","Status"].map(h => (
-                  <th key={h} style={{ padding:"9px 16px", textAlign:"left", fontSize:9.5, color:t.text3, letterSpacing:"0.1em", textTransform:"uppercase", fontFamily:"var(--font-mono)", fontWeight:400, borderBottom:`1px solid ${t.border}` }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {subs.slice(0,5).map(s => (
-                <tr key={s.id} style={{ borderBottom:`1px solid ${t.border}`, transition:"background 0.15s" }}
-                  onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background=t.surface2}
-                  onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background="transparent"}>
-                  <td style={{ padding:"11px 16px", fontSize:13, fontWeight:600, color:t.text, fontFamily:"var(--font-display)" }}>{s.name}</td>
-                  <td style={{ padding:"11px 16px", fontSize:11, color:t.text2, fontFamily:"var(--font-mono)" }}>{s.category}</td>
-                  <td style={{ padding:"11px 16px", fontSize:13, fontWeight:700, color:t.text, fontFamily:"var(--font-mono)" }}>${s.amount.toFixed(2)}</td>
-                  <td style={{ padding:"11px 16px", fontSize:11, color:t.text2, fontFamily:"var(--font-mono)" }}>{s.nextDate}</td>
-                  <td style={{ padding:"11px 16px" }}><Badge status={s.status} t={t}/></td>
+        {subs.length === 0 ? (
+          <div style={{ padding:"44px 20px", textAlign:"center", color:t.text3, fontFamily:"var(--font-mono)", fontSize:13 }}>
+            No subscriptions yet. <button onClick={()=>onNav("add")} style={{ background:"none", border:"none", color:t.green, cursor:"pointer", fontFamily:"var(--font-mono)", fontSize:13 }}>Add your first one →</button>
+          </div>
+        ) : (
+          <div style={{ overflowX:"auto" }}>
+            <table style={{ width:"100%", borderCollapse:"collapse", minWidth:560 }}>
+              <thead>
+                <tr style={{ background:t.surface2 }}>
+                  {["Name","Category","Amount","Next Renewal","Status"].map(h => (
+                    <th key={h} style={{ padding:"9px 16px", textAlign:"left", fontSize:9.5, color:t.text3, letterSpacing:"0.1em", textTransform:"uppercase", fontFamily:"var(--font-mono)", fontWeight:400, borderBottom:`1px solid ${t.border}` }}>{h}</th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {subs.slice(0,5).map(s => (
+                  <tr key={s.id} style={{ borderBottom:`1px solid ${t.border}`, transition:"background 0.15s" }}
+                    onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background=t.surface2}
+                    onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background="transparent"}>
+                    <td style={{ padding:"11px 16px", fontSize:13, fontWeight:600, color:t.text, fontFamily:"var(--font-display)" }}>{s.name}</td>
+                    <td style={{ padding:"11px 16px", fontSize:11, color:t.text2, fontFamily:"var(--font-mono)" }}>{s.category}</td>
+                    <td style={{ padding:"11px 16px", fontSize:13, fontWeight:700, color:t.text, fontFamily:"var(--font-mono)" }}>{s.currency} {s.amount.toFixed(2)}</td>
+                    <td style={{ padding:"11px 16px", fontSize:11, color:t.text2, fontFamily:"var(--font-mono)" }}>{s.nextDate || "—"}</td>
+                    <td style={{ padding:"11px 16px" }}><Badge status={s.status} t={t}/></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-// ─── Subscriptions View ───────────────────────────────────────────────────────
-function SubsView({
-  t, subs, setSubs, onAdd, toast,
-}: {
-  t:T; subs:Sub[]; setSubs:React.Dispatch<React.SetStateAction<Sub[]>>;
-  onAdd:()=>void; toast:(m:string,tp:"success"|"error"|"info")=>void;
-}) {
+function SubsView({ t, subs, setSubs, onAdd, toast }: { t:T; subs:Sub[]; setSubs:React.Dispatch<React.SetStateAction<Sub[]>>; onAdd:()=>void; toast:(m:string,tp:"success"|"error"|"info")=>void }) {
   const [search,   setSearch]   = useState("");
   const [filter,   setFilter]   = useState("all");
   const [sim,      setSim]      = useState(false);
@@ -321,17 +355,31 @@ function SubsView({
   });
 
   const toggleStatus = async (id:string) => {
-    // TODO PROMPT 3: await supabase.from('subscriptions').update({ status: newStatus }).eq('id', id);
-    setSubs(prev => prev.map(s => s.id===id ? { ...s, status: s.status==="active" ? "inactive" : "active" as SubStatus } : s));
+    const sub = subs.find(s => s.id === id);
+    if (!sub) return;
+    const newStatus: SubStatus = sub.status === "active" ? "inactive" : "active";
+    try {
+      const supabase = createClient();
+      await supabase.from('subscriptions').update({ status: newStatus }).eq('id', id);
+      setSubs(prev => prev.map(s => s.id===id ? { ...s, status: newStatus } : s));
+    } catch {
+      toast("Failed to update status", "error");
+    }
   };
 
   const deleteSub = async (id:string) => {
     setDeleting(id);
-    // TODO PROMPT 3: await supabase.from('subscriptions').delete().eq('id', id);
-    await new Promise(r => setTimeout(r, 600));
-    setSubs(prev => prev.filter(s => s.id !== id));
-    setDeleting(null);
-    toast("Subscription deleted", "info");
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.from('subscriptions').delete().eq('id', id);
+      if (error) throw error;
+      setSubs(prev => prev.filter(s => s.id !== id));
+      toast("Subscription deleted", "info");
+    } catch {
+      toast("Failed to delete subscription", "error");
+    } finally {
+      setDeleting(null);
+    }
   };
 
   const saveEdit = (updated:Sub) => {
@@ -340,14 +388,13 @@ function SubsView({
     toast("Subscription updated", "success");
   };
 
-  const simMonthly = filtered.filter(s=>s.status==="active").reduce((a,s)=>a+s.amount,0);
-  const simInactive= filtered.filter(s=>s.status==="inactive").reduce((a,s)=>a+s.amount,0);
+  const simMonthly  = filtered.filter(s=>s.status==="active").reduce((a,s)=>a+s.amount,0);
+  const simInactive = filtered.filter(s=>s.status==="inactive").reduce((a,s)=>a+s.amount,0);
 
   return (
     <>
       {editing && <EditModal sub={editing} onSave={saveEdit} onClose={()=>setEditing(null)} t={t} />}
       <div style={{ display:"flex", flexDirection:"column", gap:18 }}>
-        {/* Header */}
         <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
           <div>
             <h2 style={{ fontFamily:"var(--font-display)", fontSize:22, fontWeight:800, color:t.text, letterSpacing:-0.5 }}>My Subscriptions</h2>
@@ -372,7 +419,6 @@ function SubsView({
           </div>
         )}
 
-        {/* Search + filter */}
         <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
           <div style={{ flex:1, minWidth:200, position:"relative" }}>
             <Search size={13} color={t.text3} style={{ position:"absolute", left:11, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }} />
@@ -390,7 +436,6 @@ function SubsView({
           </select>
         </div>
 
-        {/* Table */}
         <div style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:12, overflow:"hidden" }}>
           <div style={{ overflowX:"auto" }}>
             <table style={{ width:"100%", borderCollapse:"collapse", minWidth:720 }}>
@@ -407,7 +452,7 @@ function SubsView({
                     onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background=t.surface2}
                     onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background="transparent"}>
                     <td style={{ padding:"11px 14px" }}>
-                      <button onClick={()=>toggleStatus(s.id)} style={{ background:"none", border:"none", cursor:"pointer", display:"flex", alignItems:"center" }}>
+                      <button onClick={()=>!sim && toggleStatus(s.id)} style={{ background:"none", border:"none", cursor:sim?"default":"pointer", display:"flex", alignItems:"center" }}>
                         <div style={{ width:18, height:18, borderRadius:4, background:s.status==="active"?t.green:t.surface3, border:`1px solid ${s.status==="active"?t.green:t.border2}`, display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.2s" }}>
                           {s.status==="active" && <Check size={11} color="#000" strokeWidth={2.5}/>}
                         </div>
@@ -422,7 +467,7 @@ function SubsView({
                     </td>
                     <td style={{ padding:"11px 14px", fontSize:13, fontWeight:700, color:t.text, fontFamily:"var(--font-mono)" }}>{s.currency} {s.amount.toFixed(2)}</td>
                     <td style={{ padding:"11px 14px", fontSize:11, color:t.text2, fontFamily:"var(--font-mono)" }}>{s.cycle}</td>
-                    <td style={{ padding:"11px 14px", fontSize:11, color:t.text2, fontFamily:"var(--font-mono)" }}>{s.nextDate}</td>
+                    <td style={{ padding:"11px 14px", fontSize:11, color:t.text2, fontFamily:"var(--font-mono)" }}>{s.nextDate || "—"}</td>
                     <td style={{ padding:"11px 14px" }}>
                       <span style={{ fontSize:10, color:s.autoRenew?t.green:t.text3, fontFamily:"var(--font-mono)" }}>{s.autoRenew?"Yes":"No"}</span>
                     </td>
@@ -450,20 +495,19 @@ function SubsView({
           </div>
           {filtered.length === 0 && (
             <div style={{ padding:"44px 20px", textAlign:"center", color:t.text3, fontFamily:"var(--font-mono)", fontSize:13 }}>
-              No subscriptions found{search ? ` for "${search}"` : ""}.
+              {subs.length === 0 ? "No subscriptions yet." : `No subscriptions found${search ? ` for "${search}"` : ""}.`}
             </div>
           )}
         </div>
 
-        {/* Simulation summary */}
         {sim && (
           <div style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:12, padding:"20px 22px" }}>
             <div style={{ fontSize:13, fontWeight:700, color:t.text, fontFamily:"var(--font-display)", marginBottom:14 }}>Simulation Summary</div>
             <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))", gap:12 }}>
               {[
-                { label:"Active Monthly",   value:`$${simMonthly.toFixed(2)}`           },
-                { label:"Inactive Monthly", value:`$${simInactive.toFixed(2)}`          },
-                { label:"Annual Savings",   value:`$${(simInactive*12).toFixed(2)}/yr`  },
+                { label:"Active Monthly",   value:`$${simMonthly.toFixed(2)}`          },
+                { label:"Inactive Monthly", value:`$${simInactive.toFixed(2)}`         },
+                { label:"Annual Savings",   value:`$${(simInactive*12).toFixed(2)}/yr` },
               ].map(item => (
                 <div key={item.label} style={{ background:t.surface2, borderRadius:8, padding:"14px 16px" }}>
                   <div style={{ fontSize:10, color:t.text3, fontFamily:"var(--font-mono)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:6 }}>{item.label}</div>
@@ -478,8 +522,13 @@ function SubsView({
   );
 }
 
-// ─── Analytics View ───────────────────────────────────────────────────────────
-function AnalyticsView({ t }: { t:T }) {
+function AnalyticsView({ t, subs }: { t:T; subs:Sub[] }) {
+  const monthlyData = buildMonthlyData(subs);
+  const catData = buildCatData(subs);
+  const active = subs.filter(s => s.status === "active");
+  const monthly = active.reduce((a,s) => a + s.amount, 0);
+  const dueSoon = subs.filter(s => s.status === "warning" || s.status === "renewal_passed").length;
+
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
       <div>
@@ -487,9 +536,13 @@ function AnalyticsView({ t }: { t:T }) {
         <p style={{ fontSize:11.5, color:t.text3, fontFamily:"var(--font-mono)", marginTop:3 }}>Spending trends and category breakdown</p>
       </div>
 
-      {/* Stats row */}
       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))", gap:12 }}>
-        {[{ l:"Avg Monthly",v:"$388",n:"based on 12 months" },{ l:"Peak Month",v:"$460",n:"August" },{ l:"Lowest Month",v:"$275",n:"February" },{ l:"Annual Total",v:"$4,656",n:"projected" }].map(s => (
+        {[
+          { l:"Monthly Total",  v:`$${monthly.toFixed(2)}`,          n:`${active.length} active subs` },
+          { l:"Annual Projected", v:`$${(monthly*12).toFixed(0)}`,   n:"Based on current subs" },
+          { l:"Due Soon",       v:`${dueSoon}`,                       n:"Renewals approaching" },
+          { l:"Avg per Sub",    v:`$${active.length ? (monthly/active.length).toFixed(2) : "0.00"}`, n:"Monthly average" },
+        ].map(s => (
           <div key={s.l} style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:10, padding:"16px 18px" }}>
             <div style={{ fontSize:10, color:t.text3, fontFamily:"var(--font-mono)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8 }}>{s.l}</div>
             <div style={{ fontFamily:"var(--font-display)", fontSize:22, fontWeight:800, color:t.text, letterSpacing:-0.5 }}>{s.v}</div>
@@ -498,12 +551,11 @@ function AnalyticsView({ t }: { t:T }) {
         ))}
       </div>
 
-      {/* Area chart */}
       <div style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:12, padding:"22px" }}>
         <div style={{ fontSize:14, fontWeight:700, color:t.text, fontFamily:"var(--font-display)", marginBottom:4 }}>Monthly Spending Trend</div>
-        <div style={{ fontSize:10, color:t.text3, fontFamily:"var(--font-mono)", marginBottom:20 }}>12-month overview for 2026</div>
+        <div style={{ fontSize:10, color:t.text3, fontFamily:"var(--font-mono)", marginBottom:20 }}>Projected monthly cost based on active subscriptions</div>
         <ResponsiveContainer width="100%" height={240}>
-          <AreaChart data={MONTHLY_DATA}>
+          <AreaChart data={monthlyData}>
             <defs>
               <linearGradient id="g2" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%"  stopColor={t.green} stopOpacity={0.20}/>
@@ -519,71 +571,93 @@ function AnalyticsView({ t }: { t:T }) {
         </ResponsiveContainer>
       </div>
 
-      {/* Bar + Donut row */}
-      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
+      <div className="ana-2col" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
         <div style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:12, padding:"22px" }}>
           <div style={{ fontSize:13, fontWeight:700, color:t.text, fontFamily:"var(--font-display)", marginBottom:18 }}>Spending by Category</div>
-          <ResponsiveContainer width="100%" height={190}>
-            <BarChart data={CAT_DATA} layout="vertical">
-              <XAxis type="number" tick={{ fontSize:9, fill:t.text3, fontFamily:"var(--font-mono)" }} axisLine={false} tickLine={false} tickFormatter={v=>`${v}%`}/>
-              <YAxis dataKey="name" type="category" tick={{ fontSize:9, fill:t.text2, fontFamily:"var(--font-mono)" }} axisLine={false} tickLine={false} width={78}/>
-              <Tooltip contentStyle={{ background:t.surface2, border:`1px solid ${t.border2}`, borderRadius:8, fontSize:11, fontFamily:"var(--font-mono)", color:t.text }} formatter={(v:number)=>[`${v}%`,""]}/>
-              <Bar dataKey="value" radius={[0,4,4,0]}>
-                {CAT_DATA.map((c,i) => <Cell key={i} fill={c.color}/>)}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+          {catData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={190}>
+              <BarChart data={catData} layout="vertical">
+                <XAxis type="number" tick={{ fontSize:9, fill:t.text3, fontFamily:"var(--font-mono)" }} axisLine={false} tickLine={false} tickFormatter={v=>`${v}%`}/>
+                <YAxis dataKey="name" type="category" tick={{ fontSize:9, fill:t.text2, fontFamily:"var(--font-mono)" }} axisLine={false} tickLine={false} width={78}/>
+                <Tooltip contentStyle={{ background:t.surface2, border:`1px solid ${t.border2}`, borderRadius:8, fontSize:11, fontFamily:"var(--font-mono)", color:t.text }} formatter={(v:number)=>[`${v}%`,""]}/>
+                <Bar dataKey="value" radius={[0,4,4,0]}>
+                  {catData.map((c,i) => <Cell key={i} fill={c.color}/>)}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div style={{ textAlign:"center", padding:"40px 0", color:t.text3, fontSize:12, fontFamily:"var(--font-mono)" }}>No data yet</div>
+          )}
         </div>
 
         <div style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:12, padding:"22px" }}>
           <div style={{ fontSize:13, fontWeight:700, color:t.text, fontFamily:"var(--font-display)", marginBottom:18 }}>Distribution</div>
-          <ResponsiveContainer width="100%" height={140}>
-            <RechartsPie>
-              <Pie data={CAT_DATA} cx="50%" cy="50%" innerRadius={44} outerRadius={66} dataKey="value" paddingAngle={3}>
-                {CAT_DATA.map((c,i) => <Cell key={i} fill={c.color}/>)}
-              </Pie>
-              <Tooltip contentStyle={{ background:t.surface2, border:`1px solid ${t.border2}`, borderRadius:8, fontSize:11, fontFamily:"var(--font-mono)", color:t.text }} formatter={(v:number)=>[`${v}%`,""]}/>
-            </RechartsPie>
-          </ResponsiveContainer>
-          <div style={{ display:"flex", flexWrap:"wrap", gap:"6px 14px", justifyContent:"center", marginTop:8 }}>
-            {CAT_DATA.map(c => (
-              <div key={c.name} style={{ display:"flex", alignItems:"center", gap:5 }}>
-                <span style={{ width:7, height:7, borderRadius:2, background:c.color, flexShrink:0 }}/>
-                <span style={{ fontSize:9.5, color:t.text2, fontFamily:"var(--font-mono)" }}>{c.name}</span>
+          {catData.length > 0 ? (
+            <>
+              <ResponsiveContainer width="100%" height={140}>
+                <RechartsPie>
+                  <Pie data={catData} cx="50%" cy="50%" innerRadius={44} outerRadius={66} dataKey="value" paddingAngle={3}>
+                    {catData.map((c,i) => <Cell key={i} fill={c.color}/>)}
+                  </Pie>
+                  <Tooltip contentStyle={{ background:t.surface2, border:`1px solid ${t.border2}`, borderRadius:8, fontSize:11, fontFamily:"var(--font-mono)", color:t.text }} formatter={(v:number)=>[`${v}%`,""]}/>
+                </RechartsPie>
+              </ResponsiveContainer>
+              <div style={{ display:"flex", flexWrap:"wrap", gap:"6px 14px", justifyContent:"center", marginTop:8 }}>
+                {catData.map(c => (
+                  <div key={c.name} style={{ display:"flex", alignItems:"center", gap:5 }}>
+                    <span style={{ width:7, height:7, borderRadius:2, background:c.color, flexShrink:0 }}/>
+                    <span style={{ fontSize:9.5, color:t.text2, fontFamily:"var(--font-mono)" }}>{c.name}</span>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </>
+          ) : (
+            <div style={{ textAlign:"center", padding:"40px 0", color:t.text3, fontSize:12, fontFamily:"var(--font-mono)" }}>No data yet</div>
+          )}
         </div>
       </div>
     </div>
   );
 }
 
-// ─── AI Summary View ──────────────────────────────────────────────────────────
 function AISummaryView({ t, subs }: { t:T; subs:Sub[] }) {
   const [loading, setLoading] = useState(false);
   const [summary, setSummary] = useState<string|null>(null);
   const [copied,  setCopied]  = useState(false);
+  const [error,   setError]   = useState<string|null>(null);
   const monthly = subs.filter(s=>s.status==="active").reduce((a,s)=>a+s.amount,0);
+  const dueSoon = subs.filter(s=>s.status==="warning"||s.status==="renewal_passed").length;
 
   const generate = async () => {
+    if (subs.length === 0) {
+      setError("Add some subscriptions first to generate an AI summary.");
+      return;
+    }
     setLoading(true);
-    // TODO PROMPT 3:
-    // Check ai_summaries table for cached result first:
-    // const { data: cached } = await supabase.from('ai_summaries').select('*')
-    //   .eq('user_id', user.id).gt('expires_at', new Date().toISOString())
-    //   .order('generated_at', { ascending: false }).limit(1).single();
-    // if (cached) { setSummary(cached.content); setLoading(false); return; }
-    //
-    // const res = await fetch('/api/ai-summary', { method:'POST', body: JSON.stringify({ subscriptions: subs }) });
-    // const { summary: content } = await res.json();
-    // setSummary(content);
-    // Insert into ai_summaries for caching:
-    // await supabase.from('ai_summaries').insert({ user_id: user.id, content, total_monthly: monthly });
-
-    await new Promise(r => setTimeout(r, 1800));
-    setSummary(`Based on your **$${monthly.toFixed(2)}/month** subscription portfolio:\n\n**AWS ($43.20/mo)** is your largest expense. Consider Reserved Instances if usage is consistent — potential savings of 30–40%.\n\n**Adobe CC ($54.99/mo)** is your highest single subscription. Standalone Photoshop + Illustrator plans cost $21/mo each — potential saving of ~$13/mo.\n\n**Cursor AI ($29.00/mo)** renewal has passed without action. Review whether usage justifies continuation at the current plan tier.\n\n**Development tools** total $33/mo (Cursor + GitHub). Evaluate whether GitHub Pro features overlap with Cursor's IDE tooling.\n\n**3 subscriptions** are due for renewal within the next 5 days. Review AWS before its billing date.\n\n**Potential annual savings identified: $156–$360** through cloud optimization and creative tool consolidation.`);
-    setLoading(false);
+    setError(null);
+    try {
+      const payload = subs.filter(s=>s.status==="active").map(s=>({
+        name: s.name,
+        amount: s.amount,
+        billingCycle: s.cycle,
+        category: s.category,
+      }));
+      const res = await fetch('/api/ai/summary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subscriptions: payload }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to generate summary');
+      }
+      const data = await res.json();
+      setSummary(data.summary);
+    } catch (err: any) {
+      setError(err.message || 'AI service unavailable. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const copy = () => {
@@ -614,13 +688,12 @@ function AISummaryView({ t, subs }: { t:T; subs:Sub[] }) {
         </button>
       </div>
 
-      {/* Quick insight cards */}
       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(195px,1fr))", gap:13 }}>
         {[
-          { Icon:TrendingUp,    label:"Monthly Trend",     value:"↑ 12.4%",  col:t.amber, bg:t.amberDim },
-          { Icon:Target,        label:"Potential Savings", value:"$140+/mo",  col:t.green, bg:t.greenDim },
-          { Icon:AlertTriangle, label:"Due This Week",     value:"3 subs",   col:t.red,   bg:t.redDim   },
-          { Icon:Zap,           label:"Score",             value:"72 / 100", col:t.blue,  bg:t.blueDim  },
+          { Icon:DollarSign,    label:"Monthly Total",    value:`$${monthly.toFixed(2)}`, col:t.green, bg:t.greenDim },
+          { Icon:CreditCard,    label:"Active Subs",      value:`${subs.filter(s=>s.status==="active").length}`, col:t.blue, bg:t.blueDim },
+          { Icon:AlertTriangle, label:"Due Soon",         value:`${dueSoon} sub${dueSoon!==1?"s":""}`, col:dueSoon>0?t.red:t.text3, bg:dueSoon>0?t.redDim:t.surface2 },
+          { Icon:Target,        label:"Annual Projected", value:`$${(monthly*12).toFixed(0)}`, col:t.amber, bg:t.amberDim },
         ].map(card => (
           <div key={card.label} style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:12, padding:"18px 20px" }}>
             <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
@@ -634,7 +707,10 @@ function AISummaryView({ t, subs }: { t:T; subs:Sub[] }) {
         ))}
       </div>
 
-      {/* Summary output */}
+      {error && (
+        <div style={{ background:t.redDim, border:`1px solid ${t.red}44`, borderRadius:10, padding:"14px 18px", fontSize:13, color:t.red, fontFamily:"var(--font-mono)" }}>{error}</div>
+      )}
+
       {summary ? (
         <div style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:12, padding:"24px 26px" }}>
           <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:18 }}>
@@ -665,61 +741,95 @@ function AISummaryView({ t, subs }: { t:T; subs:Sub[] }) {
   );
 }
 
-// ─── Add Subscription View ────────────────────────────────────────────────────
-function AddView({ t, onSuccess }: { t:T; onSuccess:()=>void }) {
+function AddView({ t, onSuccess, toast }: { t:T; onSuccess:()=>void; toast:(m:string,tp:"success"|"error"|"info")=>void }) {
   const blank = { name:"", category:"", amount:"", cycle:"Monthly", startDate:"", provider:"", autoRenew:true, currency:"USD", notes:"" };
   const [form,      setForm]    = useState(blank);
   const [loading,   setLoading] = useState(false);
   const [aiLoading, setAiLoad]  = useState(false);
+  const [error,     setError]   = useState<string|null>(null);
   const f = (k: keyof typeof form) => (v: string | boolean) => setForm(p => ({ ...p, [k]:v }));
 
   const aiAutofill = async () => {
     if (!form.name) return;
     setAiLoad(true);
-    // TODO PROMPT 3: real Groq call
-    await new Promise(r => setTimeout(r, 1100));
-    const mock: Record<string,Partial<typeof form>> = {
-      netflix: { category:"Streaming",   amount:"15.99", provider:"Netflix Inc."   },
-      spotify: { category:"Music",       amount:"9.99",  provider:"Spotify AB"     },
-      notion:  { category:"Productivity",amount:"16.00", provider:"Notion Labs"    },
-      github:  { category:"Development", amount:"4.00",  provider:"Microsoft"      },
-      figma:   { category:"Design",      amount:"15.00", provider:"Figma Inc."     },
-      aws:     { category:"Cloud",       amount:"43.20", provider:"Amazon"         },
-    };
-    const fill = mock[form.name.toLowerCase()] || { category:"SaaS", amount:"9.99", provider:form.name };
-    setForm(p => ({ ...p, ...fill }));
-    setAiLoad(false);
+    setError(null);
+    try {
+      const res = await fetch('/api/ai/autofill', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: form.name }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'AI autofill failed');
+      }
+      const data = await res.json();
+      setForm(p => ({
+        ...p,
+        category: data.category || p.category,
+        amount: data.amount ? String(data.amount) : p.amount,
+        provider: data.provider || p.provider,
+        cycle: data.billingCycle === 'yearly' ? 'Annually' : data.billingCycle === 'monthly' ? 'Monthly' : p.cycle,
+        autoRenew: data.autoRenew ?? p.autoRenew,
+        currency: data.currency || p.currency,
+      }));
+      toast("AI autofill complete", "success");
+    } catch (err: any) {
+      setError(err.message || 'AI autofill unavailable');
+    } finally {
+      setAiLoad(false);
+    }
   };
 
   const submit = async () => {
     if (!form.name || !form.amount) return;
     setLoading(true);
-    // TODO PROMPT 3:
-    // const { error } = await supabase.from('subscriptions').insert({
-    //   user_id: user.id, name: form.name, amount: parseFloat(form.amount),
-    //   billing_cycle: form.cycle, category: form.category || null,
-    //   provider: form.provider || null, start_date: form.startDate || null,
-    //   currency: form.currency, auto_renew: form.autoRenew, status: 'active', notes: form.notes,
-    // });
-    await new Promise(r => setTimeout(r, 900));
-    setLoading(false);
-    onSuccess();
+    setError(null);
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const startDate = form.startDate || new Date().toISOString().split('T')[0];
+      const { error: dbError } = await supabase.from('subscriptions').insert({
+        user_id: user.id,
+        name: form.name,
+        amount: parseFloat(form.amount),
+        billing_cycle: form.cycle,
+        category: form.category || null,
+        provider: form.provider || null,
+        start_date: startDate,
+        currency: form.currency,
+        auto_renew: form.autoRenew,
+        status: 'active',
+        notes: form.notes || null,
+        active_status: true,
+        icon: 'default',
+      });
+      if (dbError) throw dbError;
+      setForm(blank);
+      toast("Subscription added", "success");
+      onSuccess();
+    } catch (err: any) {
+      setError(err.message || 'Failed to add subscription');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const iStyle: React.CSSProperties = { width:"100%", background:t.surface2, border:`1px solid ${t.border}`, borderRadius:8, padding:"10px 13px", fontSize:13, color:t.text, fontFamily:"var(--font-mono)", outline:"none", transition:"border-color 0.2s" };
   const lStyle: React.CSSProperties = { fontSize:10.5, color:t.text3, fontFamily:"var(--font-mono)", letterSpacing:"0.08em", display:"block", marginBottom:5 };
-
   const preview = { name:form.name||"Subscription Name", amount:form.amount?`${form.currency} ${parseFloat(form.amount).toFixed(2)}`:`${form.currency} 0.00`, cycle:form.cycle, category:form.category||"—", start:form.startDate||new Date().toLocaleDateString("en-US",{ month:"short", day:"numeric", year:"numeric" }), autoRenew:form.autoRenew?"Yes":"No" };
 
   return (
-    <div style={{ display:"grid", gridTemplateColumns:"1fr 320px", gap:22, alignItems:"start" }}>
-      {/* Form */}
+    <div className="add-grid" style={{ display:"grid", gridTemplateColumns:"1fr 320px", gap:22, alignItems:"start" }}>
       <div style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:12, padding:"28px" }}>
         <h2 style={{ fontFamily:"var(--font-display)", fontSize:20, fontWeight:800, color:t.text, letterSpacing:-0.5, marginBottom:5 }}>Add Subscription</h2>
         <p style={{ fontSize:12, color:t.text3, fontFamily:"var(--font-mono)", marginBottom:26 }}>Track your recurring payments with AI-powered insights</p>
-
+        {error && (
+          <div style={{ background:t.redDim, border:`1px solid ${t.red}44`, borderRadius:8, padding:"10px 14px", marginBottom:16, fontSize:12, color:t.red, fontFamily:"var(--font-mono)" }}>{error}</div>
+        )}
         <div style={{ display:"flex", flexDirection:"column", gap:18 }}>
-          {/* Name + AI */}
           <div>
             <label style={lStyle}>Subscription Name *</label>
             <div style={{ display:"flex", gap:8 }}>
@@ -731,7 +841,6 @@ function AddView({ t, onSuccess }: { t:T; onSuccess:()=>void }) {
               </button>
             </div>
           </div>
-
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
             <div>
               <label style={lStyle}>Amount *</label>
@@ -751,7 +860,6 @@ function AddView({ t, onSuccess }: { t:T; onSuccess:()=>void }) {
               </select>
             </div>
           </div>
-
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
             <div>
               <label style={lStyle}>Category</label>
@@ -767,21 +875,18 @@ function AddView({ t, onSuccess }: { t:T; onSuccess:()=>void }) {
                 onBlur={e=>(e.target as HTMLInputElement).style.borderColor=t.border} />
             </div>
           </div>
-
           <div>
             <label style={lStyle}>Provider</label>
             <input value={form.provider} onChange={e=>f("provider")(e.target.value)} placeholder="e.g. Netflix Inc." style={{ ...iStyle }}
               onFocus={e=>(e.target as HTMLInputElement).style.borderColor=t.greenBorder}
               onBlur={e=>(e.target as HTMLInputElement).style.borderColor=t.border} />
           </div>
-
           <div>
             <label style={lStyle}>Notes (optional)</label>
             <textarea value={form.notes} onChange={e=>f("notes")(e.target.value)} rows={2} placeholder="Optional notes…" style={{ ...iStyle, resize:"vertical" }}
               onFocus={e=>(e.target as HTMLTextAreaElement).style.borderColor=t.greenBorder}
               onBlur={e=>(e.target as HTMLTextAreaElement).style.borderColor=t.border} />
           </div>
-
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", background:t.surface2, border:`1px solid ${t.border}`, borderRadius:8, padding:"13px 15px" }}>
             <div>
               <div style={{ fontSize:13, fontWeight:600, color:t.text, fontFamily:"var(--font-display)" }}>Auto Renew</div>
@@ -791,14 +896,11 @@ function AddView({ t, onSuccess }: { t:T; onSuccess:()=>void }) {
               {form.autoRenew ? <ToggleRight size={27}/> : <ToggleLeft size={27}/>}
             </button>
           </div>
-
           <button onClick={submit} disabled={!form.name||!form.amount||loading} style={{ background:t.green, color:"#000", border:"none", borderRadius:9, padding:"13px", fontSize:14, fontWeight:700, fontFamily:"var(--font-display)", cursor:(!form.name||!form.amount||loading)?"not-allowed":"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:8, opacity:(!form.name||!form.amount)?0.6:1, transition:"background 0.2s" }}>
             {loading ? <><RefreshCw size={14} style={{ animation:"spin 1s linear infinite" }}/> Adding…</> : <><Plus size={14}/> Add Subscription</>}
           </button>
         </div>
       </div>
-
-      {/* Preview */}
       <div style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:12, padding:"22px", position:"sticky", top:24 }}>
         <div style={{ fontSize:13, fontWeight:700, color:t.text, fontFamily:"var(--font-display)", marginBottom:16 }}>Preview</div>
         <div style={{ background:t.surface2, border:`1px solid ${t.border}`, borderRadius:10, padding:"16px" }}>
@@ -827,26 +929,24 @@ function AddView({ t, onSuccess }: { t:T; onSuccess:()=>void }) {
   );
 }
 
-// ─── Export View ──────────────────────────────────────────────────────────────
 function ExportView({ t, subs, toast }: { t:T; subs:Sub[]; toast:(m:string,tp:"success"|"error"|"info")=>void }) {
   const exportJSON = () => {
     const blob = new Blob([JSON.stringify(subs, null, 2)], { type:"application/json" });
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement("a"); a.href=url; a.download="subsight-subscriptions.json"; a.click();
-    // TODO PROMPT 3: await supabase.from('export_logs').insert({ user_id: user.id, format:'json', row_count: subs.length });
     toast("Exported as JSON", "success");
   };
+
   const exportCSV = () => {
     const headers = ["Name","Category","Amount","Currency","Cycle","NextDate","Status","AutoRenew","Provider"];
-    const rows    = subs.map(s=>[s.name,s.category,s.amount,s.currency,s.cycle,s.nextDate,s.status,s.autoRenew,s.provider].join(","));
+    const rows    = subs.map(s=>[s.name,s.category,s.amount,s.currency,s.cycle,s.nextDate||"",s.status,s.autoRenew,s.provider].join(","));
     const blob    = new Blob([[headers.join(","),...rows].join("\n")], { type:"text/csv" });
     const url     = URL.createObjectURL(blob);
     const a       = document.createElement("a"); a.href=url; a.download="subsight-subscriptions.csv"; a.click();
-    // TODO PROMPT 3: await supabase.from('export_logs').insert({ user_id: user.id, format:'csv', row_count: subs.length });
     toast("Exported as CSV", "success");
   };
+
   const exportPDF = () => {
-    // TODO PROMPT 3: implement jsPDF or server-side PDF
     window.print();
     toast("PDF export triggered — check print dialog", "info");
   };
@@ -857,7 +957,6 @@ function ExportView({ t, subs, toast }: { t:T; subs:Sub[]; toast:(m:string,tp:"s
         <h2 style={{ fontFamily:"var(--font-display)", fontSize:22, fontWeight:800, color:t.text, letterSpacing:-0.5 }}>Export Data</h2>
         <p style={{ fontSize:11.5, color:t.text3, fontFamily:"var(--font-mono)", marginTop:3 }}>Download your subscription data in multiple formats</p>
       </div>
-
       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(270px,1fr))", gap:16 }}>
         {[
           { title:"JSON Export", desc:"Full data with all fields and metadata. Ideal for backup or migrating to another tool.", Icon:FileText, action:exportJSON, shortcut:"Ctrl+E" },
@@ -883,8 +982,6 @@ function ExportView({ t, subs, toast }: { t:T; subs:Sub[]; toast:(m:string,tp:"s
           </div>
         ))}
       </div>
-
-      {/* Keyboard shortcuts */}
       <div style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:12, padding:"22px" }}>
         <div style={{ fontSize:13, fontWeight:700, color:t.text, fontFamily:"var(--font-display)", marginBottom:16 }}>Keyboard Shortcuts</div>
         <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
@@ -900,24 +997,40 @@ function ExportView({ t, subs, toast }: { t:T; subs:Sub[]; toast:(m:string,tp:"s
   );
 }
 
-// ─── Settings View ────────────────────────────────────────────────────────────
 function SettingsView({ t, toast }: { t:T; toast:(m:string,tp:"success"|"error"|"info")=>void }) {
   const [currency, setCurrency] = useState("USD");
   const [goalPeriod, setGoalPeriod] = useState("Monthly");
   const [goalAmt,   setGoalAmt]   = useState("");
   const [goalCur,   setGoalCur]   = useState("USD");
   const [catInput,  setCatInput]  = useState("");
-  const [cats,      setCats]      = useState(["Streaming","Development","Design","Cloud","Music"]);
-  const [notifs,    setNotifs]    = useState({ renewal:true, weekly:true, budget:true });
+  const [cats,      setCats]      = useState<string[]>([]);
+  const [notifs,    setNotifs]    = useState({ renewal:true, weekly:false, budget:true });
   const [saving,    setSaving]    = useState(false);
 
-  const addCat = () => { if (catInput.trim() && !cats.includes(catInput.trim())) { setCats(p=>[...p,catInput.trim()]); setCatInput(""); } };
+  useEffect(() => {
+    const stored = localStorage.getItem("subsight-settings");
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (parsed.currency) setCurrency(parsed.currency);
+        if (parsed.cats) setCats(parsed.cats);
+        if (parsed.notifs) setNotifs(parsed.notifs);
+      } catch {}
+    }
+  }, []);
+
+  const addCat = () => {
+    if (catInput.trim() && !cats.includes(catInput.trim())) {
+      setCats(p=>[...p,catInput.trim()]);
+      setCatInput("");
+    }
+  };
   const removeCat = (c:string) => setCats(p=>p.filter(x=>x!==c));
 
   const save = async () => {
     setSaving(true);
-    // TODO PROMPT 3: upsert to profiles (currency), spending_goals, notification_settings
-    await new Promise(r=>setTimeout(r,700));
+    localStorage.setItem("subsight-settings", JSON.stringify({ currency, cats, notifs }));
+    await new Promise(r=>setTimeout(r,300));
     setSaving(false);
     toast("Settings saved", "success");
   };
@@ -930,29 +1043,13 @@ function SettingsView({ t, toast }: { t:T; toast:(m:string,tp:"success"|"error"|
         <h2 style={{ fontFamily:"var(--font-display)", fontSize:22, fontWeight:800, color:t.text, letterSpacing:-0.5 }}>Settings</h2>
         <p style={{ fontSize:11.5, color:t.text3, fontFamily:"var(--font-mono)", marginTop:3 }}>Manage spending goals, categories, and preferences</p>
       </div>
-
-      {/* Currency */}
       <div style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:12, padding:"22px" }}>
         <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:5 }}><Globe size={14} color={t.green}/><span style={{ fontSize:14, fontWeight:700, color:t.text, fontFamily:"var(--font-display)" }}>Display Currency</span></div>
         <p style={{ fontSize:12, color:t.text3, fontFamily:"var(--font-mono)", marginBottom:16 }}>Choose your preferred currency for display across the app</p>
         <select value={currency} onChange={e=>setCurrency(e.target.value)} style={{ ...sel, minWidth:160 }}>
-          {["USD","EUR","GBP","PKR","CAD","AUD","JPY","CHF"].map(c=><option key={c}>$ {c}</option>)}
+          {["USD","EUR","GBP","PKR","CAD","AUD","JPY","CHF"].map(c=><option key={c}>{c}</option>)}
         </select>
       </div>
-
-      {/* Spending Goals */}
-      <div style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:12, padding:"22px" }}>
-        <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:5 }}><Target size={14} color={t.green}/><span style={{ fontSize:14, fontWeight:700, color:t.text, fontFamily:"var(--font-display)" }}>Spending Goals</span></div>
-        <p style={{ fontSize:12, color:t.text3, fontFamily:"var(--font-mono)", marginBottom:16 }}>Set monthly or annual spending limits to stay on budget</p>
-        <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
-          <select value={goalPeriod} onChange={e=>setGoalPeriod(e.target.value)} style={sel}><option>Monthly</option><option>Annual</option></select>
-          <input value={goalAmt} onChange={e=>setGoalAmt(e.target.value)} placeholder="Amount" type="number" style={{ ...sel, flex:1, minWidth:100 }}/>
-          <select value={goalCur} onChange={e=>setGoalCur(e.target.value)} style={sel}>{["USD","EUR","GBP","PKR"].map(c=><option key={c}>{c}</option>)}</select>
-          <button style={{ background:t.green, color:"#000", border:"none", borderRadius:8, padding:"10px 16px", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"var(--font-display)", display:"flex", alignItems:"center", gap:6 }}><Plus size={13}/> Add</button>
-        </div>
-      </div>
-
-      {/* Custom Categories */}
       <div style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:12, padding:"22px" }}>
         <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:5 }}><Tag size={14} color={t.green}/><span style={{ fontSize:14, fontWeight:700, color:t.text, fontFamily:"var(--font-display)" }}>Custom Categories</span></div>
         <p style={{ fontSize:12, color:t.text3, fontFamily:"var(--font-mono)", marginBottom:16 }}>Create your own subscription categories</p>
@@ -967,16 +1064,15 @@ function SettingsView({ t, toast }: { t:T; toast:(m:string,tp:"success"|"error"|
               <button onClick={()=>removeCat(c)} style={{ background:"none", border:"none", cursor:"pointer", color:t.text3, padding:1, display:"flex" }}><X size={11}/></button>
             </div>
           ))}
+          {cats.length === 0 && <span style={{ fontSize:12, color:t.text3, fontFamily:"var(--font-mono)" }}>No custom categories yet</span>}
         </div>
       </div>
-
-      {/* Notifications */}
       <div style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:12, padding:"22px" }}>
         <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:5 }}><Bell size={14} color={t.green}/><span style={{ fontSize:14, fontWeight:700, color:t.text, fontFamily:"var(--font-display)" }}>Notifications</span></div>
         <p style={{ fontSize:12, color:t.text3, fontFamily:"var(--font-mono)", marginBottom:16 }}>Control when and how you get notified</p>
         {[
-          { key:"renewal" as const, label:"Renewal Alerts",  desc:"Get notified 3 days before a subscription renews" },
-          { key:"weekly"  as const, label:"Weekly Summary",  desc:"Weekly email digest of your spending activity" },
+          { key:"renewal" as const, label:"Renewal Alerts",  desc:"Get notified before a subscription renews (Pro)" },
+          { key:"weekly"  as const, label:"Weekly Summary",  desc:"Weekly email digest of your spending activity (Pro)" },
           { key:"budget"  as const, label:"Budget Warnings", desc:"Alert when approaching your spending goal" },
         ].map(item => (
           <div key={item.key} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"13px 0", borderBottom:`1px solid ${t.border}` }}>
@@ -990,7 +1086,6 @@ function SettingsView({ t, toast }: { t:T; toast:(m:string,tp:"success"|"error"|
           </div>
         ))}
       </div>
-
       <button onClick={save} disabled={saving} style={{ background:t.green, color:"#000", border:"none", borderRadius:9, padding:"13px", fontSize:14, fontWeight:700, fontFamily:"var(--font-display)", cursor:saving?"not-allowed":"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:8, opacity:saving?0.75:1 }}>
         {saving ? <><RefreshCw size={14} style={{ animation:"spin 1s linear infinite" }}/> Saving…</> : <><Save size={14}/> Save Settings</>}
       </button>
@@ -998,22 +1093,45 @@ function SettingsView({ t, toast }: { t:T; toast:(m:string,tp:"success"|"error"|
   );
 }
 
-// ─── Profile View ─────────────────────────────────────────────────────────────
 function ProfileView({ t, toast }: { t:T; toast:(m:string,tp:"success"|"error"|"info")=>void }) {
-  const [form,   setForm]   = useState({ name:"User", email:"muhammadtanveerabbas.dev@gmail.com", avatar:"" });
+  const [form,   setForm]   = useState({ name:"", email:"", avatar:"" });
   const [saving, setSaving] = useState(false);
+  const [plan,   setPlan]   = useState<"free"|"pro">("free");
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return;
+      setForm(p => ({ ...p, email: user.email || "" }));
+      supabase.from('profiles').select('full_name, avatar_url, subscription_tier').eq('id', user.id).single().then(({ data }) => {
+        if (data) {
+          setForm(p => ({ ...p, name: data.full_name || "", avatar: data.avatar_url || "" }));
+          setPlan(data.subscription_tier === "pro" ? "pro" : "free");
+        }
+      });
+    });
+  }, []);
 
   const save = async () => {
     setSaving(true);
-    // TODO PROMPT 3: await supabase.from('profiles').update({ full_name: form.name, avatar_url: form.avatar }).eq('id', user.id);
-    await new Promise(r=>setTimeout(r,700));
-    setSaving(false);
-    toast("Profile updated","success");
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      const { error } = await supabase.from('profiles').update({ full_name: form.name, avatar_url: form.avatar || null }).eq('id', user.id);
+      if (error) throw error;
+      toast("Profile updated", "success");
+    } catch (err: any) {
+      toast(err.message || "Failed to update profile", "error");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const signOut = async () => {
-    // TODO PROMPT 3: await supabase.auth.signOut(); router.push('/');
-    toast("Signing out…","info");
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    window.location.href = '/';
   };
 
   const iStyle: React.CSSProperties = { width:"100%", background:t.surface2, border:`1px solid ${t.border}`, borderRadius:8, padding:"11px 13px", fontSize:13, color:t.text, fontFamily:"var(--font-mono)", outline:"none", transition:"border-color 0.2s" };
@@ -1025,8 +1143,6 @@ function ProfileView({ t, toast }: { t:T; toast:(m:string,tp:"success"|"error"|"
         <h2 style={{ fontFamily:"var(--font-display)", fontSize:22, fontWeight:800, color:t.text, letterSpacing:-0.5 }}>Profile</h2>
         <p style={{ fontSize:11.5, color:t.text3, fontFamily:"var(--font-mono)", marginTop:3 }}>Manage your account information</p>
       </div>
-
-      {/* Profile info */}
       <div style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:12, padding:"26px" }}>
         <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:5 }}><User size={14} color={t.green}/><span style={{ fontSize:14, fontWeight:700, color:t.text, fontFamily:"var(--font-display)" }}>Profile Settings</span></div>
         <p style={{ fontSize:12, color:t.text3, fontFamily:"var(--font-mono)", marginBottom:22 }}>Update your profile information</p>
@@ -1035,7 +1151,7 @@ function ProfileView({ t, toast }: { t:T; toast:(m:string,tp:"success"|"error"|"
             {form.avatar ? <img src={form.avatar} alt="avatar" style={{ width:56, height:56, objectFit:"cover" }}/> : <User size={22} color={t.green}/>}
           </div>
           <div>
-            <div style={{ fontFamily:"var(--font-display)", fontSize:16, fontWeight:700, color:t.text }}>{form.name}</div>
+            <div style={{ fontFamily:"var(--font-display)", fontSize:16, fontWeight:700, color:t.text }}>{form.name || "User"}</div>
             <div style={{ fontSize:12, color:t.text3, fontFamily:"var(--font-mono)", marginTop:2 }}>{form.email}</div>
           </div>
         </div>
@@ -1053,35 +1169,33 @@ function ProfileView({ t, toast }: { t:T; toast:(m:string,tp:"success"|"error"|"
               onBlur={e=>(e.target as HTMLInputElement).style.borderColor=t.border}/>
             <p style={{ fontSize:10, color:t.text3, fontFamily:"var(--font-mono)", marginTop:5 }}>Provide a URL to your profile picture</p>
           </div>
-          <div style={{ display:"flex", gap:10 }}>
-            <button onClick={save} disabled={saving} style={{ background:t.green, color:"#000", border:"none", borderRadius:8, padding:"12px 22px", fontSize:13, fontWeight:700, fontFamily:"var(--font-display)", cursor:saving?"not-allowed":"pointer", display:"flex", alignItems:"center", gap:7 }}>
-              {saving ? <><RefreshCw size={13} style={{ animation:"spin 1s linear infinite" }}/> Saving…</> : <><Save size={13}/> Save Changes</>}
-            </button>
-            <button onClick={()=>setForm({ name:"User", email:"muhammadtanveerabbas.dev@gmail.com", avatar:"" })} style={{ background:"transparent", color:t.text2, border:`1px solid ${t.border2}`, borderRadius:8, padding:"12px 20px", fontSize:13, fontFamily:"var(--font-display)", cursor:"pointer" }}>Reset</button>
-          </div>
+          <button onClick={save} disabled={saving} style={{ background:t.green, color:"#000", border:"none", borderRadius:8, padding:"12px 22px", fontSize:13, fontWeight:700, fontFamily:"var(--font-display)", cursor:saving?"not-allowed":"pointer", display:"flex", alignItems:"center", gap:7, width:"fit-content" }}>
+            {saving ? <><RefreshCw size={13} style={{ animation:"spin 1s linear infinite" }}/> Saving...</> : <><Save size={13}/> Save Changes</>}
+          </button>
         </div>
       </div>
-
-      {/* Plan */}
       <div style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:12, padding:"22px" }}>
         <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:16 }}><Zap size={14} color={t.green}/><span style={{ fontSize:14, fontWeight:700, color:t.text, fontFamily:"var(--font-display)" }}>Subscription Plan</span></div>
         <div style={{ background:t.surface2, border:`1px solid ${t.border}`, borderRadius:10, padding:"14px 16px", display:"flex", alignItems:"center", gap:10 }}>
-          <Zap size={13} color={t.green}/>
-          <span style={{ fontSize:13, fontWeight:600, color:t.text, fontFamily:"var(--font-display)" }}>Pro Plan</span>
-          <span style={{ fontSize:10, color:t.green, background:t.greenDim, border:`1px solid ${t.greenBorder}`, borderRadius:4, padding:"2px 8px", fontFamily:"var(--font-mono)", marginLeft:"auto" }}>Active</span>
+          <Zap size={13} color={plan==="pro"?t.green:t.text3}/>
+          <span style={{ fontSize:13, fontWeight:600, color:t.text, fontFamily:"var(--font-display)" }}>{plan==="pro"?"Pro Plan":"Free Plan"}</span>
+          <span style={{ fontSize:10, color:plan==="pro"?t.green:t.text3, background:plan==="pro"?t.greenDim:t.surface3, border:`1px solid ${plan==="pro"?t.greenBorder:t.border}`, borderRadius:4, padding:"2px 8px", fontFamily:"var(--font-mono)", marginLeft:"auto" }}>{plan==="pro"?"Active":"Free"}</span>
         </div>
-        <p style={{ fontSize:12, color:t.text3, fontFamily:"var(--font-mono)", marginTop:10 }}>You have access to all Pro features including AI summaries and advanced analytics.</p>
+        {plan==="free" && (
+          <p style={{ fontSize:12, color:t.text3, fontFamily:"var(--font-mono)", marginTop:10 }}>
+            Upgrade to Pro for unlimited subscriptions, AI summaries, and email reminders.{" "}
+            <a href="/pricing" style={{ color:t.green, textDecoration:"none" }}>View plans</a>
+          </p>
+        )}
       </div>
-
-      {/* Security */}
       <div style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:12, padding:"22px" }}>
         <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:16 }}><Shield size={14} color={t.green}/><span style={{ fontSize:14, fontWeight:700, color:t.text, fontFamily:"var(--font-display)" }}>Privacy & Security</span></div>
         {[
-          { Icon:Lock,    label:"End to End Encrypted",      desc:"Your data is encrypted in transit and at rest" },
-          { Icon:Shield,  label:"No Third Party Sharing",    desc:"We never sell or share your data" },
-          { Icon:Globe,   label:"Supabase Powered",          desc:"Enterprise grade security with PostgreSQL" },
-          { Icon:Bell,    label:"Smart Reminders",           desc:"Never miss a subscription renewal again" },
-          { Icon:Sparkles,label:"AI Powered Insights",       desc:"Real-time analysis powered by Groq with accurate data" },
+          { Icon:Lock,    label:"End to End Encrypted",   desc:"Your data is encrypted in transit and at rest" },
+          { Icon:Shield,  label:"No Third Party Sharing", desc:"We never sell or share your data" },
+          { Icon:Globe,   label:"Supabase Powered",       desc:"Enterprise grade security with PostgreSQL" },
+          { Icon:Bell,    label:"Smart Reminders",        desc:"Never miss a subscription renewal again" },
+          { Icon:Sparkles,label:"AI Powered Insights",    desc:"Real-time analysis powered by Groq" },
         ].map(item => (
           <div key={item.label} style={{ display:"flex", alignItems:"flex-start", gap:12, padding:"11px 0", borderBottom:`1px solid ${t.border}` }}>
             <div style={{ width:28, height:28, borderRadius:7, background:t.greenDim, border:`1px solid ${t.greenBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1 }}>
@@ -1094,8 +1208,6 @@ function ProfileView({ t, toast }: { t:T; toast:(m:string,tp:"success"|"error"|"
           </div>
         ))}
       </div>
-
-      {/* Sign out */}
       <button onClick={signOut} style={{ background:t.redDim, color:t.red, border:`1px solid ${t.red}33`, borderRadius:9, padding:"13px", fontSize:13, fontWeight:600, fontFamily:"var(--font-display)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:8, transition:"background 0.2s" }}
         onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background=`${t.red}22`}
         onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background=t.redDim}>
@@ -1105,31 +1217,64 @@ function ProfileView({ t, toast }: { t:T; toast:(m:string,tp:"success"|"error"|"
   );
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// MAIN DASHBOARD SHELL
-// ═══════════════════════════════════════════════════════════════════════════════
 export default function Dashboard() {
-  const [themeKey,     setThemeKey]     = useState<TK>("dark");
-  const [active,       setActive]       = useState("overview");
-  const [collapsed,    setCollapsed]    = useState(false);
-  const [mobileSB,     setMobileSB]     = useState(false);
-  const [subs,         setSubs]         = useState<Sub[]>(MOCK_SUBS);
-  const [toast,        setToast]        = useState<{ msg:string; type:"success"|"error"|"info" }|null>(null);
+  const [themeKey,  setThemeKey]  = useState<TK>("dark");
+  const [active,    setActive]    = useState("overview");
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileSB,  setMobileSB]  = useState(false);
+  const [subs,      setSubs]      = useState<Sub[]>([]);
+  const [loading,   setLoading]   = useState(true);
+  const [toast,     setToast]     = useState<{ msg:string; type:"success"|"error"|"info" }|null>(null);
   const t = themeKey === "dark" ? DARK : LIGHT;
 
-  // Theme init
   useEffect(() => {
     const stored = (localStorage.getItem("subsight-theme") || "dark") as TK;
     setThemeKey(stored);
   }, []);
 
-  // Persist theme
   useEffect(() => {
     localStorage.setItem("subsight-theme", themeKey);
     document.documentElement.setAttribute("data-theme", themeKey);
   }, [themeKey]);
 
-  // Keyboard shortcuts
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) { setLoading(false); return; }
+      supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .then(({ data, error }) => {
+          if (!error && data) {
+            setSubs(data.map(s => ({
+              id: s.id,
+              name: s.name,
+              category: s.category || "Other",
+              amount: Number(s.amount),
+              cycle: s.billing_cycle || "Monthly",
+              nextDate: s.next_renewal_date || "",
+              status: (s.status || "active") as SubStatus,
+              autoRenew: s.auto_renew ?? true,
+              currency: s.currency || "USD",
+              provider: s.provider || "",
+              notes: s.notes || "",
+            })));
+          }
+          setLoading(false);
+        });
+    });
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('upgraded') === 'true') {
+      showToast("Welcome to Pro! All features are now unlocked.", "success");
+      window.history.replaceState({}, '', '/dashboard');
+    }
+  }, []);
+
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey) {
@@ -1163,6 +1308,28 @@ export default function Dashboard() {
     );
   };
 
+  const renderView = () => {
+    if (loading) {
+      return (
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:"60vh", flexDirection:"column", gap:16 }}>
+          <RefreshCw size={24} color={t.green} style={{ animation:"spin 1s linear infinite" }}/>
+          <span style={{ fontSize:13, color:t.text3, fontFamily:"var(--font-mono)" }}>Loading your subscriptions...</span>
+        </div>
+      );
+    }
+    switch (active) {
+      case "overview":      return <OverviewView t={t} subs={subs} onNav={navTo} />;
+      case "subscriptions": return <SubsView t={t} subs={subs} setSubs={setSubs} onAdd={()=>navTo("add")} toast={showToast} />;
+      case "analytics":     return <AnalyticsView t={t} subs={subs} />;
+      case "ai-summary":    return <AISummaryView t={t} subs={subs} />;
+      case "add":           return <AddView t={t} onSuccess={()=>{ navTo("subscriptions"); }} toast={showToast} />;
+      case "export":        return <ExportView t={t} subs={subs} toast={showToast} />;
+      case "settings":      return <SettingsView t={t} toast={showToast} />;
+      case "profile":       return <ProfileView t={t} toast={showToast} />;
+      default:              return <OverviewView t={t} subs={subs} onNav={navTo} />;
+    }
+  };
+
   return (
     <div style={{ display:"flex", minHeight:"100vh", background:t.bg, color:t.text, fontFamily:"var(--font-display)", transition:"background 0.4s, color 0.4s" }}>
       <style>{`
@@ -1194,25 +1361,17 @@ export default function Dashboard() {
         }
       `}</style>
 
-      {/* ── SIDEBAR ── */}
       <aside className="sidebar-desk" style={{ width:SBW, minHeight:"100vh", background:t.sidebarBg, borderRight:`1px solid ${t.border}`, flexDirection:"column", position:"fixed", left:0, top:0, bottom:0, zIndex:50, transition:"width 0.25s cubic-bezier(0.4,0,0.2,1)", overflow:"hidden", flexShrink:0, display:"flex" }}>
-        {/* Logo */}
         <div style={{ height:62, display:"flex", alignItems:"center", padding:collapsed?"0 0 0 16px":"0 18px", gap:9, borderBottom:`1px solid ${t.border}`, flexShrink:0 }}>
           <img src="/icon.svg" alt="Subsight" width={28} height={28} style={{ borderRadius:6, flexShrink:0, display:"block" }} />
           {!collapsed && <span style={{ fontFamily:"var(--font-display)", fontSize:17, fontWeight:800, color:t.text, letterSpacing:-0.5, whiteSpace:"nowrap" }}>Subsight</span>}
         </div>
-
-        {/* Main nav */}
         <nav style={{ flex:1, padding:"10px 0", overflowY:"auto" }}>
           {NAV_MAIN.map(item => <SidebarLink key={item.id} {...item}/>)}
         </nav>
-
-        {/* Bottom nav */}
         <div style={{ padding:"10px 0", borderTop:`1px solid ${t.border}`, flexShrink:0 }}>
           {NAV_BOTTOM.map(item => <SidebarLink key={item.id} {...item}/>)}
         </div>
-
-        {/* Collapse button */}
         <button onClick={()=>setCollapsed(!collapsed)} style={{ display:"flex", alignItems:"center", justifyContent:collapsed?"center":"flex-end", padding:"11px 14px", background:"none", border:"none", borderTop:`1px solid ${t.border}`, cursor:"pointer", color:t.text3, transition:"color 0.2s", flexShrink:0 }}
           onMouseEnter={e=>(e.currentTarget as HTMLElement).style.color=t.text}
           onMouseLeave={e=>(e.currentTarget as HTMLElement).style.color=t.text3}>
@@ -1220,92 +1379,54 @@ export default function Dashboard() {
         </button>
       </aside>
 
-      {/* Mobile sidebar overlay */}
       {mobileSB && (
         <div style={{ position:"fixed", inset:0, zIndex:200 }}>
           <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.6)" }} onClick={()=>setMobileSB(false)}/>
           <aside style={{ position:"absolute", left:0, top:0, bottom:0, width:236, background:t.sidebarBg, borderRight:`1px solid ${t.border}`, display:"flex", flexDirection:"column", zIndex:201 }}>
-            <div style={{ height:62, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"0 18px", borderBottom:`1px solid ${t.border}` }}>
-              <div style={{ display:"flex", alignItems:"center", gap:9 }}>
-                <img src="/icon.svg" alt="Subsight" width={26} height={26} style={{ borderRadius:6, display:"block" }} />
-                <span style={{ fontFamily:"var(--font-display)", fontSize:16, fontWeight:800, color:t.text }}>Subsight</span>
-              </div>
-              <button onClick={()=>setMobileSB(false)} style={{ background:"none", border:"none", color:t.text3, cursor:"pointer" }}><X size={18}/></button>
+            <div style={{ height:62, display:"flex", alignItems:"center", padding:"0 18px", gap:9, borderBottom:`1px solid ${t.border}` }}>
+              <img src="/icon.svg" alt="Subsight" width={28} height={28} style={{ borderRadius:6, display:"block" }} />
+              <span style={{ fontFamily:"var(--font-display)", fontSize:17, fontWeight:800, color:t.text, letterSpacing:-0.5 }}>Subsight</span>
+              <button onClick={()=>setMobileSB(false)} style={{ marginLeft:"auto", background:"none", border:"none", color:t.text3, cursor:"pointer" }}><X size={18}/></button>
             </div>
             <nav style={{ flex:1, padding:"10px 0", overflowY:"auto" }}>
-              {[...NAV_MAIN,...NAV_BOTTOM].map(item => (
-                <button key={item.id} onClick={()=>navTo(item.id)} style={{ width:"100%", display:"flex", alignItems:"center", gap:10, padding:"10px 16px", background:active===item.id?t.greenDim:"transparent", borderLeft:active===item.id?`3px solid ${t.green}`:"3px solid transparent", border:"none", cursor:"pointer", color:active===item.id?t.green:t.text2, transition:"all 0.15s" }}>
-                  <item.Icon size={16} strokeWidth={1.5} style={{ flexShrink:0 }}/>
-                  <span style={{ fontSize:13, fontWeight:active===item.id?600:400, fontFamily:"var(--font-display)" }}>{item.label}</span>
-                </button>
-              ))}
+              {NAV_MAIN.map(item => <SidebarLink key={item.id} {...item}/>)}
             </nav>
+            <div style={{ padding:"10px 0", borderTop:`1px solid ${t.border}` }}>
+              {NAV_BOTTOM.map(item => <SidebarLink key={item.id} {...item}/>)}
+            </div>
           </aside>
         </div>
       )}
 
-      {/* ── MAIN ── */}
-      <div style={{ flex:1, marginLeft:SBW, display:"flex", flexDirection:"column", minHeight:"100vh", transition:"margin-left 0.25s cubic-bezier(0.4,0,0.2,1)" }}>
-        {/* Topbar */}
-        <header style={{ height:62, background:t.navBg, borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"0 22px", position:"sticky", top:0, zIndex:40, backdropFilter:"blur(14px)", WebkitBackdropFilter:"blur(14px)", gap:14, flexShrink:0 }}>
+      <div style={{ flex:1, marginLeft:SBW, minHeight:"100vh", display:"flex", flexDirection:"column", transition:"margin-left 0.25s cubic-bezier(0.4,0,0.2,1)" }} className="sidebar-desk-offset">
+        <header style={{ height:62, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"0 28px", borderBottom:`1px solid ${t.border}`, background:t.navBg, backdropFilter:"blur(14px)", WebkitBackdropFilter:"blur(14px)", position:"sticky", top:0, zIndex:40, flexShrink:0 }}>
           <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-            <button className="mob-sb-btn" onClick={()=>setMobileSB(true)} style={{ background:"none", border:"none", color:t.text2, cursor:"pointer", padding:3, display:"none" }}><Menu size={19}/></button>
-            <div style={{ position:"relative" }}>
-              <Search size={13} color={t.text3} style={{ position:"absolute", left:10, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }}/>
-              <input placeholder="Search subscriptions…" style={{ background:t.surface2, border:`1px solid ${t.border}`, borderRadius:9, padding:"8px 12px 8px 32px", fontSize:12.5, color:t.text, fontFamily:"var(--font-mono)", outline:"none", width:"clamp(150px,20vw,260px)", transition:"border-color 0.2s" }}
-                onFocus={e=>(e.target as HTMLInputElement).style.borderColor=t.greenBorder}
-                onBlur={e=>(e.target as HTMLInputElement).style.borderColor=t.border}/>
+            <button className="mob-sb-btn" onClick={()=>setMobileSB(true)} style={{ background:"none", border:"none", color:t.text2, cursor:"pointer", display:"none", alignItems:"center" }}><Menu size={20}/></button>
+            <div>
+              <div style={{ fontFamily:"var(--font-display)", fontSize:15, fontWeight:700, color:t.text, letterSpacing:-0.3 }}>
+                {NAV_MAIN.find(n=>n.id===active)?.label || NAV_BOTTOM.find(n=>n.id===active)?.label || "Dashboard"}
+              </div>
+              <div style={{ fontSize:10, color:t.text3, fontFamily:"var(--font-mono)", marginTop:1 }}>
+                {subs.length} subscriptions · ${subs.filter(s=>s.status==="active").reduce((a,s)=>a+s.amount,0).toFixed(2)}/mo
+              </div>
             </div>
           </div>
-
-          <div style={{ display:"flex", alignItems:"center", gap:9 }}>
-            {/* Theme toggle */}
-            <button onClick={()=>setThemeKey(p=>p==="dark"?"light":"dark")} aria-label="Toggle theme"
-              style={{ width:33, height:33, border:`1px solid ${t.border2}`, borderRadius:8, background:t.surface2, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", transition:"all 0.2s" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+            <button onClick={()=>{ const n=themeKey==="dark"?"light":"dark" as TK; setThemeKey(n); }} style={{ width:34, height:34, border:`1px solid ${t.border2}`, borderRadius:9, background:t.surface2, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", transition:"all 0.2s" }}>
               {themeKey==="dark" ? <Sun size={14} color={t.text2}/> : <Moon size={14} color={t.text2}/>}
             </button>
-
-            {/* Notifications bell */}
-            <button style={{ position:"relative", width:33, height:33, border:`1px solid ${t.border2}`, borderRadius:8, background:t.surface2, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer" }}>
-              <Bell size={14} color={t.text2}/>
-              <span style={{ position:"absolute", top:6, right:6, width:7, height:7, borderRadius:"50%", background:t.red, border:`2px solid ${t.surface2}` }}/>
-            </button>
-
-            {/* Add button */}
-            <button onClick={()=>navTo("add")} style={{ background:t.green, color:"#000", border:"none", borderRadius:8, padding:"8px 15px", fontSize:12, fontWeight:700, fontFamily:"var(--font-display)", cursor:"pointer", display:"flex", alignItems:"center", gap:5, whiteSpace:"nowrap" }}>
+            <button onClick={()=>navTo("add")} style={{ background:t.green, color:"#000", border:"none", borderRadius:9, padding:"8px 16px", fontSize:12, fontWeight:700, fontFamily:"var(--font-display)", cursor:"pointer", display:"flex", alignItems:"center", gap:6 }}>
               <Plus size={12}/> Add
-            </button>
-
-            {/* Avatar */}
-            <button onClick={()=>navTo("profile")} style={{ width:33, height:33, borderRadius:8, background:t.greenDim, border:`1px solid ${t.greenBorder}`, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer" }}>
-              <User size={14} color={t.green}/>
             </button>
           </div>
         </header>
 
-        {/* Page content */}
-        <main className="main-pad" style={{ flex:1, padding:"22px", overflowY:"auto" }}>
-          {/* Breadcrumb */}
-          <div style={{ display:"flex", alignItems:"center", gap:5, marginBottom:18, fontSize:11, color:t.text3, fontFamily:"var(--font-mono)" }}>
-            <span>Dashboard</span>
-            <ChevronRight size={11}/>
-            <span style={{ color:t.text }}>{[...NAV_MAIN,...NAV_BOTTOM].find(n=>n.id===active)?.label||"Overview"}</span>
-          </div>
-
-          {/* Route views */}
-          {active==="overview"      && <OverviewView   t={t} subs={subs} onNav={navTo}/>}
-          {active==="subscriptions" && <SubsView       t={t} subs={subs} setSubs={setSubs} onAdd={()=>navTo("add")} toast={showToast}/>}
-          {active==="analytics"     && <AnalyticsView  t={t}/>}
-          {active==="ai-summary"    && <AISummaryView  t={t} subs={subs}/>}
-          {active==="add"           && <AddView        t={t} onSuccess={()=>{ navTo("subscriptions"); showToast("Subscription added!","success"); }}/>}
-          {active==="export"        && <ExportView     t={t} subs={subs} toast={showToast}/>}
-          {active==="settings"      && <SettingsView   t={t} toast={showToast}/>}
-          {active==="profile"       && <ProfileView    t={t} toast={showToast}/>}
+        <main className="main-pad" style={{ flex:1, padding:"28px", overflowY:"auto" }}>
+          {renderView()}
         </main>
       </div>
 
-      {/* Toast */}
-      {toast && <Toast msg={toast.msg} type={toast.type} onClose={()=>setToast(null)} t={t}/>}
+      {toast && <Toast msg={toast.msg} type={toast.type} onClose={()=>setToast(null)} t={t} />}
     </div>
   );
 }

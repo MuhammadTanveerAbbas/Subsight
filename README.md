@@ -106,6 +106,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Built with ❤️ by [Muhammad Tanveer Abbas](https://muhammadtanveerabbas.vercel.app/)**
+**Built with ❤️ by [Muhammad Tanveer Abbas](https://themvpguy.vercel.app/)**
+
+**Live Demo:** [https://subsight-tracker.vercel.app](https://subsight-tracker.vercel.app)
+
+**GitHub:** [https://github.com/MuhammadTanveerAbbas/Subsight-Tracker](https://github.com/MuhammadTanveerAbbas/Subsight-Tracker)
 
 **100% Free • Open Source • Self-Hosted**

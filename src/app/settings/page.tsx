@@ -421,7 +421,7 @@ function SettingsContent() {
                 <div>
                   <p className="font-medium">AI Powered Insights</p>
                   <p className="text-xs text-muted-foreground">
-                    Real-time analysis powered by Google Gemini with 100% accurate data
+                    Real-time analysis powered by Groq
                   </p>
                 </div>
               </div>

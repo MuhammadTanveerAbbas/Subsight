@@ -18,7 +18,7 @@ const steps = [
   {
     title: "Welcome to Subsight! 🎯",
     description:
-      "Track all your subscriptions in one place. Your data stays private everything is stored locally in your browser.",
+      "Track all your subscriptions in one place. Your data is securely stored in Supabase and synced across devices.",
     icon: Sparkles,
   },
   {

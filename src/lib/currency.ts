@@ -1,6 +1,5 @@
 import { Currency, CurrencyRate } from './types';
 
-// Mock exchange rates - in production, fetch from API
 const EXCHANGE_RATES: CurrencyRate = {
   USD: 1,
   EUR: 0.85,

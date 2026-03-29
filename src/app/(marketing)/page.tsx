@@ -1,16 +1,4 @@
 "use client";
-// ─────────────────────────────────────────────────────────────────────────────
-// landingpage.tsx — Subsight Landing Page  (Phase 1 Final)
-// Place at: src/app/(marketing)/page.tsx
-//
-// Sections: Nav · Hero · Ticker · Features · Dashboard Preview ·
-//           Comparison Table · Pricing · FAQ · Final CTA · Footer
-//
-// Fonts: Inter (display) + JetBrains Mono (mono/UI)
-// Theme: dark / light toggle — persisted to localStorage
-// Responsive: 480 / 768 / 900 / 1440 breakpoints
-// Browser: Safari backdrop-filter, Firefox scrollbar, all modern browsers
-// ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import {
@@ -94,7 +82,7 @@ function Label({ text, t }: { text:string; t:Theme }) {
 
 // ─── Ticker ───────────────────────────────────────────────────────────────────
 function Ticker({ t }: { t:Theme }) {
-  const items = ["Real-time Analytics","AI-Powered Insights","14 Active Subscriptions","Simulation Mode","Export PDF · CSV · JSON","Supabase Auth","Open Source MIT","Smart Renewal Alerts","Category Breakdown","Zero Hidden Fees","Multi-Currency Support","Spending Goals","Custom Categories","Dark & Light Theme"];
+  const items = ["Real-time Analytics","AI-Powered Insights","Subscription Tracking","Simulation Mode","Export PDF · CSV · JSON","Supabase Auth","Open Source MIT","Smart Renewal Alerts","Category Breakdown","Zero Hidden Fees","Multi-Currency Support","Spending Goals","Custom Categories","Dark & Light Theme"];
   return (
     <div style={{ overflow:"hidden", borderTop:`1px solid ${t.border}`, borderBottom:`1px solid ${t.border}`, background:t.surface, padding:"11px 0" }}>
       <div style={{ display:"flex", animation:"ticker 40s linear infinite", whiteSpace:"nowrap" }}>
@@ -179,7 +167,7 @@ function DashPreview({ t }: { t:Theme }) {
       {/* Chrome bar */}
       <div style={{ background:t.surface2, borderBottom:`1px solid ${t.border}`, padding:"10px 18px", display:"flex", alignItems:"center", gap:7 }}>
         {["#ff5f57","#ffbd2e","#28ca42"].map((c,i) => <span key={i} style={{ width:9, height:9, borderRadius:"50%", background:c, display:"block" }} />)}
-        <span style={{ flex:1, textAlign:"center", fontSize:9.5, color:t.text3, fontFamily:"var(--font-mono)" }}>app.subsight.io — Dashboard</span>
+        <span style={{ flex:1, textAlign:"center", fontSize:9.5, color:t.text3, fontFamily:"var(--font-mono)" }}>subsight-tracker.vercel.app — Dashboard</span>
         <span style={{ width:6, height:6, borderRadius:"50%", background:t.green, animation:"pulse 2s ease-in-out infinite" }} />
       </div>
       {/* KPI row */}
@@ -648,7 +636,7 @@ export default function LandingPage() {
             </div>
             {[
               { title:"Product",    links:[["Features","#features"],["Pricing","#pricing"],["Compare","#compare"],["Dashboard","/dashboard"]] },
-              { title:"Developers", links:[["GitHub","https://github.com/MuhammadTanveerAbbas/Subsight-Tracker"],["Live Demo","https://subsight-tracker.vercel.app/"],["Author","https://muhammadtanveerabbas.vercel.app/"]] },
+              { title:"Resources",  links:[["GitHub","https://github.com/MuhammadTanveerAbbas/Subsight-Tracker"],["Live Demo","https://subsight-tracker.vercel.app/"],["Author","https://themvpguy.vercel.app/"]] },
               { title:"Legal",      links:[["Privacy Policy","/privacy"],["Terms of Service","/terms"]] },
             ].map(col => (
               <div key={col.title}>

@@ -1,6 +1,14 @@
 {
   "name": "subsight",
   "version": "3.0.0",
+  "description": "Modern subscription tracking app with AI-powered insights",
+  "author": "Muhammad Tanveer Abbas <https://themvpguy.vercel.app/>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MuhammadTanveerAbbas/Subsight-Tracker"
+  },
+  "homepage": "https://subsight-tracker.vercel.app",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
