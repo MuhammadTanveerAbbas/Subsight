@@ -136,7 +136,7 @@ function TermsPage() {
     },
     {
       title: "Open Source License",
-      body:  "Subsight's source code is licensed under the MIT License. You are free to use, copy, modify, merge, publish, distribute, sublicense, and sell copies of the software. The MIT License applies to the codebase only — not to the hosted service's data, branding, or proprietary configurations.",
+      body:  "Subsight's source code is licensed under the MIT License. You are free to use, copy, modify, merge, publish, distribute, sublicense, and sell copies of the software. The MIT License applies to the codebase only  not to the hosted service's data, branding, or proprietary configurations.",
     },
     {
       title: "Limitation of Liability",

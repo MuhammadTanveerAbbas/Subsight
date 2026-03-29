@@ -39,7 +39,7 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        // Force favicon/icon revalidation — prevents Vercel CDN from serving stale icons
+        // Force favicon/icon revalidation  prevents Vercel CDN from serving stale icons
         source: '/:file(favicon\\.ico|favicon\\.png|icon\\.svg|apple-touch-icon\\.png)',
         headers: [
           {

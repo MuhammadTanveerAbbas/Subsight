@@ -1,5 +1,5 @@
 -- ============================================================
--- Subsight — Full Database Schema
+-- Subsight  Full Database Schema
 -- Last updated: 2026-03-24
 -- ============================================================
 -- Run this file only on a fresh database.

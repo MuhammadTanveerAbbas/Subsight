@@ -221,7 +221,7 @@ function PricingPage() {
         <section className="section-pad" style={{ padding:"20px 24px 80px", background:t.surface }}>
           <div style={{ maxWidth:860, margin:"0 auto" }}>
             <h2 style={{ fontFamily:"var(--font-display)", fontSize:"clamp(24px,4vw,40px)", fontWeight:800, letterSpacing:-1.5, color:t.text, marginBottom:8, textAlign:"center" }}>Full Feature Comparison</h2>
-            <p style={{ fontSize:13, color:t.text3, fontFamily:"var(--font-mono)", textAlign:"center", marginBottom:36 }}>Everything included in both plans — no hidden limits.</p>
+            <p style={{ fontSize:13, color:t.text3, fontFamily:"var(--font-mono)", textAlign:"center", marginBottom:36 }}>Everything included in both plans  no hidden limits.</p>
             <div className="compare-wrap" style={{ borderRadius:12, border:`1px solid ${t.border}`, overflow:"hidden" }}>
               <table style={{ width:"100%", borderCollapse:"collapse", minWidth:480 }}>
                 <thead>
@@ -251,10 +251,10 @@ function PricingPage() {
           <div style={{ maxWidth:700, margin:"0 auto" }}>
             <h2 style={{ fontFamily:"var(--font-display)", fontSize:"clamp(24px,4vw,40px)", fontWeight:800, letterSpacing:-1.5, color:t.text, marginBottom:36, textAlign:"center" }}>Pricing FAQ</h2>
             {[
-              ["Is the free plan really free?","Yes — the Free plan is free forever. No credit card required. You get up to 10 subscriptions, basic analytics, and JSON export at no cost."],
+              ["Is the free plan really free?","Yes  the Free plan is free forever. No credit card required. You get up to 10 subscriptions, basic analytics, and JSON export at no cost."],
               ["What's included in Pro?","Pro gives you unlimited subscriptions, advanced analytics, unlimited AI auto-fill, CSV & PDF export, renewal alerts, spending goals, custom categories, and priority support."],
-              ["Can I upgrade or downgrade anytime?","Yes — switch plans at any time. Downgrades take effect at the end of the current billing cycle."],
-              ["Do you offer refunds?","Yes — if you're not satisfied within 14 days of upgrading to Pro, we'll issue a full refund. No questions asked."],
+              ["Can I upgrade or downgrade anytime?","Yes  switch plans at any time. Downgrades take effect at the end of the current billing cycle."],
+              ["Do you offer refunds?","Yes  if you're not satisfied within 14 days of upgrading to Pro, we'll issue a full refund. No questions asked."],
             ].map(([q,a],i) => (
               <div key={i} onClick={()=>setFaqOpen(faqOpen===i?null:i)} style={{ border:`1px solid ${faqOpen===i?t.border2:t.border}`, borderRadius:9, overflow:"hidden", cursor:"pointer", background:t.surface, marginBottom:4, transition:"border-color 0.2s" }}>
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"17px 22px" }}>

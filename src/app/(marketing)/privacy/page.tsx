@@ -116,7 +116,7 @@ function PrivacyPage() {
   const sections = [
     {
       title: "Information We Collect",
-      body:  "Subsight collects the minimum information necessary to provide the service. This includes your email address for account creation, subscription data you manually enter (service names, amounts, billing cycles), and usage metadata such as feature interactions — never content. We do not collect financial account credentials, bank data, or payment card information.",
+      body:  "Subsight collects the minimum information necessary to provide the service. This includes your email address for account creation, subscription data you manually enter (service names, amounts, billing cycles), and usage metadata such as feature interactions  never content. We do not collect financial account credentials, bank data, or payment card information.",
     },
     {
       title: "How We Use Your Information",
@@ -128,7 +128,7 @@ function PrivacyPage() {
     },
     {
       title: "AI Features (Groq)",
-      body:  "When you use AI auto-fill, your subscription name is sent to Groq's API to generate metadata suggestions. Subsight does not store these API requests beyond the immediate session. Groq's privacy policy governs how they handle API inputs. You can use Subsight without providing a Groq API key — AI features are entirely optional.",
+      body:  "When you use AI auto-fill, your subscription name is sent to Groq's API to generate metadata suggestions. Subsight does not store these API requests beyond the immediate session. Groq's privacy policy governs how they handle API inputs. You can use Subsight without providing a Groq API key  AI features are entirely optional.",
     },
     {
       title: "Cookies & Tracking",

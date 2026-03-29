@@ -327,7 +327,7 @@ function OverviewView({ t, subs, onNav }: { t:T; subs:Sub[]; onNav:(id:string)=>
                     <td style={{ padding:"11px 16px", fontSize:13, fontWeight:600, color:t.text, fontFamily:"var(--font-display)" }}>{s.name}</td>
                     <td style={{ padding:"11px 16px", fontSize:11, color:t.text2, fontFamily:"var(--font-mono)" }}>{s.category}</td>
                     <td style={{ padding:"11px 16px", fontSize:13, fontWeight:700, color:t.text, fontFamily:"var(--font-mono)" }}>{s.currency} {s.amount.toFixed(2)}</td>
-                    <td style={{ padding:"11px 16px", fontSize:11, color:t.text2, fontFamily:"var(--font-mono)" }}>{s.nextDate || "—"}</td>
+                    <td style={{ padding:"11px 16px", fontSize:11, color:t.text2, fontFamily:"var(--font-mono)" }}>{s.nextDate || ""}</td>
                     <td style={{ padding:"11px 16px" }}><Badge status={s.status} t={t}/></td>
                   </tr>
                 ))}
@@ -415,7 +415,7 @@ function SubsView({ t, subs, setSubs, onAdd, toast }: { t:T; subs:Sub[]; setSubs
         {sim && (
           <div style={{ background:t.amberDim, border:`1px solid ${t.amber}44`, borderRadius:10, padding:"12px 16px", display:"flex", alignItems:"center", gap:10 }}>
             <AlertTriangle size={14} color={t.amber}/>
-            <span style={{ fontSize:12, color:t.amber, fontFamily:"var(--font-mono)" }}>Simulation active — toggle subscriptions to preview budget changes. No real changes are saved.</span>
+            <span style={{ fontSize:12, color:t.amber, fontFamily:"var(--font-mono)" }}>Simulation active  toggle subscriptions to preview budget changes. No real changes are saved.</span>
           </div>
         )}
 
@@ -467,7 +467,7 @@ function SubsView({ t, subs, setSubs, onAdd, toast }: { t:T; subs:Sub[]; setSubs
                     </td>
                     <td style={{ padding:"11px 14px", fontSize:13, fontWeight:700, color:t.text, fontFamily:"var(--font-mono)" }}>{s.currency} {s.amount.toFixed(2)}</td>
                     <td style={{ padding:"11px 14px", fontSize:11, color:t.text2, fontFamily:"var(--font-mono)" }}>{s.cycle}</td>
-                    <td style={{ padding:"11px 14px", fontSize:11, color:t.text2, fontFamily:"var(--font-mono)" }}>{s.nextDate || "—"}</td>
+                    <td style={{ padding:"11px 14px", fontSize:11, color:t.text2, fontFamily:"var(--font-mono)" }}>{s.nextDate || ""}</td>
                     <td style={{ padding:"11px 14px" }}>
                       <span style={{ fontSize:10, color:s.autoRenew?t.green:t.text3, fontFamily:"var(--font-mono)" }}>{s.autoRenew?"Yes":"No"}</span>
                     </td>
@@ -819,7 +819,7 @@ function AddView({ t, onSuccess, toast }: { t:T; onSuccess:()=>void; toast:(m:st
 
   const iStyle: React.CSSProperties = { width:"100%", background:t.surface2, border:`1px solid ${t.border}`, borderRadius:8, padding:"10px 13px", fontSize:13, color:t.text, fontFamily:"var(--font-mono)", outline:"none", transition:"border-color 0.2s" };
   const lStyle: React.CSSProperties = { fontSize:10.5, color:t.text3, fontFamily:"var(--font-mono)", letterSpacing:"0.08em", display:"block", marginBottom:5 };
-  const preview = { name:form.name||"Subscription Name", amount:form.amount?`${form.currency} ${parseFloat(form.amount).toFixed(2)}`:`${form.currency} 0.00`, cycle:form.cycle, category:form.category||"—", start:form.startDate||new Date().toLocaleDateString("en-US",{ month:"short", day:"numeric", year:"numeric" }), autoRenew:form.autoRenew?"Yes":"No" };
+  const preview = { name:form.name||"Subscription Name", amount:form.amount?`${form.currency} ${parseFloat(form.amount).toFixed(2)}`:`${form.currency} 0.00`, cycle:form.cycle, category:form.category||"", start:form.startDate||new Date().toLocaleDateString("en-US",{ month:"short", day:"numeric", year:"numeric" }), autoRenew:form.autoRenew?"Yes":"No" };
 
   return (
     <div className="add-grid" style={{ display:"grid", gridTemplateColumns:"1fr 320px", gap:22, alignItems:"start" }}>
@@ -948,7 +948,7 @@ function ExportView({ t, subs, toast }: { t:T; subs:Sub[]; toast:(m:string,tp:"s
 
   const exportPDF = () => {
     window.print();
-    toast("PDF export triggered — check print dialog", "info");
+    toast("PDF export triggered  check print dialog", "info");
   };
 
   return (

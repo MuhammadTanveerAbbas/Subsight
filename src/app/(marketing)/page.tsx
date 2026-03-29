@@ -167,7 +167,7 @@ function DashPreview({ t }: { t:Theme }) {
       {/* Chrome bar */}
       <div style={{ background:t.surface2, borderBottom:`1px solid ${t.border}`, padding:"10px 18px", display:"flex", alignItems:"center", gap:7 }}>
         {["#ff5f57","#ffbd2e","#28ca42"].map((c,i) => <span key={i} style={{ width:9, height:9, borderRadius:"50%", background:c, display:"block" }} />)}
-        <span style={{ flex:1, textAlign:"center", fontSize:9.5, color:t.text3, fontFamily:"var(--font-mono)" }}>subsight-tracker.vercel.app — Dashboard</span>
+        <span style={{ flex:1, textAlign:"center", fontSize:9.5, color:t.text3, fontFamily:"var(--font-mono)" }}>subsight-tracker.vercel.app  Dashboard</span>
         <span style={{ width:6, height:6, borderRadius:"50%", background:t.green, animation:"pulse 2s ease-in-out infinite" }} />
       </div>
       {/* KPI row */}
@@ -476,7 +476,7 @@ export default function LandingPage() {
         </h1>
 
         <p style={{ animation:"heroIn 0.65s ease 0.16s both", position:"relative", zIndex:1, marginTop:20, fontSize:"clamp(12px,1.1vw,14px)", color:t.text2, maxWidth:400, lineHeight:1.65, fontFamily:"var(--font-mono)" }}>
-          Real-time command center for every recurring payment — AI insights, analytics, zero surprises.
+          Real-time command center for every recurring payment  AI insights, analytics, zero surprises.
         </p>
 
         <div className="cta-row" style={{ animation:"heroIn 0.65s ease 0.24s both", position:"relative", zIndex:1, display:"flex", gap:12, marginTop:44, flexWrap:"wrap", justifyContent:"center" }}>
@@ -509,8 +509,8 @@ export default function LandingPage() {
           </Reveal>
           <div className="feat-grid" style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:"1px", background:t.border, border:`1px solid ${t.border}`, borderRadius:14, overflow:"hidden", marginTop:52 }}>
             {[
-              { Icon:LayoutDashboard, title:"Live Dashboard",        desc:"Real-time KPIs, spending trends, and category breakdowns — your financial pulse in one glance.",          tag:"Core" },
-              { Icon:Sparkles,        title:"AI Auto-Fill",          desc:"Type a service name. Groq AI fills in pricing, billing cycle, and category — instantly.",                 tag:"AI" },
+              { Icon:LayoutDashboard, title:"Live Dashboard",        desc:"Real-time KPIs, spending trends, and category breakdowns  your financial pulse in one glance.",          tag:"Core" },
+              { Icon:Sparkles,        title:"AI Auto-Fill",          desc:"Type a service name. Groq AI fills in pricing, billing cycle, and category  instantly.",                 tag:"AI" },
               { Icon:ToggleLeft,      title:"Simulation Mode",       desc:"Toggle subscriptions on or off to model budget changes before making any real decisions." },
               { Icon:Download,        title:"Multi-Format Export",   desc:"One shortcut exports your full list to JSON, CSV, or PDF. Your data, your format, forever." },
               { Icon:Search,          title:"Smart Search & Filter", desc:"Find any subscription instantly by name, category, status, or renewal date." },
@@ -541,7 +541,7 @@ export default function LandingPage() {
         <div style={{ maxWidth:1080, margin:"0 auto" }}>
           <Reveal><Label text="Compare" t={t} />
             <h2 style={{ fontFamily:"var(--font-display)", fontSize:"clamp(32px,5vw,56px)", fontWeight:800, letterSpacing:-2, color:t.text, lineHeight:1.05 }}>Subsight vs <span style={{ color:t.green }}>everything else</span></h2>
-            <p style={{ fontSize:14, color:t.text2, maxWidth:540, marginTop:14, lineHeight:1.78, fontFamily:"var(--font-mono)" }}>Truebill and Rocket Money link to your bank but lock your data behind a paywall. Spreadsheets require manual effort. Generic apps do the minimum. Subsight does it all — with full ownership.</p>
+            <p style={{ fontSize:14, color:t.text2, maxWidth:540, marginTop:14, lineHeight:1.78, fontFamily:"var(--font-mono)" }}>Truebill and Rocket Money link to your bank but lock your data behind a paywall. Spreadsheets require manual effort. Generic apps do the minimum. Subsight does it all  with full ownership.</p>
           </Reveal>
           <div style={{ marginTop:52, overflowX:"auto" }}><Reveal delay={80}><CompareTable t={t} /></Reveal></div>
           <Reveal delay={120}><p style={{ fontSize:11, color:t.text3, fontFamily:"var(--font-mono)", marginTop:14, textAlign:"center" }}>✓ Full support &nbsp;·&nbsp; ± Partial &nbsp;·&nbsp; ✗ Not available</p></Reveal>
@@ -588,13 +588,13 @@ export default function LandingPage() {
           </Reveal>
           <div style={{ maxWidth:720, marginTop:52, display:"flex", flexDirection:"column", gap:4 }}>
             {[
-              ["Is Subsight really free?","Yes — forever. Subsight is MIT-licensed and fully open source. The hosted version is free during beta. Self-hosted is free forever. You only pay for Supabase and Groq usage, both of which have generous free tiers that cover most users."],
-              ["Do I need a Groq API key?","Only for AI auto-fill. Every other feature — dashboard, tracking, simulation, export, analytics, settings — works without it. You can add a key at any time in Settings."],
+              ["Is Subsight really free?","Yes  forever. Subsight is MIT-licensed and fully open source. The hosted version is free during beta. Self-hosted is free forever. You only pay for Supabase and Groq usage, both of which have generous free tiers that cover most users."],
+              ["Do I need a Groq API key?","Only for AI auto-fill. Every other feature  dashboard, tracking, simulation, export, analytics, settings  works without it. You can add a key at any time in Settings."],
               ["Where is my data stored?","In your own Supabase PostgreSQL database. Subsight never has direct access to your data. You own it completely, and you can export or delete it at any time."],
-              ["Can it detect subscriptions from my bank?","Not currently. Subsight is manual + AI-assisted. Bank auto-detection is on the roadmap, but we prioritize privacy — no bank credentials needed today."],
-              ["What export formats are supported?","JSON, CSV, and PDF — accessible via a single click or keyboard shortcuts: Ctrl+E (JSON), Ctrl+S (CSV), Ctrl+P (PDF)."],
-              ["Is there a mobile app?","Not yet — web-only today, but the interface is fully responsive and works well on mobile browsers. A native app is on the roadmap."],
-              ["Can I self-host on my own server?","Absolutely. Clone the GitHub repo, set up a Supabase project, add your environment variables, and deploy anywhere Next.js runs — Vercel, Railway, fly.io, or any VPS."],
+              ["Can it detect subscriptions from my bank?","Not currently. Subsight is manual + AI-assisted. Bank auto-detection is on the roadmap, but we prioritize privacy  no bank credentials needed today."],
+              ["What export formats are supported?","JSON, CSV, and PDF  accessible via a single click or keyboard shortcuts: Ctrl+E (JSON), Ctrl+S (CSV), Ctrl+P (PDF)."],
+              ["Is there a mobile app?","Not yet  web-only today, but the interface is fully responsive and works well on mobile browsers. A native app is on the roadmap."],
+              ["Can I self-host on my own server?","Absolutely. Clone the GitHub repo, set up a Supabase project, add your environment variables, and deploy anywhere Next.js runs  Vercel, Railway, fly.io, or any VPS."],
             ].map(([q,a]) => <Reveal key={q}><FAQItem q={q} a={a} t={t} /></Reveal>)}
           </div>
         </div>
