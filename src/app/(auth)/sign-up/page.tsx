@@ -1,10 +1,11 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Eye, EyeOff, ArrowRight, RefreshCw, PieChart,
   Check, Mail, Lock, User, AlertCircle,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTheme } from "@/components/ThemeProvider";
 import { createClient } from "@/lib/supabase/client";
 
@@ -154,6 +155,7 @@ function GoogleBtn({ onClick, t }: { onClick: () => void; t: T }) {
 export default function SignUpPage() {
   const { theme } = useTheme();
   const t = theme === "dark" ? DARK : LIGHT;
+  const router = useRouter();
   const supabase = createClient();
 
   const [name,     setName]     = useState("");
@@ -164,6 +166,13 @@ export default function SignUpPage() {
   const [loading,  setLoading]  = useState(false);
   const [done,     setDone]     = useState(false);
   const [globalErr,setGlobal]   = useState("");
+
+  // Redirect if already logged in
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) router.replace("/dashboard");
+    });
+  }, []);
 
   const validate = (): boolean => {
     const e: Record<string, string> = {};

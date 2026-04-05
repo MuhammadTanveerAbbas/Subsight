@@ -33,7 +33,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Redirect unauthenticated users away from protected app pages
-  if (!user && pathname.startsWith('/dashboard')) {
+  if (!user && (pathname.startsWith('/dashboard') || pathname.startsWith('/settings'))) {
     return NextResponse.redirect(new URL('/sign-in', request.url))
   }
 
@@ -43,6 +43,7 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/dashboard/:path*',
+    '/settings/:path*',
     '/sign-in',
     '/sign-up',
     '/forgot-password',

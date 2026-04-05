@@ -1243,7 +1243,7 @@ export default function Dashboard() {
       if (!user) { setLoading(false); return; }
       supabase
         .from('subscriptions')
-        .select('*')
+        .select('id, name, category, amount, billing_cycle, next_renewal_date, status, auto_renew, currency, provider, notes')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .then(({ data, error }) => {
@@ -1350,6 +1350,7 @@ export default function Dashboard() {
           .mob-sb-btn{display:flex!important}
           .main-pad{padding:14px!important}
           .add-grid{grid-template-columns:1fr!important}
+          .main-content{margin-left:0!important}
         }
         @media(max-width:640px){
           .kpi-grid{grid-template-columns:1fr 1fr!important}
@@ -1398,7 +1399,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div style={{ flex:1, marginLeft:SBW, minHeight:"100vh", display:"flex", flexDirection:"column", transition:"margin-left 0.25s cubic-bezier(0.4,0,0.2,1)" }} className="sidebar-desk-offset">
+      <div style={{ flex:1, marginLeft:SBW, minHeight:"100vh", display:"flex", flexDirection:"column", transition:"margin-left 0.25s cubic-bezier(0.4,0,0.2,1)" }} className="sidebar-desk-offset main-content">
         <header style={{ height:62, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"0 28px", borderBottom:`1px solid ${t.border}`, background:t.navBg, backdropFilter:"blur(14px)", WebkitBackdropFilter:"blur(14px)", position:"sticky", top:0, zIndex:40, flexShrink:0 }}>
           <div style={{ display:"flex", alignItems:"center", gap:12 }}>
             <button className="mob-sb-btn" onClick={()=>setMobileSB(true)} style={{ background:"none", border:"none", color:t.text2, cursor:"pointer", display:"none", alignItems:"center" }}><Menu size={20}/></button>

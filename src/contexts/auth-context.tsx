@@ -61,6 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(null)
         setProfile(null)
       }
+      setLoading(false)
     })
 
     return () => subscription.unsubscribe()
@@ -70,7 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, full_name, avatar_url, subscription_tier, stripe_customer_id, stripe_subscription_id, subscription_status, current_period_end, created_at, updated_at')
         .eq('id', userId)
         .single()
 

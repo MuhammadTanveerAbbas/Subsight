@@ -98,7 +98,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
         const supabase = createClient();
         const { data, error } = await supabase
           .from('subscriptions')
-          .select('*')
+          .select('id, name, provider, category, icon, start_date, billing_cycle, amount, currency, notes, active_status, auto_renew, reminder_enabled, reminder_days_before, next_renewal_date, last_reminder_sent, usage_count, last_used')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false });
 
@@ -145,7 +145,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
 
       try {
         const [countResult, profileResult] = await Promise.all([
-          supabase.from("subscriptions").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+          supabase.from("subscriptions").select("id", { count: "exact", head: true }).eq("user_id", user.id),
           supabase.from("profiles").select("subscription_tier").eq("id", user.id).single(),
         ]);
 

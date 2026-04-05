@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Eye, EyeOff, ArrowRight, RefreshCw, PieChart,
   Mail, Lock, AlertCircle,
@@ -163,6 +163,13 @@ export default function SignInPage() {
   const [errors,   setErrors]   = useState<Record<string, string>>({});
   const [loading,  setLoading]  = useState(false);
   const [globalErr,setGlobal]   = useState("");
+
+  // Redirect if already logged in
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) router.replace("/dashboard");
+    });
+  }, []);
 
   const validate = (): boolean => {
     const e: Record<string, string> = {};

@@ -99,7 +99,7 @@ CREATE TABLE IF NOT EXISTS ai_summaries (
   id            UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id       UUID        NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
   content       TEXT        NOT NULL,
-  model         TEXT        DEFAULT 'llama-3.3-70b-versatile',
+  model         TEXT        DEFAULT 'openai/gpt-oss-120b',
   total_monthly NUMERIC(10,2),
   generated_at  TIMESTAMPTZ DEFAULT NOW(),
   expires_at    TIMESTAMPTZ DEFAULT NOW() + INTERVAL '24 hours'

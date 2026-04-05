@@ -1,5 +1,13 @@
 import Groq from 'groq-sdk'
 
+// Production model IDs per https://console.groq.com/docs/models (April 2026)
+const MODELS = {
+  // Fast structured-output tasks (1000 TPS, 128k context)
+  fast: 'openai/gpt-oss-20b',
+  // High-quality reasoning / prose tasks (500 TPS, 128k context)
+  quality: 'openai/gpt-oss-120b',
+} as const
+
 function getGroq() {
   const apiKey = process.env.GROQ_API_KEY
   if (!apiKey) {
@@ -18,7 +26,7 @@ export async function autoFillSubscription(name: string): Promise<{
 }> {
   const groq = getGroq()
   const response = await groq.chat.completions.create({
-    model: 'llama-3.3-70b-versatile',
+    model: MODELS.fast,
     messages: [
       {
         role: 'system',
@@ -63,7 +71,7 @@ export async function summarizeSpending(subscriptions: {
 }[]): Promise<string> {
   const groq = getGroq()
   const response = await groq.chat.completions.create({
-    model: 'llama-3.3-70b-versatile',
+    model: MODELS.quality,
     messages: [
       {
         role: 'system',

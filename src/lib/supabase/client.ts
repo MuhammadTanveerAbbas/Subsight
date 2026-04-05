@@ -10,6 +10,12 @@ export function createClient() {
     )
   }
 
-  return createBrowserClient(url, anonKey)
+  return createBrowserClient(url, anonKey, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+    },
+  })
 }
 
