@@ -27,8 +27,13 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
-  // Redirect authenticated users away from auth pages
-  if (user && (pathname.startsWith('/sign-in') || pathname.startsWith('/sign-up') || pathname.startsWith('/forgot-password'))) {
+  // Redirect authenticated users away from auth pages and landing page
+  if (user && (
+    pathname === '/' ||
+    pathname.startsWith('/sign-in') ||
+    pathname.startsWith('/sign-up') ||
+    pathname.startsWith('/forgot-password')
+  )) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
@@ -42,6 +47,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    '/',
     '/dashboard/:path*',
     '/settings/:path*',
     '/sign-in',
