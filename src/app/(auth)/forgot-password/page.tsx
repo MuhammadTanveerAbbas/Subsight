@@ -68,7 +68,7 @@ function ErrBanner({ msg, t }: { msg: string; t: T }) {
 
 function Card({ t, children }: { t: T; children: React.ReactNode }) {
   return (
-    <div style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:16, padding:"36px 32px", width:"100%", maxWidth:400, boxShadow:`0 32px 80px ${t.shadow}` }}>
+    <div style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:16, padding:"36px 32px", width:"100%", maxWidth:480, boxShadow:`0 32px 80px ${t.shadow}` }}>
       {children}
     </div>
   );

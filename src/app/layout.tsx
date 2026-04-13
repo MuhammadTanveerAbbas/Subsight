@@ -56,11 +56,11 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
       { url: "/favicon.ico", sizes: "any" },
-      { url: "/favicon.ico", sizes: "32x32", type: "image/x-icon" },
     ],
-    shortcut: "/favicon.ico",
-    apple: "/favicon.ico",
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
   },
 };
 
@@ -87,17 +87,8 @@ export default function RootLayout({
       className={cn("dark", inter.variable, jetbrainsMono.variable)}
     >
       <head>
-        <link rel="icon" href="/favicon.ico" type="image/x-icon" />
-        <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
-        <link rel="apple-touch-icon" href="/icon.svg" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#22c55e" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
       </head>
       <body className="font-body antialiased">
         <ErrorBoundary>

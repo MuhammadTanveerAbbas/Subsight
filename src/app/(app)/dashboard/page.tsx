@@ -1373,11 +1373,7 @@ export default function Dashboard() {
         <div style={{ padding:"10px 0", borderTop:`1px solid ${t.border}`, flexShrink:0 }}>
           {NAV_BOTTOM.map(item => <SidebarLink key={item.id} {...item}/>)}
         </div>
-        <button onClick={()=>setCollapsed(!collapsed)} style={{ display:"flex", alignItems:"center", justifyContent:collapsed?"center":"flex-end", padding:"11px 14px", background:"none", border:"none", borderTop:`1px solid ${t.border}`, cursor:"pointer", color:t.text3, transition:"color 0.2s", flexShrink:0 }}
-          onMouseEnter={e=>(e.currentTarget as HTMLElement).style.color=t.text}
-          onMouseLeave={e=>(e.currentTarget as HTMLElement).style.color=t.text3}>
-          {collapsed ? <ChevronRight size={15}/> : <ChevronLeft size={15}/>}
-        </button>
+
       </aside>
 
       {mobileSB && (

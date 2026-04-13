@@ -114,7 +114,7 @@ function ErrBanner({ msg, t }: { msg: string; t: T }) {
   );
 }
 
-function Card({ t, children, width=400 }: { t: T; children: React.ReactNode; width?: number }) {
+function Card({ t, children, width=480 }: { t: T; children: React.ReactNode; width?: number }) {
   return (
     <div style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:16, padding:"36px 32px", width:"100%", maxWidth:width, boxShadow:`0 32px 80px ${t.shadow}` }}>
       {children}
@@ -244,7 +244,7 @@ export default function SignUpPage() {
 
   return (
     <AuthShell t={t}>
-      <Card t={t} width={420}>
+      <Card t={t}>
         <h1 style={{ fontFamily:"var(--font-display)", fontSize:26, fontWeight:800, color:t.text, letterSpacing:-0.8, marginBottom:6 }}>Create account</h1>
         <p style={{ fontSize:13, color:t.text3, fontFamily:"var(--font-mono)", marginBottom:28 }}>Start tracking your subscriptions for free</p>
         {globalErr && <ErrBanner msg={globalErr} t={t}/>}
