@@ -44,8 +44,10 @@ const steps = [
 export function OnboardingTour() {
   const [isOpen, setIsOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const completed = localStorage.getItem(ONBOARDING_KEY);
     if (!completed) {
       setIsOpen(true);
@@ -69,7 +71,8 @@ export function OnboardingTour() {
     handleComplete();
   };
 
-  if (!isOpen) return null;
+  // Prevent hydration mismatch by not rendering until mounted
+  if (!mounted || !isOpen) return null;
 
   const step = steps[currentStep];
   const Icon = step.icon;

@@ -1,6 +1,17 @@
-'use client';
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { ThemeKey, applyTokens, getStoredTheme, storeTheme } from '@/lib/design-tokens';
+"use client";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
+import {
+  ThemeKey,
+  applyTokens,
+  getStoredTheme,
+  storeTheme,
+} from "@/lib/design-tokens";
 
 interface ThemeContextValue {
   theme: ThemeKey;
@@ -9,18 +20,20 @@ interface ThemeContextValue {
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
-  theme: 'dark',
+  theme: "dark",
   toggleTheme: () => {},
   setTheme: () => {},
 });
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<ThemeKey>('dark');
+  const [theme, setThemeState] = useState<ThemeKey>("dark");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     const stored = getStoredTheme();
     setThemeState(stored);
     applyTokens(stored);
+    setMounted(true);
   }, []);
 
   const setTheme = (t: ThemeKey) => {
@@ -29,7 +42,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     storeTheme(t);
   };
 
-  const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark');
+  const toggleTheme = () => setTheme(theme === "dark" ? "light" : "dark");
+
+  // Prevent rendering children until theme is loaded to avoid FOUC
+  if (!mounted) {
+    return <>{children}</>;
+  }
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>

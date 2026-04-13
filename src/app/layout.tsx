@@ -54,8 +54,11 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
-  // Icons are handled via src/app/favicon.png, icon.svg, apple-icon.png
-  // Next.js App Router auto-detects these with cache-busting hashes on each deploy
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/favicon.ico",
+  },
 };
 
 const inter = Inter({
@@ -76,18 +79,28 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn("dark", inter.variable, jetbrainsMono.variable)}>
+    <html
+      lang="en"
+      className={cn("dark", inter.variable, jetbrainsMono.variable)}
+    >
       <head>
+        <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+        <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+        <link rel="apple-touch-icon" href="/icon.svg" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#22c55e" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
       </head>
       <body className="font-body antialiased">
         <ErrorBoundary>
           <AuthProvider>
             <LoadingProvider>
-              <ThemeProvider>
-                {children}
-              </ThemeProvider>
+              <ThemeProvider>{children}</ThemeProvider>
             </LoadingProvider>
           </AuthProvider>
         </ErrorBoundary>
