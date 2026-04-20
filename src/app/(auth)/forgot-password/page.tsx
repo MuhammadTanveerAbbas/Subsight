@@ -210,8 +210,8 @@ function Card({ t, children }: { t: T; children: React.ReactNode }) {
         border: `1px solid ${t.border}`,
         borderRadius: 16,
         padding: "36px 40px",
-        width: "100%",
-        maxWidth: 520,
+        width: 520,
+        maxWidth: "calc(100vw - 32px)",
         boxShadow: `0 32px 80px ${t.shadow}`,
       }}
     >
