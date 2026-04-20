@@ -47,15 +47,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let isMounted = true;
+    let sessionChecked = false;
 
     // Listen for auth changes first to avoid missing events during init
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (!isMounted) return;
       if (session?.user) {
         setUser({ id: session.user.id, email: session.user.email! });
-        fetchProfile(session.user.id);
+        await fetchProfile(session.user.id);
       } else {
         setUser(null);
         setProfile(null);
@@ -64,15 +65,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     // Then check active session to hydrate initial state
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!isMounted) return;
-      if (session?.user) {
-        setUser({ id: session.user.id, email: session.user.email! });
-        fetchProfile(session.user.id);
-      } else {
-        setLoading(false);
+    const initSession = async () => {
+      if (!isMounted || sessionChecked) return;
+      sessionChecked = true;
+
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (!isMounted) return;
+
+        if (session?.user) {
+          setUser({ id: session.user.id, email: session.user.email! });
+          await fetchProfile(session.user.id);
+        }
+      } catch (error) {
+        logError(error, { context: "initSession" });
+      } finally {
+        if (isMounted) setLoading(false);
       }
-    });
+    };
+
+    initSession();
 
     return () => {
       isMounted = false;
