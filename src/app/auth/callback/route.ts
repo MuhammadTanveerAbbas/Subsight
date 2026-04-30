@@ -8,8 +8,14 @@ export async function GET(request: NextRequest) {
 
   if (code) {
     const supabase = await createClient()
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
-    if (!error) {
+    const { data: sessionData, error: sessionError } = await supabase.auth.exchangeCodeForSession(code)
+    
+    if (sessionError) {
+      console.error('OAuth callback error:', sessionError.message)
+      return NextResponse.redirect(`${origin}/sign-in?error=oauth_failed&message=${encodeURIComponent(sessionError.message)}`)
+    }
+
+    if (sessionData?.session) {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
         const { data: profile } = await supabase
@@ -26,7 +32,7 @@ export async function GET(request: NextRequest) {
             theme: 'dark',
             currency: 'USD',
             onboarding_done: false,
-            plan: 'free',
+            subscription_tier: 'free',
           })
         }
       }

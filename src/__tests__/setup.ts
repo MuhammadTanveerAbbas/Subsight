@@ -6,9 +6,12 @@ afterEach(() => {
   cleanup();
 });
 
-global.crypto = {
-  randomUUID: () => Math.random().toString(36).substring(2, 15),
-} as any;
+Object.defineProperty(window, 'crypto', {
+  value: {
+    randomUUID: () => Math.random().toString(36).substring(2, 15),
+  },
+  writable: true,
+});
 
 Object.defineProperty(window, 'localStorage', {
   value: {

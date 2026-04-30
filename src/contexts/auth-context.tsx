@@ -15,7 +15,7 @@ interface Profile {
   email: string;
   full_name: string | null;
   avatar_url: string | null;
-  plan: "free" | "pro";
+  subscription_tier: "free" | "pro";
   theme: "dark" | "light";
   currency: string;
   onboarding_done: boolean;
@@ -99,7 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { data, error } = await supabase
         .from("profiles")
         .select(
-          "id, email, full_name, avatar_url, plan, theme, currency, onboarding_done, created_at, updated_at",
+          "id, email, full_name, avatar_url, subscription_tier, theme, currency, onboarding_done, created_at, updated_at",
         )
         .eq("id", userId)
         .single();
@@ -129,7 +129,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           theme: "dark",
           currency: "USD",
           onboarding_done: false,
-          plan: "free",
+          subscription_tier: "free",
         });
 
         if (profileError) throw profileError;
