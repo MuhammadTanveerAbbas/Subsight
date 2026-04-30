@@ -12,6 +12,7 @@ export function createClient() {
 
   return createBrowserClient(url, anonKey, {
     auth: {
+      flowType: "implicit",
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true,
