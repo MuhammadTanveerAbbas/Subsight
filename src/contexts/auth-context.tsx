@@ -12,13 +12,13 @@ interface User {
 
 interface Profile {
   id: string;
+  email: string;
   full_name: string | null;
   avatar_url: string | null;
-  subscription_tier?: "free" | "pro" | null;
-  stripe_customer_id?: string | null;
-  stripe_subscription_id?: string | null;
-  subscription_status?: string | null;
-  current_period_end?: string | null;
+  plan: "free" | "pro";
+  theme: "dark" | "light";
+  currency: string;
+  onboarding_done: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -99,7 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { data, error } = await supabase
         .from("profiles")
         .select(
-          "id, full_name, avatar_url, subscription_tier, stripe_customer_id, stripe_subscription_id, subscription_status, current_period_end, created_at, updated_at",
+          "id, email, full_name, avatar_url, plan, theme, currency, onboarding_done, created_at, updated_at",
         )
         .eq("id", userId)
         .single();
@@ -121,11 +121,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) throw error;
 
       if (data.user) {
-        // Create profile
         const { error: profileError } = await supabase.from("profiles").insert({
           id: data.user.id,
+          email: email,
           full_name: fullName,
           avatar_url: null,
+          theme: "dark",
+          currency: "USD",
+          onboarding_done: false,
+          plan: "free",
         });
 
         if (profileError) throw profileError;

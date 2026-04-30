@@ -17,7 +17,6 @@ export function createClient() {
       detectSessionInUrl: true,
       storageKey: "sb-auth-token",
       storage: typeof window !== "undefined" ? window.localStorage : undefined,
-      flowType: "pkce",
     },
   });
 }
