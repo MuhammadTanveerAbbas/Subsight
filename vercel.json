@@ -1,12 +1,1 @@
-{
-  "crons": [
-    {
-      "path": "/api/reminders/send",
-      "schedule": "0 9 * * *"
-    },
-    {
-      "path": "/api/keep-alive",
-      "schedule": "0 0 */5 * *"
-    }
-  ]
-}
+{"name": "subsight-tracker"}
