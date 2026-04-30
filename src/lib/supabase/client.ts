@@ -12,12 +12,9 @@ export function createClient() {
 
   return createBrowserClient(url, anonKey, {
     auth: {
-      flowType: "implicit",
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true,
-      storageKey: "sb-auth-token",
-      storage: typeof window !== "undefined" ? window.localStorage : undefined,
     },
   });
 }
