@@ -24,14 +24,14 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Error caught by boundary:', error, errorInfo);
+    const safeMessage = error.message.replace(/[\r\n]/g, ' ')
+    console.error('Error caught by boundary:', safeMessage, errorInfo.componentStack?.replace(/[\r\n]/g, ' '))
     
     if (typeof window !== 'undefined' && (window as any).analytics) {
       (window as any).analytics.track('error', {
-        error: error.message,
-        stack: error.stack,
+        error: safeMessage,
         componentStack: errorInfo.componentStack,
-      });
+      })
     }
   }
 

@@ -8,6 +8,7 @@ import {
   BarChart3, ArrowUpRight, Lock, Globe, RefreshCw, Target,
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 // ─── Theme tokens ─────────────────────────────────────────────────────────────
 const DARK = {
@@ -401,7 +402,7 @@ export default function LandingPage() {
 
         {/* Logo */}
         <Link href="/" style={{ display:"flex", alignItems:"center", gap:10, textDecoration:"none", flexShrink:0 }}>
-          <img src="/icon.svg" alt="Subsight" width={32} height={32} style={{ borderRadius:9, flexShrink:0, boxShadow:`0 0 16px ${t.greenGlow}`, display:"block" }} />
+          <Image src="/icon.svg" alt="Subsight" width={32} height={32} style={{ borderRadius:9, flexShrink:0, boxShadow:`0 0 16px ${t.greenGlow}`, display:"block" }} />
           <span style={{ fontFamily:"var(--font-display)", fontSize:18, fontWeight:800, color:t.text, letterSpacing:-0.6 }}>Subsight</span>
         </Link>
 
@@ -629,7 +630,7 @@ export default function LandingPage() {
           <div className="footer-grid" style={{ display:"grid", gridTemplateColumns:"2fr 1fr 1fr 1fr", gap:48, marginBottom:48 }}>
             <div>
               <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14 }}>
-                <img src="/icon.svg" alt="Subsight" width={28} height={28} style={{ borderRadius:6, display:"block" }} />
+                <Image src="/icon.svg" alt="Subsight" width={28} height={28} style={{ borderRadius:6, display:"block" }} />
                 <span style={{ fontFamily:"var(--font-display)", fontSize:18, fontWeight:800, color:t.text }}>Subsight</span>
               </div>
               <p style={{ fontSize:13, color:t.text3, fontFamily:"var(--font-mono)", lineHeight:1.7, maxWidth:240 }}>A real-time subscription tracker with AI insights. Open source. Free forever.</p>

@@ -45,6 +45,15 @@ export const exportToCSV = (subscriptions: Subscription[]) => {
   downloadFile(blob, "subscriptions.csv");
 };
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+}
+
 export const exportToPDF = async (subscriptions: Subscription[]) => {
   const doc = new jsPDF();
   
@@ -82,11 +91,11 @@ export const exportToPDF = async (subscriptions: Subscription[]) => {
       <tbody>
         ${subscriptions.map(sub => `
           <tr>
-            <td>${sub.name}</td>
-            <td>${sub.category}</td>
-            <td>${sub.amount.toFixed(2)} ${sub.currency}</td>
-            <td>${sub.billingCycle}</td>
-            <td>${new Date(sub.startDate).toLocaleDateString()}</td>
+            <td>${escapeHtml(sub.name)}</td>
+            <td>${escapeHtml(sub.category)}</td>
+            <td>${escapeHtml(sub.amount.toFixed(2))} ${escapeHtml(sub.currency)}</td>
+            <td>${escapeHtml(sub.billingCycle)}</td>
+            <td>${escapeHtml(new Date(sub.startDate).toLocaleDateString())}</td>
           </tr>
         `).join('')}
       </tbody>

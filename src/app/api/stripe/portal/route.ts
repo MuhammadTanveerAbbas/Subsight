@@ -5,9 +5,7 @@ import { NextRequest } from 'next/server'
 export async function POST(req: NextRequest) {
   const stripe = getStripe()
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
   if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { data: profile } = await supabase
@@ -20,11 +18,14 @@ export async function POST(req: NextRequest) {
     return Response.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  const session = await stripe.billingPortal.sessions.create({
-    customer: profile.stripe_customer_id,
-    return_url: `${process.env.NEXT_PUBLIC_APP_URL}/settings`,
-  })
-
-  return Response.json({ url: session.url })
+  try {
+    const session = await stripe.billingPortal.sessions.create({
+      customer: profile.stripe_customer_id,
+      return_url: `${process.env.NEXT_PUBLIC_APP_URL}/settings`,
+    })
+    return Response.json({ url: session.url })
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Stripe error'
+    return Response.json({ error: msg }, { status: 500 })
+  }
 }
-

@@ -19,6 +19,7 @@ import { logError } from "@/lib/error-logger";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "./auth-context";
 import { calculateNextRenewalDate } from "@/lib/renewal-calculator";
+import { useToast } from "@/hooks/use-toast";
 
 const IS_SERVER = typeof window === "undefined";
 
@@ -39,10 +40,7 @@ function useLocalStorage<T>(
 
   const setValue: React.Dispatch<React.SetStateAction<T>> = useCallback(
     (value) => {
-      if (IS_SERVER) {
-        console.warn(`Tried to set localStorage key "${key}" on the server.`);
-        return;
-      }
+      if (IS_SERVER) return;
       try {
         const valueToStore =
           value instanceof Function ? value(storedValue) : value;
@@ -50,9 +48,7 @@ function useLocalStorage<T>(
         window.localStorage.setItem(key, JSON.stringify(valueToStore));
       } catch (error: any) {
         if (error?.name === "QuotaExceededError") {
-          alert(
-            "Storage quota exceeded. Please export your data and clear some subscriptions.",
-          );
+          window.dispatchEvent(new CustomEvent("subsight:quota-exceeded"));
         }
         logError(error, { key, operation: "localStorage.setItem" });
       }
@@ -95,6 +91,7 @@ const SubscriptionContext = createContext<SubscriptionContextType | undefined>(
 
 export function SubscriptionProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [loading, setLoading] = useState(true);
   const [upgradePromptOpen, setUpgradePromptOpen] = useState(false);
@@ -112,6 +109,16 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     "displayCurrency",
     "USD",
   );
+
+  useEffect(() => {
+    const handler = () => toast({
+      variant: "destructive",
+      title: "Storage full",
+      description: "Export your data and remove some subscriptions to free up space.",
+    });
+    window.addEventListener("subsight:quota-exceeded", handler);
+    return () => window.removeEventListener("subsight:quota-exceeded", handler);
+  }, [toast]);
 
   useEffect(() => {
     let isMounted = true;

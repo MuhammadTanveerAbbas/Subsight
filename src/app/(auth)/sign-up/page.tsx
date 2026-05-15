@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Eye,
   EyeOff,
@@ -13,8 +13,10 @@ import {
   AlertCircle,
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/components/ThemeProvider";
+import { useAuth } from "@/contexts/auth-context";
 import { createClient } from "@/lib/supabase/client";
 
 const DARK = {
@@ -477,7 +479,8 @@ export default function SignUpPage() {
   const { theme } = useTheme();
   const t = theme === "dark" ? DARK : LIGHT;
   const router = useRouter();
-  const supabase = createClient();
+  const { signUp } = useAuth();
+  const supabase = useMemo(() => createClient(), []);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -490,10 +493,10 @@ export default function SignUpPage() {
 
   // Redirect if already logged in
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) router.replace("/dashboard");
+    supabase.auth.getUser().then(({ data: { user } }: { data: { user: unknown } }) => {
+      if (user) router.replace("/dashboard");
     });
-  }, []);
+  }, [supabase, router]);
 
   const validate = (): boolean => {
     const e: Record<string, string> = {};
@@ -516,9 +519,7 @@ export default function SignUpPage() {
     if (/(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9])/.test(password)) return 4;
     return 3;
   })();
-  const strengthColor = ["", "#ef4444", "#f59e0b", "#22c55e", "#22c55e"][
-    strength
-  ];
+  const strengthColor = ["", "#ef4444", "#f59e0b", "#22c55e", "#22c55e"][strength];
   const strengthLabel = ["", "Too short", "Fair", "Good", "Strong"][strength];
 
   const handleSubmit = async () => {
@@ -526,16 +527,10 @@ export default function SignUpPage() {
     setLoading(true);
     setGlobal("");
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { data: { full_name: name } },
-      });
-      if (error) throw error;
+      await signUp(email, password, name);
       setDone(true);
     } catch (e: unknown) {
-      const msg =
-        e instanceof Error ? e.message : "Sign up failed. Please try again.";
+      const msg = e instanceof Error ? e.message : "Sign up failed. Please try again.";
       setGlobal(msg);
     } finally {
       setLoading(false);

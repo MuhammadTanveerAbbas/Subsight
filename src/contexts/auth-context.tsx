@@ -71,13 +71,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       try {
         const {
-          data: { session },
-        } = await supabase.auth.getSession();
+          data: { user },
+        } = await supabase.auth.getUser();
         if (!isMounted) return;
 
-        if (session?.user) {
-          setUser({ id: session.user.id, email: session.user.email! });
-          await fetchProfile(session.user.id);
+        if (user) {
+          setUser({ id: user.id, email: user.email! });
+          await fetchProfile(user.id);
         }
       } catch (error) {
         logError(error, { context: "initSession" });

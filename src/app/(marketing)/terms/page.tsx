@@ -6,6 +6,7 @@
 import { useState, useEffect } from "react";
 import { ArrowRight, PieChart, Sun, Moon } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 const DARK = {
   bg:"#080808", surface:"#111111", surface2:"#181818", surface3:"#1e1e1e",
@@ -58,7 +59,7 @@ function PageNav({ t, themeKey, toggle }: { t:T; themeKey:TK; toggle:()=>void })
   return (
     <nav className="nav-wrap" style={{ position:"fixed", top:0, left:0, right:0, zIndex:100, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"0 48px", height:62, background:scrolled?t.navBg:"transparent", borderBottom:scrolled?`1px solid ${t.border}`:"none", backdropFilter:scrolled?"blur(14px)":"none", WebkitBackdropFilter:scrolled?"blur(14px)":"none", transition:"all 0.35s" }}>
       <Link href="/" style={{ display:"flex", alignItems:"center", gap:9, textDecoration:"none" }}>
-        <img src="/icon.svg" alt="Subsight" width={28} height={28} style={{ borderRadius:7, flexShrink:0, display:"block" }} />
+        <Image src="/icon.svg" alt="Subsight" width={28} height={28} style={{ borderRadius:7, flexShrink:0, display:"block" }} />
         <span style={{ fontFamily:"var(--font-display)", fontSize:17, fontWeight:800, color:t.text, letterSpacing:-0.5 }}>Subsight</span>
       </Link>
 
@@ -89,7 +90,7 @@ function PageFooter({ t }: { t:T }) {
     <footer style={{ borderTop:`1px solid ${t.border}`, padding:"36px 24px" }}>
       <div className="footer-row" style={{ maxWidth:1080, margin:"0 auto", display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:16 }}>
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-          <img src="/icon.svg" alt="Subsight" width={24} height={24} style={{ borderRadius:5, display:"block" }} />
+          <Image src="/icon.svg" alt="Subsight" width={24} height={24} style={{ borderRadius:5, display:"block" }} />
           <span style={{ fontFamily:"var(--font-display)", fontSize:15, fontWeight:800, color:t.text }}>Subsight</span>
         </div>
         <div style={{ display:"flex", gap:20, flexWrap:"wrap", justifyContent:"center" }}>

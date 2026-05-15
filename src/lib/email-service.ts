@@ -1,14 +1,21 @@
 import nodemailer from 'nodemailer'
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: parseInt(process.env.SMTP_PORT || '465'),
-  secure: true, // Always use TLS/SSL encryption
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-})
+function getTransporter() {
+  const host = process.env.SMTP_HOST
+  const user = process.env.SMTP_USER
+  const pass = process.env.SMTP_PASS
+  if (!host || !user || !pass) {
+    throw new Error('SMTP environment variables (SMTP_HOST, SMTP_USER, SMTP_PASS) are not configured')
+  }
+  const port = parseInt(process.env.SMTP_PORT || '587')
+  return nodemailer.createTransport({
+    host,
+    port,
+    secure: port === 465,
+    requireTLS: port !== 465, // enforce STARTTLS on port 587
+    auth: { user, pass },
+  })
+}
 
 function getEmojiByCategoryOrName(category: string, name: string): string {
   const categoryEmojis: Record<string, string> = {
@@ -99,6 +106,14 @@ function getColorByCategory(category: string): string {
   return colors[category.toLowerCase()] || '#1a1a1a'
 }
 
+function escapeHtml(str: string): string {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
+
 function isValidEmail(email: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   return emailRegex.test(email)
@@ -129,13 +144,16 @@ export async function sendRenewalReminder({
     throw new Error('Amount cannot be negative')
   }
 
+  const safeSubName = escapeHtml(subscriptionName)
+  const safeRenewalDate = escapeHtml(renewalDate)
+  const safeCurrency = escapeHtml(currency)
   const emoji = getEmojiByCategoryOrName(category, subscriptionName)
   const accentColor = getColorByCategory(category)
   const isUrgent = daysUntilRenewal === 1
 
   const subject = isUrgent
-    ? `${emoji} ${subscriptionName} renews TOMORROW`
-    : `${emoji} ${subscriptionName} renews in ${daysUntilRenewal} days`
+    ? `${emoji} ${safeSubName} renews TOMORROW`
+    : `${emoji} ${safeSubName} renews in ${daysUntilRenewal} days`
 
   const html = `
     <!DOCTYPE html>
@@ -151,7 +169,7 @@ export async function sendRenewalReminder({
         <div style="background: linear-gradient(135deg, ${accentColor} 0%, ${accentColor}dd 100%); 
                     border-radius: 12px 12px 0 0; padding: 32px 24px; text-align: center; color: white;">
           <div style="font-size: 48px; margin-bottom: 12px;">${emoji}</div>
-          <h1 style="font-size: 28px; font-weight: 700; margin: 0 0 8px;">${subscriptionName}</h1>
+          <h1 style="font-size: 28px; font-weight: 700; margin: 0 0 8px;">${safeSubName}</h1>
           <p style="font-size: 16px; margin: 0; opacity: 0.9;">
             ${isUrgent ? 'Renews Tomorrow!' : `Renews in ${daysUntilRenewal} days`}
           </p>
@@ -164,11 +182,11 @@ export async function sendRenewalReminder({
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
               <div>
                 <p style="color: #6b7280; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 4px;">Renewal Date</p>
-                <p style="font-size: 16px; font-weight: 600; margin: 0; color: #1a1a1a;">${renewalDate}</p>
+                <p style="font-size: 16px; font-weight: 600; margin: 0; color: #1a1a1a;">${safeRenewalDate}</p>
               </div>
               <div>
                 <p style="color: #6b7280; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 4px;">Amount</p>
-                <p style="font-size: 16px; font-weight: 600; margin: 0; color: ${accentColor};">${currency} ${amount.toFixed(2)}</p>
+                <p style="font-size: 16px; font-weight: 600; margin: 0; color: ${accentColor};">${safeCurrency} ${amount.toFixed(2)}</p>
               </div>
             </div>
           </div>
@@ -177,8 +195,8 @@ export async function sendRenewalReminder({
           <div style="background: ${accentColor}11; border-radius: 8px; padding: 16px; margin-bottom: 24px; border: 1px solid ${accentColor}33;">
             <p style="margin: 0; color: #1a1a1a; font-size: 14px;">
               ${isUrgent 
-                ? `<strong>⚠️ Action needed:</strong> Your ${subscriptionName} subscription will renew tomorrow. Make sure you have sufficient funds or cancel if you no longer need it.`
-                : `Your ${subscriptionName} subscription will renew on ${renewalDate}. Review your subscription to ensure it's still needed.`
+                ? `<strong>⚠️ Action needed:</strong> Your ${safeSubName} subscription will renew tomorrow. Make sure you have sufficient funds or cancel if you no longer need it.`
+                : `Your ${safeSubName} subscription will renew on ${safeRenewalDate}. Review your subscription to ensure it's still needed.`
               }
             </p>
           </div>
@@ -196,7 +214,7 @@ export async function sendRenewalReminder({
           <!-- Footer -->
           <div style="border-top: 1px solid #e5e7eb; padding-top: 16px; text-align: center;">
             <p style="color: #9ca3af; font-size: 12px; margin: 0;">
-              You're receiving this reminder because you enabled notifications for ${subscriptionName}.
+              You're receiving this reminder because you enabled notifications for ${safeSubName}.
             </p>
           </div>
         </div>
@@ -213,7 +231,7 @@ export async function sendRenewalReminder({
   `
 
   try {
-    await transporter.sendMail({
+    await getTransporter().sendMail({
       from: `"Subsight" <${process.env.SMTP_FROM}>`,
       to,
       subject,

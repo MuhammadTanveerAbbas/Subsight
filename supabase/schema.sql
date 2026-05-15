@@ -25,7 +25,7 @@ CREATE TABLE profiles (
   email               TEXT,
   full_name           TEXT,
   avatar_url          TEXT,
-  plan                TEXT        DEFAULT 'free' CHECK (plan IN ('free', 'pro')),
+  subscription_tier   TEXT        DEFAULT 'free' CHECK (subscription_tier IN ('free', 'pro')),
   theme               TEXT        DEFAULT 'dark',
   currency            TEXT        DEFAULT 'USD',
   onboarding_done     BOOLEAN     DEFAULT false,
@@ -50,7 +50,7 @@ CREATE TABLE subscriptions (
   icon_url            TEXT,
   start_date          DATE,
   next_renewal_date   DATE,
-  billing_cycle       TEXT        NOT NULL CHECK (billing_cycle IN ('Daily','Weekly','Monthly','Quarterly','Annually','monthly','yearly','one-time')),
+  billing_cycle       TEXT        NOT NULL CHECK (billing_cycle IN ('daily','weekly','monthly','quarterly','annually','one-time')),
   amount              NUMERIC(10,2) NOT NULL,
   currency            TEXT        DEFAULT 'USD',
   notes               TEXT,
@@ -211,6 +211,28 @@ CREATE INDEX idx_subscriptions_active_status ON subscriptions(active_status);
 CREATE INDEX idx_subscriptions_category      ON subscriptions(category);
 CREATE INDEX idx_subscriptions_renewal_date  ON subscriptions(next_renewal_date);
 CREATE INDEX idx_ai_summaries_user_expires   ON ai_summaries(user_id, expires_at DESC);
+
+-- ============================================================
+-- Auto-create profile on new user signup
+-- ============================================================
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.profiles (id, email, full_name, subscription_tier)
+  VALUES (
+    NEW.id,
+    NEW.email,
+    NEW.raw_user_meta_data->>'full_name',
+    'free'
+  )
+  ON CONFLICT (id) DO NOTHING;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- ============================================================
 -- Seed: system categories

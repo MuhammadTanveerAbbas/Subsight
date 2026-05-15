@@ -1,11 +1,9 @@
 import Groq from 'groq-sdk'
 
-// Production model IDs per https://console.groq.com/docs/models (April 2026)
+// Valid Groq model IDs — https://console.groq.com/docs/models
 const MODELS = {
-  // Fast structured-output tasks (1000 TPS, 128k context)
-  fast: 'openai/gpt-oss-20b',
-  // High-quality reasoning / prose tasks (500 TPS, 128k context)
-  quality: 'openai/gpt-oss-120b',
+  fast: 'llama-3.1-8b-instant',
+  quality: 'llama-3.3-70b-versatile',
 } as const
 
 function getGroq() {

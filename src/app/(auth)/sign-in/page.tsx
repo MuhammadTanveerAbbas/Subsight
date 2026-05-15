@@ -11,6 +11,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/components/ThemeProvider";
 import { createClient } from "@/lib/supabase/client";
@@ -122,7 +123,7 @@ function AuthShell({ t, children }: { t: T; children: React.ReactNode }) {
           textDecoration: "none",
         }}
       >
-        <img
+        <Image
           src="/icon.svg"
           alt="Subsight"
           width={32}
@@ -485,8 +486,8 @@ export default function SignInPage() {
 
   // Redirect if already logged in
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) router.replace("/dashboard");
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) router.replace("/dashboard");
     });
   }, []);
 

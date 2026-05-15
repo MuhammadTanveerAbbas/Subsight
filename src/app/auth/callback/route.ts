@@ -1,10 +1,17 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
+function safeRedirectPath(next: string | null): string {
+  if (!next) return '/dashboard'
+  // Only allow relative paths starting with / and no protocol-relative URLs
+  if (/^\/(?!\/)[^\s]*$/.test(next)) return next
+  return '/dashboard'
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
-  const next = searchParams.get('next') ?? '/dashboard'
+  const next = safeRedirectPath(searchParams.get('next'))
 
   if (code) {
     const supabase = await createClient()
