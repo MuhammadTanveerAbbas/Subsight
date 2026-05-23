@@ -9,7 +9,7 @@ export function getStripe() {
     throw new Error('STRIPE_SECRET_KEY is not set')
   }
   stripeSingleton = new Stripe(key, {
-    apiVersion: '2026-02-25.clover',
+    apiVersion: '2025-02-24.acacia' as Stripe.LatestApiVersion,
   })
   return stripeSingleton
 }

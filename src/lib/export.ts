@@ -22,7 +22,9 @@ export const exportToJSON = (subscriptions: Subscription[]) => {
 export const exportToCSV = (subscriptions: Subscription[]) => {
   if (subscriptions.length === 0) return;
 
-  const headers = Object.keys(subscriptions[0]);
+  const first = subscriptions[0]
+  if (!first) return
+  const headers = Object.keys(first);
   const csvRows = [
     headers.join(","),
     ...subscriptions.map((sub) =>

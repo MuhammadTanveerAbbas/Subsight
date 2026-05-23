@@ -39,7 +39,7 @@ function useInView(threshold = 0.10) {
   useEffect(() => {
     if (!ref.current) return;
     const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setVis(true); obs.disconnect(); } },
+      (entries) => { const e = entries[0]; if (e?.isIntersecting) { setVis(true); obs.disconnect(); } },
       { threshold }
     );
     obs.observe(ref.current);
@@ -147,7 +147,7 @@ function MiniDonut({ t }: { t:Theme }) {
           <div key={i} style={{ display:"flex", alignItems:"center", gap:6 }}>
             <span style={{ width:6, height:6, borderRadius:1.5, background:colors[i], flexShrink:0 }} />
             <span style={{ fontSize:9, color:t.text2, fontFamily:"var(--font-mono)" }}>{label}</span>
-            <span style={{ fontSize:9, color:t.text, fontFamily:"var(--font-mono)", marginLeft:"auto" }}>{segs[i].p}%</span>
+            <span style={{ fontSize:9, color:t.text, fontFamily:"var(--font-mono)", marginLeft:"auto" }}>{segs[i]?.p ?? 0}%</span>
           </div>
         ))}
       </div>
@@ -596,7 +596,7 @@ export default function LandingPage() {
               ["What export formats are supported?","JSON, CSV, and PDF  accessible via a single click or keyboard shortcuts: Ctrl+E (JSON), Ctrl+S (CSV), Ctrl+P (PDF)."],
               ["Is there a mobile app?","Not yet  web-only today, but the interface is fully responsive and works well on mobile browsers. A native app is on the roadmap."],
               ["Can I self-host on my own server?","Absolutely. Clone the GitHub repo, set up a Supabase project, add your environment variables, and deploy anywhere Next.js runs  Vercel, Railway, fly.io, or any VPS."],
-            ].map(([q,a]) => <Reveal key={q}><FAQItem q={q} a={a} t={t} /></Reveal>)}
+            ].map((item) => { const [q, a] = item; return <Reveal key={q}><FAQItem q={q ?? ''} a={a ?? ''} t={t} /></Reveal> })}
           </div>
         </div>
       </section>
@@ -643,7 +643,7 @@ export default function LandingPage() {
               <div key={col.title}>
                 <div style={{ fontSize:11, fontWeight:700, color:t.text, letterSpacing:"0.1em", textTransform:"uppercase", fontFamily:"var(--font-mono)", marginBottom:16 }}>{col.title}</div>
                 <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-                  {col.links.map(([label,href]) => (
+                  {(col.links as [string, string][]).map(([label,href]) => (
                     <a key={label} href={href} target={href.startsWith("http")?"_blank":"_self"} rel={href.startsWith("http")?"noopener":""} style={{ fontSize:13, color:t.text3, fontFamily:"var(--font-mono)", transition:"color 0.2s" }} onMouseEnter={e=>(e.currentTarget.style.color=t.green)} onMouseLeave={e=>(e.currentTarget.style.color=t.text3)}>{label}</a>
                   ))}
                 </div>
@@ -653,7 +653,7 @@ export default function LandingPage() {
           <div className="footer-bottom" style={{ display:"flex", justifyContent:"space-between", alignItems:"center", paddingTop:24, borderTop:`1px solid ${t.border}`, flexWrap:"wrap", gap:14 }}>
             <p style={{ fontSize:11, color:t.text3, fontFamily:"var(--font-mono)" }}>© 2025 Subsight · Built by Muhammad Tanveer Abbas · MIT License</p>
             <div className="footer-bottom-links" style={{ display:"flex", gap:20 }}>
-              {[["GitHub","https://github.com/MuhammadTanveerAbbas/Subsight-Tracker"],["Live App","https://subsight-tracker.vercel.app/"],["Privacy","/privacy"],["Terms","/terms"]].map(([label,href]) => (
+              {([["GitHub","https://github.com/MuhammadTanveerAbbas/Subsight-Tracker"],["Live App","https://subsight-tracker.vercel.app/"],["Privacy","/privacy"],["Terms","/terms"]] as const).map(([label,href]) => (
                 <a key={label} href={href} target={href.startsWith("http")?"_blank":"_self"} rel={href.startsWith("http")?"noopener":""} style={{ fontSize:11, color:t.text3, fontFamily:"var(--font-mono)", transition:"color 0.2s" }} onMouseEnter={e=>(e.currentTarget.style.color=t.green)} onMouseLeave={e=>(e.currentTarget.style.color=t.text3)}>{label}</a>
               ))}
             </div>

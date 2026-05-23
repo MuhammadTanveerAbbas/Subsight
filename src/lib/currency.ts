@@ -15,9 +15,13 @@ export const convertCurrency = (
   toCurrency: Currency
 ): number => {
   if (fromCurrency === toCurrency) return amount;
-  
-  const usdAmount = amount / EXCHANGE_RATES[fromCurrency];
-  return usdAmount * EXCHANGE_RATES[toCurrency];
+
+  const fromRate = EXCHANGE_RATES[fromCurrency]
+  const toRate = EXCHANGE_RATES[toCurrency]
+  if (!fromRate || !toRate) return amount
+
+  const usdAmount = amount / fromRate
+  return usdAmount * toRate
 };
 
 export const formatCurrencyWithConversion = (
@@ -41,5 +45,5 @@ export const getCurrencySymbol = (currency: Currency): string => {
     CAD: 'C$',
     AUD: 'A$',
   };
-  return symbols[currency] || currency;
+  return symbols[currency] ?? currency;
 };

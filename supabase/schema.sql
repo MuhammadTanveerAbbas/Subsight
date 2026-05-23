@@ -1,10 +1,15 @@
 -- ============================================================
--- Subsight  Full Database Schema
--- Last updated: 2026-03-24
+-- Subsight Full Database Schema
+-- Consolidated from:
+--   supabase/schema.sql
+--   supabase/migrations/001_fix_schema.sql
+--   supabase/migrations/002_rls_and_constraints.sql
+--   supabase/migrations/003_system_categories_rls.sql
+-- Last updated: 2026-05-23
 -- ============================================================
 -- Run this file only on a fresh database.
--- For existing databases, run only the [APPLY] ALTER statements
--- in schema.md via the Supabase SQL Editor.
+-- For existing databases, run the individual migration files
+-- in order (001 → 002 → 003) via the Supabase SQL Editor.
 -- ============================================================
 
 -- Drop existing tables (fresh install only)
@@ -31,7 +36,7 @@ CREATE TABLE profiles (
   onboarding_done     BOOLEAN     DEFAULT false,
   stripe_customer_id      TEXT    UNIQUE,
   stripe_subscription_id  TEXT    UNIQUE,
-  subscription_status     TEXT    DEFAULT 'inactive',
+  subscription_status     TEXT    DEFAULT 'inactive' CHECK (subscription_status IN ('active', 'inactive', 'trialing', 'past_due', 'canceled', 'unpaid', 'incomplete', 'paused')),
   current_period_end      TIMESTAMPTZ,
   created_at          TIMESTAMPTZ DEFAULT NOW() NOT NULL,
   updated_at          TIMESTAMPTZ DEFAULT NOW() NOT NULL
@@ -152,6 +157,7 @@ ALTER TABLE processed_webhook_events ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view own profile"   ON profiles FOR SELECT USING (auth.uid() = id);
 CREATE POLICY "Users can insert own profile" ON profiles FOR INSERT WITH CHECK (auth.uid() = id);
 CREATE POLICY "Users can update own profile" ON profiles FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "Users can delete own profile" ON profiles FOR DELETE USING (auth.uid() = id);
 
 -- subscriptions policies
 CREATE POLICY "Users can view own subscriptions"   ON subscriptions FOR SELECT USING (auth.uid() = user_id);
@@ -159,8 +165,9 @@ CREATE POLICY "Users can insert own subscriptions" ON subscriptions FOR INSERT W
 CREATE POLICY "Users can update own subscriptions" ON subscriptions FOR UPDATE USING (auth.uid() = user_id);
 CREATE POLICY "Users can delete own subscriptions" ON subscriptions FOR DELETE USING (auth.uid() = user_id);
 
--- categories policy
+-- categories policy (includes system categories with NULL user_id)
 CREATE POLICY "Users manage own categories" ON categories FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Users can view system categories" ON categories FOR SELECT USING (user_id IS NULL);
 
 -- spending_goals policy
 CREATE POLICY "Users manage own goals" ON spending_goals FOR ALL USING (auth.uid() = user_id);
@@ -174,9 +181,14 @@ CREATE POLICY "Users access own export logs" ON export_logs FOR ALL USING (auth.
 -- notification_settings policy
 CREATE POLICY "Users manage own notifications" ON notification_settings FOR ALL USING (auth.uid() = user_id);
 
+-- processed_webhook_events policy (service-role only; no user access needed)
+CREATE POLICY "Service role manages webhook events" ON processed_webhook_events FOR ALL USING (true);
+
 -- ============================================================
 -- Functions & Triggers
 -- ============================================================
+
+-- Auto-update updated_at on row changes
 CREATE OR REPLACE FUNCTION handle_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -200,6 +212,19 @@ CREATE TRIGGER handle_spending_goals_updated_at
 CREATE TRIGGER handle_notification_settings_updated_at
   BEFORE UPDATE ON notification_settings
   FOR EACH ROW EXECUTE FUNCTION handle_updated_at();
+
+-- Normalize billing_cycle to lowercase (defensive — catches capitalized input)
+CREATE OR REPLACE FUNCTION normalize_billing_cycle()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.billing_cycle = LOWER(NEW.billing_cycle);
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER normalize_subscriptions_billing_cycle
+  BEFORE INSERT OR UPDATE ON subscriptions
+  FOR EACH ROW EXECUTE FUNCTION normalize_billing_cycle();
 
 -- ============================================================
 -- Indexes

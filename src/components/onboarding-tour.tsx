@@ -75,6 +75,7 @@ export function OnboardingTour() {
   if (!mounted || !isOpen) return null;
 
   const step = steps[currentStep];
+  if (!step) return null
   const Icon = step.icon;
 
   return (

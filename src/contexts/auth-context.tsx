@@ -30,6 +30,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
   updateProfile: (updates: {
     full_name?: string;
     avatar_url?: string;
@@ -116,25 +117,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: { data: { full_name: fullName } },
       });
 
       if (error) throw error;
 
-      if (data.user) {
-        const { error: profileError } = await supabase.from("profiles").insert({
-          id: data.user.id,
-          full_name: fullName,
-          avatar_url: null,
-          subscription_tier: "free",
-        });
-
-        if (profileError) throw profileError;
-
-        toast({
-          title: "Success",
-          description: "Account created successfully!",
-        });
-      }
+      toast({
+        title: "Success",
+        description: "Account created successfully! Please check your email to verify.",
+      });
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -189,6 +180,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const deleteAccount = async () => {
+    try {
+      const res = await fetch("/api/auth/delete-account", { method: "POST" });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed to delete account");
+
+      await supabase.auth.signOut();
+      setUser(null);
+      setProfile(null);
+
+      toast({
+        title: "Account Deleted",
+        description: "Your account has been permanently deleted.",
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Delete Account Error",
+        description: error.message,
+      });
+      throw error;
+    }
+  };
+
   const updateProfile = async (updates: {
     full_name?: string;
     avatar_url?: string;
@@ -226,6 +241,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signUp,
     signIn,
     signOut,
+    deleteAccount,
     updateProfile,
   };
 

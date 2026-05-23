@@ -66,7 +66,7 @@ function PageNav({ t, themeKey, toggle }: { t:T; themeKey:TK; toggle:()=>void })
       </Link>
 
       <div className="nav-links" style={{ display:"flex", alignItems:"center", gap:24 }}>
-        {[["Home","/"],["Features","/#features"],["Pricing","/pricing"],["Dashboard","/dashboard"]].map(([l,h]) => (
+        {([["Home","/"],["Features","/#features"],["Pricing","/pricing"],["Dashboard","/dashboard"]] as const).map(([l,h]) => (
           <Link key={l} href={h} style={{ fontSize:13, color:t.text2, fontWeight:500, fontFamily:"var(--font-display)", transition:"color 0.2s" }}
             onMouseEnter={e=>(e.currentTarget.style.color=t.text)}
             onMouseLeave={e=>(e.currentTarget.style.color=t.text2)}>{l}</Link>
@@ -96,7 +96,7 @@ function PageFooter({ t }: { t:T }) {
           <span style={{ fontFamily:"var(--font-display)", fontSize:15, fontWeight:800, color:t.text }}>Subsight</span>
         </div>
         <div style={{ display:"flex", gap:20, flexWrap:"wrap", justifyContent:"center" }}>
-          {[["Home","/"],["Pricing","/pricing"],["Privacy","/privacy"],["Terms","/terms"],["GitHub","https://github.com/MuhammadTanveerAbbas/Subsight-Tracker"]].map(([l,h]) => (
+          {([["Home","/"],["Pricing","/pricing"],["Privacy","/privacy"],["Terms","/terms"],["GitHub","https://github.com/MuhammadTanveerAbbas/Subsight-Tracker"]] as const).map(([l,h]) => (
             <a key={l} href={h} target={h.startsWith("http")?"_blank":"_self"} rel={h.startsWith("http")?"noopener":""} style={{ fontSize:12, color:t.text3, fontFamily:"var(--font-mono)", transition:"color 0.2s" }} onMouseEnter={e=>(e.currentTarget.style.color=t.green)} onMouseLeave={e=>(e.currentTarget.style.color=t.text3)}>{l}</a>
           ))}
         </div>

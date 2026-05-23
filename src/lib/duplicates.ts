@@ -60,21 +60,23 @@ export const findDuplicates = (
 };
 
 function levenshteinDistance(str1: string, str2: string): number {
-  const matrix = Array(str2.length + 1).fill(null).map(() => Array(str1.length + 1).fill(null));
+  const m = str1.length
+  const n = str2.length
+  const d: number[][] = Array.from({ length: n + 1 }, () => Array(m + 1).fill(0))
 
-  for (let i = 0; i <= str1.length; i++) matrix[0][i] = i;
-  for (let j = 0; j <= str2.length; j++) matrix[j][0] = j;
+  for (let i = 0; i <= m; i++) d[0]![i] = i
+  for (let j = 0; j <= n; j++) d[j]![0] = j
 
-  for (let j = 1; j <= str2.length; j++) {
-    for (let i = 1; i <= str1.length; i++) {
-      const indicator = str1[i - 1] === str2[j - 1] ? 0 : 1;
-      matrix[j][i] = Math.min(
-        matrix[j][i - 1] + 1,
-        matrix[j - 1][i] + 1,
-        matrix[j - 1][i - 1] + indicator
-      );
+  for (let j = 1; j <= n; j++) {
+    for (let i = 1; i <= m; i++) {
+      const cost = str1[i - 1] === str2[j - 1] ? 0 : 1
+      d[j]![i] = Math.min(
+        (d[j]![i - 1] ?? 0) + 1,
+        (d[j - 1]![i] ?? 0) + 1,
+        (d[j - 1]![i - 1] ?? 0) + cost,
+      )
     }
   }
 
-  return matrix[str2.length][str1.length];
+  return d[n]![m]!
 }

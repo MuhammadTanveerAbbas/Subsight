@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -28,13 +28,16 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  if (
-    user &&
-    (pathname === "/" ||
-      pathname.startsWith("/sign-in") ||
-      pathname.startsWith("/sign-up") ||
-      pathname.startsWith("/forgot-password"))
-  ) {
+  const isAuthPage =
+    pathname.startsWith("/sign-in") ||
+    pathname.startsWith("/sign-up") ||
+    pathname.startsWith("/forgot-password") ||
+    pathname.startsWith("/auth/signin") ||
+    pathname.startsWith("/auth/signup") ||
+    pathname.startsWith("/auth/forgot-password") ||
+    pathname.startsWith("/auth/reset-password");
+
+  if (user && (pathname === "/" || isAuthPage)) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
@@ -56,5 +59,6 @@ export const config = {
     "/sign-in",
     "/sign-up",
     "/forgot-password",
+    "/auth/:path*",
   ],
 };

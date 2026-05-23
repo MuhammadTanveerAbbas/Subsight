@@ -36,25 +36,23 @@ export function validateImportData(data: unknown) {
 }
 
 function escapeHtml(text: string): string {
-  return text.replace(/[&<>"']/g, (char) => {
-    const entities: Record<string, string> = {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;'
-    };
-    return entities[char];
-  });
+  const entities: Record<string, string> = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  };
+  return text.replace(/[&<>"']/g, (char) => entities[char] ?? char);
 }
 
 export function sanitizeSubscriptionData(data: any) {
   return {
     ...data,
-    name: escapeHtml(data.name?.toString().trim().slice(0, 100) || ''),
-    provider: escapeHtml(data.provider?.toString().trim().slice(0, 100) || ''),
-    category: escapeHtml(data.category?.toString().trim().slice(0, 50) || ''),
-    notes: escapeHtml(data.notes?.toString().trim().slice(0, 500) || ''),
-    amount: Math.min(Math.abs(Number(data.amount) || 0), 999999),
+    name: escapeHtml(data?.name?.toString().trim().slice(0, 100) || ''),
+    provider: escapeHtml(data?.provider?.toString().trim().slice(0, 100) || ''),
+    category: escapeHtml(data?.category?.toString().trim().slice(0, 50) || ''),
+    notes: escapeHtml(data?.notes?.toString().trim().slice(0, 500) || ''),
+    amount: Math.min(Math.abs(Number(data?.amount) || 0), 999999),
   };
 }

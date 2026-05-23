@@ -43,7 +43,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
             <AlertCircle className="h-16 w-16 text-destructive mx-auto" />
             <h1 className="text-2xl font-bold">Something went wrong</h1>
             <p className="text-muted-foreground">
-              {this.state.error?.message || 'An unexpected error occurred'}
+              An unexpected error occurred. Please try again.
             </p>
             <Button
               onClick={() => {

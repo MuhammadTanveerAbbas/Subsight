@@ -35,6 +35,14 @@ export const metadata: Metadata = {
     description:
       "Track subscriptions with AI powered insights. 100% free and private.",
     siteName: "Subsight",
+    images: [
+      {
+        url: "/Subsight-Tracker.png",
+        width: 1600,
+        height: 746,
+        alt: "Subsight - Subscription Tracker",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
@@ -42,6 +50,7 @@ export const metadata: Metadata = {
     description:
       "Track subscriptions with AI powered insights. 100% free and private.",
     creator: "@m_tanveerabbas",
+    images: ["/Subsight-Tracker.png"],
   },
   robots: {
     index: true,

@@ -24,27 +24,12 @@ export const LIGHT = {
   navBg:"rgba(240,240,238,0.95)",
 } as const;
 
-export type TK = "dark" | "light";
-export type T  = typeof DARK | typeof LIGHT;
-export type SubStatus = "active" | "inactive" | "warning" | "renewal_passed";
-
-export interface Sub {
-  id: string;
-  name: string;
-  category: string;
-  amount: number;
-  cycle: string;
-  nextDate: string;
-  status: SubStatus;
-  autoRenew: boolean;
-  currency: string;
-  provider: string;
-  notes: string;
-}
+export type T = typeof DARK | typeof LIGHT;
+export type { TK, SubStatus, Sub } from "./dashboard-types";
 
 import {
   LayoutDashboard, CreditCard, BarChart3, Sparkles, Download,
-  Settings, User, Plus,
+  Settings, User, Plus, Receipt,
 } from "lucide-react";
 
 export const NAV_MAIN = [
@@ -57,6 +42,7 @@ export const NAV_MAIN = [
 ];
 
 export const NAV_BOTTOM = [
+  { id:"billing",  label:"Billing",  Icon:Receipt },
   { id:"settings", label:"Settings", Icon:Settings },
   { id:"profile",  label:"Profile",  Icon:User },
 ];
