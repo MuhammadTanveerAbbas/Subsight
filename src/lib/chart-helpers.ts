@@ -1,20 +1,23 @@
 import type { Sub } from "@/app/(app)/dashboard/dashboard-types";
 
+function cycleMultiplier(cycle: string): number {
+  const c = cycle.toLowerCase();
+  if (c === "daily" || c === "weekly" || c === "monthly") return 1;
+  if (c === "quarterly") return 1 / 3;
+  if (c === "annually" || c === "yearly") return 1 / 12;
+  if (c === "one-time") return 0;
+  return 0;
+}
+
 export function buildMonthlyData(subs: Sub[]) {
   const months = [
     "Jan", "Feb", "Mar", "Apr", "May", "Jun",
     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
   ];
-  return months.map((month, i) => {
+  return months.map((month) => {
     const spend = subs
       .filter((s) => s.status === "active")
-      .reduce((acc, s) => {
-        if (s.cycle === "Monthly" || s.cycle === "Daily" || s.cycle === "Weekly")
-          return acc + s.amount;
-        if (s.cycle === "Annually") return acc + s.amount / 12;
-        if (s.cycle === "Quarterly") return acc + s.amount / 3;
-        return acc;
-      }, 0);
+      .reduce((acc, s) => acc + s.amount * cycleMultiplier(s.cycle), 0);
     return { month, spend: Math.round(spend * 100) / 100 };
   });
 }

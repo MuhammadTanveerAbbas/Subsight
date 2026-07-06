@@ -3,17 +3,22 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import { useSubscriptions } from "@/contexts/subscription-context";
-import { Sun, Moon, Menu, X, RefreshCw, Plus, Bell, CheckCircle, XCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Sun, Moon, Menu, X, RefreshCw, Plus } from "lucide-react";
 import {
   DARK,
   LIGHT,
   NAV_MAIN,
   NAV_BOTTOM,
   type TK,
-  type T,
   type Sub,
   type SubStatus,
 } from "./dashboard-constants";
+
+const VALID_TABS = new Set([
+  ...NAV_MAIN.map((n) => n.id),
+  ...NAV_BOTTOM.map((n) => n.id),
+]);
 import { OverviewView } from "./views/overview-view";
 import { SubsView } from "./views/subs-view";
 import { AnalyticsView } from "./views/analytics-view";
@@ -24,84 +29,17 @@ import { SettingsView } from "./views/settings-view";
 import { ProfileView } from "./views/profile-view";
 import BillingPage from "./billing/page";
 
-function Toast({
-  msg,
-  type,
-  onClose,
-  t,
-}: {
-  msg: string;
-  type: "success" | "error" | "info";
-  onClose: () => void;
-  t: T;
-}) {
-  const col = { success: t.green, error: t.red, info: t.blue }[type];
-  const Ico = { success: CheckCircle, error: XCircle, info: Bell }[type];
-  useEffect(() => {
-    const id = setTimeout(onClose, 4000);
-    return () => clearTimeout(id);
-  }, [onClose]);
-  return (
-    <div
-      style={{
-        position: "fixed",
-        bottom: 24,
-        right: 24,
-        zIndex: 1000,
-        background: t.surface,
-        border: `1px solid ${col}44`,
-        borderLeft: `3px solid ${col}`,
-        borderRadius: 10,
-        padding: "13px 17px",
-        display: "flex",
-        alignItems: "center",
-        gap: 10,
-        boxShadow: `0 8px 32px ${t.shadow}`,
-        animation: "slideUp 0.3s ease",
-        maxWidth: 360,
-        minWidth: 260,
-      }}
-    >
-      <Ico size={14} color={col} style={{ flexShrink: 0 }} />
-      <span
-        style={{
-          fontSize: 13,
-          color: t.text,
-          fontFamily: "var(--font-mono)",
-          flex: 1,
-        }}
-      >
-        {msg}
-      </span>
-      <button
-        onClick={onClose}
-        style={{
-          background: "none",
-          border: "none",
-          color: t.text3,
-          cursor: "pointer",
-          padding: 2,
-          display: "flex",
-        }}
-      >
-        <X size={13} />
-      </button>
-    </div>
-  );
-}
-
 export default function Dashboard() {
-  const { user, loading: authLoading } = useAuth();
-  const { subscriptions, loading: subsLoading } = useSubscriptions();
+  const [emailSent, setEmailSent] = useState(false);
+  const { user, profile, loading: authLoading } = useAuth();
+  const isPro = profile?.subscription_tier === "pro";
+  const { subscriptions, loading: subsLoading, refetchSubscriptions } = useSubscriptions();
+  const { toast: shadcnToast } = useToast();
   const [themeKey, setThemeKey] = useState<TK>("dark");
   const [active, setActive] = useState("overview");
   const [collapsed, setCollapsed] = useState(false);
   const [mobileSB, setMobileSB] = useState(false);
   const [subs, setSubs] = useState<Sub[]>([]);
-  const [toast, setToast] = useState<{
-    msg: string;
-    type: "success" | "error" | "info";
-  } | null>(null);
   const t = themeKey === "dark" ? DARK : LIGHT;
 
   const loading = authLoading || subsLoading;
@@ -128,7 +66,7 @@ export default function Dashboard() {
       name: s.name,
       category: s.category || "Other",
       amount: Number(s.amount),
-      cycle: s.billingCycle || "Monthly",
+      cycle: s.billingCycle || "monthly",
       nextDate: s.nextRenewalDate || "",
       status: (s.activeStatus ? "active" : "inactive") as SubStatus,
       autoRenew: s.autoRenew ?? true,
@@ -142,8 +80,14 @@ export default function Dashboard() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    const tab = params.get("tab");
+    if (tab && VALID_TABS.has(tab)) {
+      setActive(tab);
+    }
     if (params.get("upgraded") === "true") {
       showToast("Welcome to Pro! All features are now unlocked.", "success");
+    }
+    if (tab || params.get("upgraded") === "true") {
       window.history.replaceState({}, "", "/dashboard");
     }
   }, []);
@@ -171,9 +115,10 @@ export default function Dashboard() {
 
   const showToast = useCallback(
     (msg: string, type: "success" | "error" | "info" = "success") => {
-      setToast({ msg, type });
+      const variant = type === "error" ? "destructive" as const : undefined;
+      shadcnToast({ title: type === "success" ? "Success" : type === "error" ? "Error" : "Info", description: msg, variant });
     },
-    [],
+    [shadcnToast],
   );
 
   const navTo = useCallback((id: string) => {
@@ -280,15 +225,17 @@ export default function Dashboard() {
       case "analytics":
         return <AnalyticsView t={t} subs={subs} />;
       case "ai-summary":
-        return <AISummaryView t={t} subs={subs} />;
+        return <AISummaryView t={t} subs={subs} isPro={isPro} />;
       case "add":
         return (
           <AddView
             t={t}
-            onSuccess={() => {
+            onSuccess={async () => {
+              await refetchSubscriptions();
               navTo("subscriptions");
             }}
             toast={showToast}
+            isPro={isPro}
           />
         );
       case "export":
@@ -571,6 +518,53 @@ export default function Dashboard() {
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            {user && !user.emailConfirmed && (
+              <div
+                style={{
+                  fontSize: 11,
+                  color: t.amber,
+                  background: t.amberDim,
+                  border: `1px solid ${t.amber}44`,
+                  borderRadius: 8,
+                  padding: "7px 14px",
+                  fontFamily: "var(--font-mono)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                }}
+              >
+                <span>Please verify your email</span>
+                <button
+                  onClick={async () => {
+                    const { createClient } = await import("@/lib/supabase/client");
+                    const supabase = createClient();
+                    const { error } = await supabase.auth.resend({
+                      type: "signup",
+                      email: user.email,
+                      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+                    });
+                    if (error) {
+                      showToast(error.message, "error");
+                    } else {
+                      setEmailSent(true);
+                      showToast("Verification email sent", "success");
+                    }
+                  }}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: t.amber,
+                    textDecoration: "underline",
+                    cursor: "pointer",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 11,
+                  }}
+                  disabled={emailSent}
+                >
+                  {emailSent ? "Sent" : "Resend"}
+                </button>
+              </div>
+            )}
             <button
               onClick={() => {
                 const n = themeKey === "dark" ? "light" : ("dark" as TK);
@@ -625,14 +619,6 @@ export default function Dashboard() {
         </main>
       </div>
 
-      {toast && (
-        <Toast
-          msg={toast.msg}
-          type={toast.type}
-          onClose={() => setToast(null)}
-          t={t}
-        />
-      )}
     </div>
   );
 }

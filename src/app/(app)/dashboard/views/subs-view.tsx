@@ -5,7 +5,7 @@ import {
   Search, ToggleLeft, ToggleRight, AlertTriangle, Edit3, Trash2,
   RefreshCw, Check, Plus,
 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { useSubscriptions } from "@/contexts/subscription-context";
 import { EditModal } from "@/components/subscription/edit-modal";
 import { Badge } from "@/components/subscription/badge";
 import type { T } from "@/app/(app)/dashboard/dashboard-constants";
@@ -29,6 +29,7 @@ export function SubsView({
   const [sim, setSim] = useState(false);
   const [editing, setEditing] = useState<Sub | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const { updateSubscription, deleteSubscription } = useSubscriptions();
 
   const filtered = subs.filter((s) => {
     const q = search.toLowerCase();
@@ -43,16 +44,14 @@ export function SubsView({
   const toggleStatus = async (id: string) => {
     const sub = subs.find((s) => s.id === id);
     if (!sub) return;
-    const newStatus: SubStatus =
-      sub.status === "active" ? "inactive" : "active";
+    const newActive = sub.status !== "active";
+    const newStatus: SubStatus = newActive ? "active" : "inactive";
     try {
-      const supabase = createClient();
-      await supabase
-        .from("subscriptions")
-        .update({ status: newStatus })
-        .eq("id", id);
+      await updateSubscription(id, { activeStatus: newActive });
       setSubs((prev) =>
-        prev.map((s) => (s.id === id ? { ...s, status: newStatus } : s)),
+        prev.map((s) =>
+          s.id === id ? { ...s, status: newStatus } : s,
+        ),
       );
     } catch {
       toast("Failed to update status", "error");
@@ -62,12 +61,7 @@ export function SubsView({
   const deleteSub = async (id: string) => {
     setDeleting(id);
     try {
-      const supabase = createClient();
-      const { error } = await supabase
-        .from("subscriptions")
-        .delete()
-        .eq("id", id);
-      if (error) throw error;
+      await deleteSubscription(id);
       setSubs((prev) => prev.filter((s) => s.id !== id));
       toast("Subscription deleted", "info");
     } catch {

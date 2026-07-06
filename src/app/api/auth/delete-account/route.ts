@@ -1,11 +1,12 @@
-import { createClient } from '@/lib/supabase/server'
+import { getAuthenticatedUser } from '@/lib/api-auth'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { NextRequest } from 'next/server'
 
 export async function POST(req: NextRequest) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await getAuthenticatedUser({ requireVerified: true })
+  if (!auth.user) return Response.json({ error: auth.error }, { status: auth.status })
+
+  const { user } = auth
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY

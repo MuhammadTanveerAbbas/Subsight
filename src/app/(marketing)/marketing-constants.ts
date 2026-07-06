@@ -6,7 +6,10 @@ export const DARK = {
   text:"#f0f0f0", text2:"#a0a0a0", text3:"#585858",
   green:"#22c55e", green2:"#16a34a",
   greenDim:"rgba(34,197,94,0.08)", greenBorder:"rgba(34,197,94,0.22)", greenGlow:"rgba(34,197,94,0.14)",
-  red:"#ef4444", amber:"#f59e0b",
+  red:"#ef4444", redDim:"rgba(239,68,68,0.10)",
+  amber:"#f59e0b", amberDim:"rgba(245,158,11,0.10)",
+  blue:"#3b82f6", blueDim:"rgba(59,130,246,0.10)",
+  sidebarBg:"#0c0c0c",
   navBg:"rgba(8,8,8,0.92)", shadow:"rgba(0,0,0,0.7)", grid:"rgba(255,255,255,0.025)",
 } as const;
 
@@ -16,7 +19,10 @@ export const LIGHT = {
   text:"#111111", text2:"#545450", text3:"#888880",
   green:"#16a34a", green2:"#15803d",
   greenDim:"rgba(22,163,74,0.08)", greenBorder:"rgba(22,163,74,0.22)", greenGlow:"rgba(22,163,74,0.10)",
-  red:"#dc2626", amber:"#d97706",
+  red:"#dc2626", redDim:"rgba(220,38,38,0.10)",
+  amber:"#d97706", amberDim:"rgba(217,119,6,0.10)",
+  blue:"#2563eb", blueDim:"rgba(37,99,235,0.10)",
+  sidebarBg:"#f0f0ee",
   navBg:"rgba(248,248,246,0.92)", shadow:"rgba(0,0,0,0.12)", grid:"rgba(0,0,0,0.04)",
 } as const;
 

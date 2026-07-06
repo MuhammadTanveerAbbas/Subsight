@@ -1,10 +1,18 @@
 import Groq from 'groq-sdk'
+import { escapeHtml, sanitizeText } from './validation'
 
 // Valid Groq model IDs — https://console.groq.com/docs/models
 const MODELS = {
   fast: 'llama-3.1-8b-instant',
   quality: 'llama-3.3-70b-versatile',
 } as const
+
+function parseAIJson(text: string): Record<string, unknown> {
+  const trimmed = text.trim()
+  const fenceMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/)
+  const jsonStr = fenceMatch?.[1]?.trim() ?? trimmed
+  return JSON.parse(jsonStr) as Record<string, unknown>
+}
 
 function getGroq() {
   const apiKey = process.env.GROQ_API_KEY
@@ -19,7 +27,7 @@ export async function autoFillSubscription(name: string): Promise<{
   category: string
   amount: number
   currency: string
-  billingCycle: 'monthly' | 'yearly' | 'one-time'
+  billingCycle: string
   autoRenew: boolean
 }> {
   const groq = getGroq()
@@ -55,7 +63,17 @@ export async function autoFillSubscription(name: string): Promise<{
 
   const text = response.choices[0]?.message?.content || '{}'
   try {
-    return JSON.parse(text)
+    const parsed = parseAIJson(text)
+    const aiBillingCycle = String(parsed.billingCycle || 'monthly').toLowerCase()
+    const normalizedBillingCycle = aiBillingCycle === 'yearly' ? 'annually' : aiBillingCycle
+    return {
+      provider: escapeHtml(String(parsed.provider || '')).slice(0, 100),
+      category: escapeHtml(String(parsed.category || '')).slice(0, 50),
+      amount: Math.min(Math.abs(Number(parsed.amount) || 0), 999999),
+      currency: escapeHtml(String(parsed.currency || 'USD')).slice(0, 10),
+      billingCycle: escapeHtml(normalizedBillingCycle).slice(0, 20),
+      autoRenew: Boolean(parsed.autoRenew),
+    }
   } catch {
     throw new Error('Failed to parse AI response')
   }
@@ -86,6 +104,7 @@ export async function summarizeSpending(subscriptions: {
     max_tokens: 512,
     temperature: 0.7,
   })
-  return response.choices[0]?.message?.content || 'Unable to generate summary.'
+  const raw = response.choices[0]?.message?.content || 'Unable to generate summary.'
+  return sanitizeText(raw).slice(0, 5000)
 }
 

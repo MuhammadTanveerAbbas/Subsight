@@ -3,6 +3,11 @@
 import { FileText, BarChart3, Download } from "lucide-react";
 import type { T } from "@/app/(app)/dashboard/dashboard-constants";
 import type { Sub } from "@/app/(app)/dashboard/dashboard-types";
+import {
+  exportSubscriptionsJSON,
+  exportSubscriptionsCSV,
+  exportSubscriptionsPDF,
+} from "@/lib/export";
 
 export function ExportView({
   t,
@@ -14,42 +19,18 @@ export function ExportView({
   toast: (m: string, tp: "success" | "error" | "info") => void;
 }) {
   const exportJSON = () => {
-    const blob = new Blob([JSON.stringify(subs, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "subsight-subscriptions.json";
-    a.click();
+    exportSubscriptionsJSON(subs);
     toast("Exported as JSON", "success");
   };
 
   const exportCSV = () => {
-    const headers = [
-      "Name", "Category", "Amount", "Currency", "Cycle",
-      "NextDate", "Status", "AutoRenew", "Provider",
-    ];
-    const rows = subs.map((s) =>
-      [
-        s.name, s.category, s.amount, s.currency, s.cycle,
-        s.nextDate || "", s.status, s.autoRenew, s.provider,
-      ].join(","),
-    );
-    const blob = new Blob([[headers.join(","), ...rows].join("\n")], {
-      type: "text/csv",
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "subsight-subscriptions.csv";
-    a.click();
+    exportSubscriptionsCSV(subs);
     toast("Exported as CSV", "success");
   };
 
   const exportPDF = () => {
-    window.print();
-    toast("PDF export triggered  check print dialog", "info");
+    exportSubscriptionsPDF();
+    toast("PDF export triggered — check print dialog", "info");
   };
 
   return (

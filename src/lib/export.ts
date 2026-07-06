@@ -1,139 +1,68 @@
-"use client";
-
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
-import type { Subscription } from "./types";
-
-const downloadFile = (blob: Blob, filename: string) => {
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
-
-export const exportToJSON = (subscriptions: Subscription[]) => {
-  const jsonString = JSON.stringify(subscriptions, null, 2);
-  const blob = new Blob([jsonString], { type: "application/json" });
-  downloadFile(blob, "subscriptions.json");
-};
-
-export const exportToCSV = (subscriptions: Subscription[]) => {
-  if (subscriptions.length === 0) return;
-
-  const first = subscriptions[0]
-  if (!first) return
-  const headers = Object.keys(first);
-  const csvRows = [
-    headers.join(","),
-    ...subscriptions.map((sub) =>
-      headers
-        .map((header) => {
-          const value = sub[header as keyof Subscription];
-          if (value === null || value === undefined) return "";
-          const str = String(value);
-          if (str.includes(",") || str.includes('"') || str.includes("\n")) {
-            return `"${str.replace(/"/g, '""')}"`;
-          }
-          return str;
-        })
-        .join(",")
-    ),
-  ];
-
-  const csvString = csvRows.join("\n");
-  const blob = new Blob([csvString], { type: "text/csv" });
-  downloadFile(blob, "subscriptions.csv");
-};
-
-function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;')
+export interface ExportSubscription {
+  name: string;
+  category: string;
+  amount: number;
+  currency: string;
+  cycle: string;
+  nextDate?: string;
+  status: string;
+  autoRenew: boolean;
+  provider: string;
 }
 
-export const exportToPDF = async (subscriptions: Subscription[]) => {
-  const doc = new jsPDF();
-  
-  doc.setFontSize(22);
-  doc.text("Subsight - Subscription Report", 20, 20);
-  
-  doc.setFontSize(12);
-  doc.text(`Report generated on: ${new Date().toLocaleDateString()}`, 20, 30);
-  doc.text(`Total Subscriptions: ${subscriptions.length}`, 20, 36);
+export function escapeCSVValue(v: string | number | boolean): string {
+  const s = String(v);
+  return s.includes(",") || s.includes('"') || s.includes("\n")
+    ? `"${s.replace(/"/g, '""')}"`
+    : s;
+}
 
-  // Use a temporary element for rendering the table to canvas
-  const container = document.createElement('div');
-  container.style.position = 'absolute';
-  container.style.left = '-9999px';
-  container.style.width = '800px'; 
-  container.style.padding = '20px';
-  container.style.fontFamily = 'Helvetica, sans-serif';
+export function subscriptionsToJSON(subs: ExportSubscription[]): string {
+  return JSON.stringify(subs, null, 2);
+}
 
-  let tableHTML = `
-    <style>
-      table { border-collapse: collapse; width: 100%; font-size: 10px; }
-      th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-      th { background-color: #f2f2f2; }
-    </style>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Category</th>
-          <th>Amount</th>
-          <th>Cycle</th>
-          <th>Start Date</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${subscriptions.map(sub => `
-          <tr>
-            <td>${escapeHtml(sub.name)}</td>
-            <td>${escapeHtml(sub.category)}</td>
-            <td>${escapeHtml(sub.amount.toFixed(2))} ${escapeHtml(sub.currency)}</td>
-            <td>${escapeHtml(sub.billingCycle)}</td>
-            <td>${escapeHtml(new Date(sub.startDate).toLocaleDateString())}</td>
-          </tr>
-        `).join('')}
-      </tbody>
-    </table>
-  `;
+export function subscriptionsToCSV(subs: ExportSubscription[]): string {
+  const headers = [
+    "Name", "Category", "Amount", "Currency", "Cycle",
+    "NextDate", "Status", "AutoRenew", "Provider",
+  ];
+  const rows = subs.map((s) =>
+    [
+      s.name, s.category, s.amount, s.currency, s.cycle,
+      s.nextDate || "", s.status, s.autoRenew, s.provider,
+    ]
+      .map(escapeCSVValue)
+      .join(","),
+  );
+  return "\uFEFF" + [headers.join(","), ...rows].join("\n");
+}
 
-  container.innerHTML = tableHTML;
-  document.body.appendChild(container);
+function downloadBlob(content: string, filename: string, mimeType: string): void {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
-  try {
-    const canvas = await html2canvas(container.querySelector('table')!);
-    const imgData = canvas.toDataURL('image/png');
-    
-    // Calculate aspect ratio
-    const imgWidth = 170; // mm
-    const pageHeight = doc.internal.pageSize.height;
-    const imgHeight = canvas.height * imgWidth / canvas.width;
-    let heightLeft = imgHeight;
-    
-    let position = 45; // Start table after header
+export function exportSubscriptionsJSON(subs: ExportSubscription[]): void {
+  downloadBlob(
+    subscriptionsToJSON(subs),
+    "subsight-subscriptions.json",
+    "application/json",
+  );
+}
 
-    doc.addImage(imgData, 'PNG', 20, position, imgWidth, imgHeight);
-    heightLeft -= (pageHeight - position - 10);
+export function exportSubscriptionsCSV(subs: ExportSubscription[]): void {
+  downloadBlob(
+    subscriptionsToCSV(subs),
+    "subsight-subscriptions.csv",
+    "text/csv;charset=utf-8",
+  );
+}
 
-    while (heightLeft >= 0) {
-      position = -heightLeft - 10;
-      doc.addPage();
-      doc.addImage(imgData, 'PNG', 20, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-    }
-
-    doc.save("subscription-report.pdf");
-
-  } catch (error) {
-    console.error("Failed to generate PDF:", error);
-  } finally {
-    document.body.removeChild(container);
-  }
-};
+export function exportSubscriptionsPDF(): void {
+  window.print();
+}

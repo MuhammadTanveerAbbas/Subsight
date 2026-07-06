@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     template: "%s | Subsight",
   },
   description:
-    "Track and manage your subscriptions effortlessly with AI powered insights. 100% free, private, and secure. No signup required.",
+    "Track and manage your subscriptions with AI-powered insights. Privacy-first and secure. Free tier available.",
   keywords: [
     "subscription tracker",
     "manage subscriptions",
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     url: "https://subsight-tracker.vercel.app",
     title: "Subsight - Privacy-First Subscription Tracker",
     description:
-      "Track subscriptions with AI powered insights. 100% free and private.",
+      "Track subscriptions with AI-powered insights. Privacy-first and secure.",
     siteName: "Subsight",
     images: [
       {
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Subsight - Privacy-First Subscription Tracker",
     description:
-      "Track subscriptions with AI powered insights. 100% free and private.",
+      "Track subscriptions with AI-powered insights. Privacy-first and secure.",
     creator: "@m_tanveerabbas",
     images: ["/Subsight-Tracker.png"],
   },

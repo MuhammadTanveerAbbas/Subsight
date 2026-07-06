@@ -7,8 +7,9 @@ import {
 } from "lucide-react";
 import type { T } from "@/app/(app)/dashboard/dashboard-constants";
 import type { Sub } from "@/app/(app)/dashboard/dashboard-types";
+import { fetchWithTimeout } from "@/lib/fetch-client";
 
-export function AISummaryView({ t, subs }: { t: T; subs: Sub[] }) {
+export function AISummaryView({ t, subs, isPro = false }: { t: T; subs: Sub[]; isPro?: boolean }) {
   const [loading, setLoading] = useState(false);
   const [summary, setSummary] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -36,10 +37,11 @@ export function AISummaryView({ t, subs }: { t: T; subs: Sub[] }) {
           billingCycle: s.cycle,
           category: s.category,
         }));
-      const res = await fetch("/api/ai/summary", {
+      const res = await fetchWithTimeout("/api/ai/summary", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ subscriptions: payload }),
+        timeoutMs: 45_000,
       });
       if (!res.ok) {
         const data = await res.json();
@@ -116,12 +118,12 @@ export function AISummaryView({ t, subs }: { t: T; subs: Sub[] }) {
               marginTop: 3,
             }}
           >
-            AI-powered spending insights via Groq · Llama 3.3 70B
+            AI-powered spending insights
           </p>
         </div>
         <button
           onClick={generate}
-          disabled={loading}
+          disabled={loading || !isPro}
           style={{
             background: t.green,
             color: "#000",
@@ -131,7 +133,7 @@ export function AISummaryView({ t, subs }: { t: T; subs: Sub[] }) {
             fontSize: 13,
             fontWeight: 700,
             fontFamily: "var(--font-display)",
-            cursor: loading ? "not-allowed" : "pointer",
+            cursor: loading || !isPro ? "not-allowed" : "pointer",
             display: "flex",
             alignItems: "center",
             gap: 7,
@@ -248,6 +250,35 @@ export function AISummaryView({ t, subs }: { t: T; subs: Sub[] }) {
         ))}
       </div>
 
+      {!isPro && (
+        <div
+          style={{
+            background: t.amberDim,
+            border: `1px solid ${t.amber}44`,
+            borderRadius: 10,
+            padding: "14px 18px",
+            fontSize: 13,
+            color: t.amber,
+            fontFamily: "var(--font-mono)",
+          }}
+        >
+          AI summaries are a Pro feature.{" "}
+          <button
+            onClick={() => window.location.href = "/dashboard/billing"}
+            style={{
+              background: "none",
+              border: "none",
+              color: t.amber,
+              textDecoration: "underline",
+              cursor: "pointer",
+              fontFamily: "var(--font-mono)",
+              fontSize: 13,
+            }}
+          >
+            Upgrade to Pro
+          </button>
+        </div>
+      )}
       {error && (
         <div
           style={{
@@ -300,7 +331,7 @@ export function AISummaryView({ t, subs }: { t: T; subs: Sub[] }) {
                 marginLeft: "auto",
               }}
             >
-              Powered by Groq · Llama 3.3 70B
+              Powered by Groq AI
             </span>
           </div>
           <div

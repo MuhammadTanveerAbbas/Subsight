@@ -18,171 +18,59 @@ import { useRouter } from "next/navigation";
 import { useTheme } from "@/components/ThemeProvider";
 import { useAuth } from "@/contexts/auth-context";
 import { createClient } from "@/lib/supabase/client";
+import { DARK_TOKENS, LIGHT_TOKENS } from "@/lib/design-tokens";
 
-const DARK = {
-  bg: "#080808",
-  surface: "#111111",
-  surface2: "#181818",
-  border: "#1f1f1f",
-  border2: "#2a2a2a",
-  text: "#f0f0f0",
-  text2: "#a0a0a0",
-  text3: "#585858",
-  green: "#22c55e",
-  green2: "#16a34a",
-  greenDim: "rgba(34,197,94,0.08)",
-  greenBorder: "rgba(34,197,94,0.22)",
-  red: "#ef4444",
-  redDim: "rgba(239,68,68,0.10)",
-  surface3: "#1e1e1e",
-  grid: "rgba(255,255,255,0.025)",
-  shadow: "rgba(0,0,0,0.7)",
-  onGreen: "#000000",
-} as const;
-const LIGHT = {
-  bg: "#f8f8f6",
-  surface: "#ffffff",
-  surface2: "#f2f2ef",
-  border: "#e4e4e0",
-  border2: "#d0d0ca",
-  text: "#111111",
-  text2: "#545450",
-  text3: "#888880",
-  green: "#16a34a",
-  green2: "#15803d",
-  greenDim: "rgba(22,163,74,0.08)",
-  greenBorder: "rgba(22,163,74,0.22)",
-  red: "#dc2626",
-  redDim: "rgba(220,38,38,0.10)",
-  surface3: "#eaeae6",
-  grid: "rgba(0,0,0,0.04)",
-  shadow: "rgba(0,0,0,0.12)",
-  onGreen: "#000000",
-} as const;
-type T = typeof DARK | typeof LIGHT;
+type T = Record<string, string>;
 
-function AuthShell({ t, children }: { t: T; children: React.ReactNode }) {
+function useT(): T {
+  const { theme } = useTheme();
+  return theme === "dark" ? DARK_TOKENS : LIGHT_TOKENS;
+}
+
+function AuthShell({ children }: { children: React.ReactNode }) {
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: t.bg,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "24px 16px",
-        position: "relative",
-        overflow: "hidden",
-        transition: "background 0.4s",
-      }}
-    >
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden p-6">
       <style>{`
         @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
         @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
         a{color:inherit;text-decoration:none}
         input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus{-webkit-text-fill-color:inherit;transition:background-color 5000s ease-in-out 0s}
       `}</style>
-      <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
-        <svg
-          width="100%"
-          height="100%"
-          style={{ position: "absolute", inset: 0 }}
-        >
+      <div className="pointer-events-none absolute inset-0">
+        <svg className="absolute inset-0 h-full w-full">
           <defs>
-            <pattern
-              id="dp2"
-              x="0"
-              y="0"
-              width="28"
-              height="28"
-              patternUnits="userSpaceOnUse"
-            >
-              <circle cx="1" cy="1" r="1" fill={t.grid} />
+            <pattern id="dp2" x="0" y="0" width="28" height="28" patternUnits="userSpaceOnUse">
+              <circle cx="1" cy="1" r="1" fill="var(--grid)" />
             </pattern>
           </defs>
           <rect width="100%" height="100%" fill="url(#dp2)" />
         </svg>
       </div>
       <div
+        className="pointer-events-none absolute"
         style={{
-          position: "absolute",
           top: "-20%",
           left: "50%",
           transform: "translateX(-50%)",
           width: 560,
           height: 560,
-          background: `radial-gradient(circle, ${t.greenBorder} 0%, transparent 65%)`,
-          pointerEvents: "none",
+          background: "radial-gradient(circle, var(--green-border) 0%, transparent 65%)",
         }}
       />
-      <Link
-        href="/"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 9,
-          marginBottom: 32,
-          position: "relative",
-          zIndex: 1,
-          textDecoration: "none",
-        }}
-      >
-        <img
-          src="/icon.svg"
-          alt="Subsight"
-          width={32}
-          height={32}
-          style={{ borderRadius: 8, display: "block" }}
-        />
-        <span
-          style={{
-            fontFamily: "var(--font-display)",
-            fontSize: 20,
-            fontWeight: 800,
-            color: t.text,
-            letterSpacing: -0.5,
-          }}
-        >
+      <Link href="/" className="relative z-10 mb-8 flex items-center gap-2.5 no-underline">
+        <Image src="/icon.svg" alt="Subsight" width={32} height={32} className="block rounded-lg" />
+        <span className="font-display text-xl font-extrabold tracking-tight" style={{ color: "var(--text)" }}>
           Subsight
         </span>
       </Link>
-      <div
-        style={{
-          position: "relative",
-          zIndex: 1,
-          animation: "fadeUp 0.6s ease both",
-        }}
-      >
-        {children}
-      </div>
-      <p
-        style={{
-          fontSize: 11,
-          color: t.text3,
-          fontFamily: "var(--font-mono)",
-          marginTop: 28,
-          textAlign: "center",
-          position: "relative",
-          zIndex: 1,
-        }}
-      >
+      <div className="relative z-10 animate-[fadeUp_0.6s_ease_both]">{children}</div>
+      <p className="relative z-10 mt-7 text-center font-mono text-[11px]" style={{ color: "var(--text3)" }}>
         © 2025 Subsight ·{" "}
-        <Link
-          href="/privacy"
-          style={{ color: t.text3, transition: "color 0.2s" }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = t.green)}
-          onMouseLeave={(e) => (e.currentTarget.style.color = t.text3)}
-        >
+        <Link href="/privacy" className="transition-colors duration-200" style={{ color: "var(--text3)" }}>
           Privacy
         </Link>{" "}
         ·{" "}
-        <Link
-          href="/terms"
-          style={{ color: t.text3, transition: "color 0.2s" }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = t.green)}
-          onMouseLeave={(e) => (e.currentTarget.style.color = t.text3)}
-        >
+        <Link href="/terms" className="transition-colors duration-200" style={{ color: "var(--text3)" }}>
           Terms
         </Link>
       </p>
@@ -197,7 +85,6 @@ function Field({
   value,
   onChange,
   error,
-  t,
 }: {
   Icon: React.ElementType;
   type?: string;
@@ -205,86 +92,54 @@ function Field({
   value: string;
   onChange: (v: string) => void;
   error?: string;
-  t: T;
 }) {
   const [show, setShow] = useState(false);
   const isPass = type === "password";
   return (
     <div>
-      <div style={{ position: "relative" }}>
+      <div className="relative">
         <Icon
           size={14}
-          color={error ? t.red : t.text3}
-          style={{
-            position: "absolute",
-            left: 12,
-            top: "50%",
-            transform: "translateY(-50%)",
-            pointerEvents: "none",
-          }}
+          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2"
+          style={{ color: error ? "var(--red)" : "var(--text3)" }}
         />
         <input
           type={isPass ? (show ? "text" : "password") : type}
           placeholder={placeholder}
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          className="w-full rounded-lg py-3 font-mono text-[13.5px] outline-none transition-[border-color] duration-200"
           style={{
-            width: "100%",
-            background: t.surface2,
-            border: `1px solid ${error ? t.red + "66" : t.border}`,
-            borderRadius: 9,
-            padding: `12px 14px 12px 38px`,
-            paddingRight: isPass ? "42px" : "14px",
-            fontSize: 13.5,
-            color: t.text,
-            fontFamily: "var(--font-mono)",
-            outline: "none",
-            transition: "border-color 0.2s",
+            paddingLeft: 38,
+            paddingRight: isPass ? 42 : 14,
+            background: "var(--surface2)",
+            border: `1px solid ${error ? "var(--red)" : "var(--border)"}`,
+            color: "var(--text)",
           }}
           onFocus={(e) =>
             ((e.target as HTMLInputElement).style.borderColor = error
-              ? t.red
-              : t.greenBorder)
+              ? "var(--red)"
+              : "var(--green-border)")
           }
           onBlur={(e) =>
             ((e.target as HTMLInputElement).style.borderColor = error
-              ? t.red + "66"
-              : t.border)
+              ? "var(--red)"
+              : "var(--border)")
           }
         />
         {isPass && (
           <button
             type="button"
             onClick={() => setShow(!show)}
-            style={{
-              position: "absolute",
-              right: 11,
-              top: "50%",
-              transform: "translateY(-50%)",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              color: t.text3,
-              padding: 4,
-              display: "flex",
-            }}
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 flex cursor-pointer border-none bg-transparent p-1"
+            style={{ color: "var(--text3)" }}
           >
             {show ? <EyeOff size={14} /> : <Eye size={14} />}
           </button>
         )}
       </div>
       {error && (
-        <p
-          style={{
-            fontSize: 11,
-            color: t.red,
-            fontFamily: "var(--font-mono)",
-            marginTop: 5,
-            display: "flex",
-            alignItems: "center",
-            gap: 4,
-          }}
-        >
+        <p className="mt-1.5 flex items-center gap-1 font-mono text-[11px]" style={{ color: "var(--red)" }}>
           <AlertCircle size={10} /> {error}
         </p>
       )}
@@ -315,47 +170,31 @@ function GoogleIcon() {
   );
 }
 
-function ErrBanner({ msg, t }: { msg: string; t: T }) {
+function ErrBanner({ msg }: { msg: string }) {
   return (
     <div
+      className="mb-5 flex items-center gap-2 rounded-lg p-2.5 font-mono text-[12px]"
       style={{
-        background: t.redDim,
-        border: `1px solid ${t.red}44`,
-        borderRadius: 8,
-        padding: "11px 14px",
-        fontSize: 12,
-        color: t.red,
-        fontFamily: "var(--font-mono)",
-        marginBottom: 20,
-        display: "flex",
-        alignItems: "center",
-        gap: 8,
+        background: "var(--red-dim)",
+        border: "1px solid color-mix(in srgb, var(--red) 27%, transparent)",
+        color: "var(--red)",
       }}
     >
-      <AlertCircle size={13} style={{ flexShrink: 0 }} /> {msg}
+      <AlertCircle size={13} className="shrink-0" /> {msg}
     </div>
   );
 }
 
-function Card({
-  t,
-  children,
-  width = 520,
-}: {
-  t: T;
-  children: React.ReactNode;
-  width?: number;
-}) {
+function Card({ children, width = 520 }: { children: React.ReactNode; width?: number }) {
   return (
     <div
+      className="rounded-2xl p-9"
       style={{
-        background: t.surface,
-        border: `1px solid ${t.border}`,
-        borderRadius: 16,
-        padding: "36px 40px",
-        width: width,
+        background: "var(--surface)",
+        border: "1px solid var(--border)",
+        width,
         maxWidth: "calc(100vw - 32px)",
-        boxShadow: `0 32px 80px ${t.shadow}`,
+        boxShadow: "0 32px 80px var(--shadow)",
       }}
     >
       {children}
@@ -363,23 +202,12 @@ function Card({
   );
 }
 
-function OrDivider({ t }: { t: T }) {
+function OrDivider() {
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 12,
-        margin: "6px 0",
-      }}
-    >
-      <div style={{ flex: 1, height: 1, background: t.border }} />
-      <span
-        style={{ fontSize: 11, color: t.text3, fontFamily: "var(--font-mono)" }}
-      >
-        or
-      </span>
-      <div style={{ flex: 1, height: 1, background: t.border }} />
+    <div className="flex items-center gap-3 my-1.5">
+      <div className="h-px flex-1" style={{ background: "var(--border)" }} />
+      <span className="font-mono text-[11px]" style={{ color: "var(--text3)" }}>or</span>
+      <div className="h-px flex-1" style={{ background: "var(--border)" }} />
     </div>
   );
 }
@@ -388,48 +216,35 @@ function SubmitBtn({
   label,
   loading,
   onClick,
-  t,
 }: {
   label: string;
   loading: boolean;
   onClick: () => void;
-  t: T;
 }) {
   return (
     <button
       onClick={onClick}
       disabled={loading}
+      className="flex w-full items-center justify-center gap-2 rounded-lg border-none p-3.5 font-display text-[14px] font-bold transition-all duration-200"
       style={{
-        width: "100%",
-        background: t.green,
-        color: t.onGreen,
-        border: "none",
-        borderRadius: 9,
-        padding: "14px",
-        fontSize: 14,
-        fontWeight: 700,
-        fontFamily: "var(--font-display)",
+        background: "var(--green)",
+        color: "#000",
         cursor: loading ? "not-allowed" : "pointer",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 8,
         opacity: loading ? 0.75 : 1,
-        transition: "background 0.2s",
       }}
       onMouseEnter={(e) => {
         if (!loading)
-          (e.currentTarget as HTMLElement).style.background = t.green2;
+          (e.currentTarget as HTMLElement).style.background = "var(--green2)";
       }}
       onMouseLeave={(e) =>
-        ((e.currentTarget as HTMLElement).style.background = t.green)
+        ((e.currentTarget as HTMLElement).style.background = "var(--green)")
       }
     >
       {loading ? (
         <>
           <RefreshCw
             size={14}
-            style={{ animation: "spin 1s linear infinite" }}
+            className="animate-spin"
           />{" "}
           Loading…
         </>
@@ -442,32 +257,21 @@ function SubmitBtn({
   );
 }
 
-function GoogleBtn({ onClick, t }: { onClick: () => void; t: T }) {
+function GoogleBtn({ onClick }: { onClick: () => void }) {
   return (
     <button
       onClick={onClick}
+      className="flex w-full cursor-pointer items-center justify-center gap-2.5 rounded-lg border p-3 font-display text-[13px] font-semibold transition-colors duration-200"
       style={{
-        width: "100%",
-        background: t.surface2,
-        color: t.text,
-        border: `1px solid ${t.border2}`,
-        borderRadius: 9,
-        padding: "13px",
-        fontSize: 13,
-        fontFamily: "var(--font-display)",
-        fontWeight: 600,
-        cursor: "pointer",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 9,
-        transition: "border-color 0.2s",
+        background: "var(--surface2)",
+        color: "var(--text)",
+        borderColor: "var(--border2)",
       }}
       onMouseEnter={(e) =>
-        ((e.currentTarget as HTMLElement).style.borderColor = t.border2)
+        ((e.currentTarget as HTMLElement).style.borderColor = "var(--border2)")
       }
       onMouseLeave={(e) =>
-        ((e.currentTarget as HTMLElement).style.borderColor = t.border)
+        ((e.currentTarget as HTMLElement).style.borderColor = "var(--border)")
       }
     >
       <GoogleIcon /> Continue with Google
@@ -476,8 +280,7 @@ function GoogleBtn({ onClick, t }: { onClick: () => void; t: T }) {
 }
 
 export default function SignUpPage() {
-  const { theme } = useTheme();
-  const t = theme === "dark" ? DARK : LIGHT;
+  const t = useT();
   const router = useRouter();
   const { signUp } = useAuth();
   const supabase = useMemo(() => createClient(), []);
@@ -546,61 +349,41 @@ export default function SignUpPage() {
 
   if (done) {
     return (
-      <AuthShell t={t}>
-        <Card t={t}>
-          <div style={{ textAlign: "center" }}>
+      <AuthShell>
+        <Card>
+          <div className="text-center">
             <div
+              className="mx-auto mb-5 flex items-center justify-center"
               style={{
                 width: 60,
                 height: 60,
                 borderRadius: 15,
-                background: t.greenDim,
-                border: `1px solid ${t.greenBorder}`,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                margin: "0 auto 20px",
+                background: "var(--green-dim)",
+                border: "1px solid var(--green-border)",
               }}
             >
-              <Check size={26} color={t.green} />
+              <Check size={26} style={{ color: "var(--green)" }} />
             </div>
             <h2
-              style={{
-                fontFamily: "var(--font-display)",
-                fontSize: 22,
-                fontWeight: 800,
-                color: t.text,
-                marginBottom: 10,
-              }}
+              className="font-display text-[22px] font-extrabold mb-2.5"
+              style={{ color: "var(--text)" }}
             >
               Check your email
             </h2>
             <p
-              style={{
-                fontSize: 13,
-                color: t.text2,
-                fontFamily: "var(--font-mono)",
-                lineHeight: 1.72,
-                marginBottom: 24,
-              }}
+              className="font-mono text-[13px] leading-relaxed mb-6"
+              style={{ color: "var(--text2)" }}
             >
               We sent a confirmation link to{" "}
-              <strong style={{ color: t.text }}>{email}</strong>. Click it to
+              <strong style={{ color: "var(--text)" }}>{email}</strong>. Click it to
               activate your account.
             </p>
             <Link
               href="/sign-in"
+              className="inline-flex items-center gap-1.5 rounded-lg px-6 py-3 font-display text-[13px] font-bold"
               style={{
-                display: "inline-flex",
-                background: t.green,
-                color: t.onGreen,
-                borderRadius: 9,
-                padding: "13px 24px",
-                fontSize: 13,
-                fontWeight: 700,
-                fontFamily: "var(--font-display)",
-                alignItems: "center",
-                gap: 7,
+                background: "var(--green)",
+                color: "#000",
               }}
             >
               Back to Sign In <ArrowRight size={12} />
@@ -612,32 +395,22 @@ export default function SignUpPage() {
   }
 
   return (
-    <AuthShell t={t}>
-      <Card t={t}>
+    <AuthShell>
+      <Card>
         <h1
-          style={{
-            fontFamily: "var(--font-display)",
-            fontSize: 26,
-            fontWeight: 800,
-            color: t.text,
-            letterSpacing: -0.8,
-            marginBottom: 6,
-          }}
+          className="font-display text-[26px] font-extrabold tracking-tight mb-1.5"
+          style={{ color: "var(--text)" }}
         >
           Create account
         </h1>
         <p
-          style={{
-            fontSize: 13,
-            color: t.text3,
-            fontFamily: "var(--font-mono)",
-            marginBottom: 28,
-          }}
+          className="font-mono text-[13px] mb-7"
+          style={{ color: "var(--text3)" }}
         >
           Start tracking your subscriptions for free
         </p>
-        {globalErr && <ErrBanner msg={globalErr} t={t} />}
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        {globalErr && <ErrBanner msg={globalErr} />}
+        <div className="flex flex-col gap-3.5">
           <Field
             Icon={User}
             type="text"
@@ -645,7 +418,6 @@ export default function SignUpPage() {
             value={name}
             onChange={setName}
             error={errors.name}
-            t={t}
           />
           <Field
             Icon={Mail}
@@ -654,7 +426,6 @@ export default function SignUpPage() {
             value={email}
             onChange={setEmail}
             error={errors.email}
-            t={t}
           />
           <div>
             <Field
@@ -664,30 +435,24 @@ export default function SignUpPage() {
               value={password}
               onChange={setPassword}
               error={errors.password}
-              t={t}
             />
             {password && (
-              <div style={{ marginTop: 8 }}>
-                <div style={{ display: "flex", gap: 3, marginBottom: 4 }}>
+              <div className="mt-2">
+                <div className="flex gap-0.5 mb-1">
                   {[1, 2, 3, 4].map((i) => (
                     <div
                       key={i}
+                      className="h-0.5 flex-1 rounded-sm"
                       style={{
-                        height: 3,
-                        flex: 1,
-                        borderRadius: 2,
-                        background: i <= strength ? strengthColor : t.surface3,
+                        background: i <= strength ? strengthColor : "var(--surface3)",
                         transition: "background 0.3s",
                       }}
                     />
                   ))}
                 </div>
                 <span
-                  style={{
-                    fontSize: 10,
-                    color: strengthColor,
-                    fontFamily: "var(--font-mono)",
-                  }}
+                  className="font-mono text-[10px]"
+                  style={{ color: strengthColor }}
                 >
                   {strengthLabel}
                 </span>
@@ -701,46 +466,34 @@ export default function SignUpPage() {
             value={confirm}
             onChange={setConfirm}
             error={errors.confirm}
-            t={t}
           />
           <SubmitBtn
             label="Create Account"
             loading={loading}
             onClick={handleSubmit}
-            t={t}
           />
-          <OrDivider t={t} />
-          <GoogleBtn onClick={handleGoogle} t={t} />
+          <OrDivider />
+          <GoogleBtn onClick={handleGoogle} />
           <p
-            style={{
-              fontSize: 11,
-              color: t.text3,
-              fontFamily: "var(--font-mono)",
-              textAlign: "center",
-              lineHeight: 1.6,
-            }}
+            className="text-center font-mono text-[11px] leading-relaxed"
+            style={{ color: "var(--text3)" }}
           >
             By signing up you agree to our{" "}
-            <Link href="/terms" style={{ color: t.green }}>
+            <Link href="/terms" style={{ color: "var(--green)" }}>
               Terms
             </Link>{" "}
             and{" "}
-            <Link href="/privacy" style={{ color: t.green }}>
+            <Link href="/privacy" style={{ color: "var(--green)" }}>
               Privacy Policy
             </Link>
           </p>
         </div>
         <p
-          style={{
-            textAlign: "center",
-            fontSize: 12.5,
-            color: t.text3,
-            fontFamily: "var(--font-mono)",
-            marginTop: 22,
-          }}
+          className="mt-5.5 text-center font-mono text-[12.5px]"
+          style={{ color: "var(--text3)" }}
         >
           Already have an account?{" "}
-          <Link href="/sign-in" style={{ color: t.green, fontWeight: 600 }}>
+          <Link href="/sign-in" className="font-semibold" style={{ color: "var(--green)" }}>
             Sign in
           </Link>
         </p>

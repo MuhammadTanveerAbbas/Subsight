@@ -35,7 +35,7 @@ export function validateImportData(data: unknown) {
   }
 }
 
-function escapeHtml(text: string): string {
+export function escapeHtml(text: string): string {
   const entities: Record<string, string> = {
     '&': '&amp;',
     '<': '&lt;',
@@ -44,6 +44,15 @@ function escapeHtml(text: string): string {
     "'": '&#39;'
   };
   return text.replace(/[&<>"']/g, (char) => entities[char] ?? char);
+}
+
+export function sanitizeText(text: string): string {
+  return text
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/<[^>]*>/g, '')
+    .replace(/javascript\s*:/gi, '')
+    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
+    .trim();
 }
 
 export function sanitizeSubscriptionData(data: any) {

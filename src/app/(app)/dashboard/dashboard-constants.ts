@@ -1,28 +1,7 @@
-export const DARK = {
-  bg:"#080808", surface:"#111111", surface2:"#181818", surface3:"#1e1e1e",
-  border:"#1f1f1f", border2:"#2a2a2a",
-  text:"#f0f0f0", text2:"#a0a0a0", text3:"#585858",
-  green:"#22c55e", green2:"#16a34a",
-  greenDim:"rgba(34,197,94,0.08)", greenBorder:"rgba(34,197,94,0.22)",
-  red:"#ef4444", redDim:"rgba(239,68,68,0.10)",
-  amber:"#f59e0b", amberDim:"rgba(245,158,11,0.10)",
-  blue:"#3b82f6", blueDim:"rgba(59,130,246,0.10)",
-  shadow:"rgba(0,0,0,0.70)", sidebarBg:"#0c0c0c",
-  navBg:"rgba(12,12,12,0.95)",
-} as const;
+import { DARK as DARK_THEME, LIGHT as LIGHT_THEME } from "@/app/(marketing)/marketing-constants";
 
-export const LIGHT = {
-  bg:"#f8f8f6", surface:"#ffffff", surface2:"#f2f2ef", surface3:"#eaeae6",
-  border:"#e4e4e0", border2:"#d0d0ca",
-  text:"#111111", text2:"#545450", text3:"#888880",
-  green:"#16a34a", green2:"#15803d",
-  greenDim:"rgba(22,163,74,0.08)", greenBorder:"rgba(22,163,74,0.22)",
-  red:"#dc2626", redDim:"rgba(220,38,38,0.10)",
-  amber:"#d97706", amberDim:"rgba(217,119,6,0.10)",
-  blue:"#2563eb", blueDim:"rgba(37,99,235,0.10)",
-  shadow:"rgba(0,0,0,0.12)", sidebarBg:"#f0f0ee",
-  navBg:"rgba(240,240,238,0.95)",
-} as const;
+export const DARK = { ...DARK_THEME, navBg: "rgba(12,12,12,0.95)" } as const;
+export const LIGHT = { ...LIGHT_THEME, navBg: "rgba(240,240,238,0.95)" } as const;
 
 export type T = typeof DARK | typeof LIGHT;
 export type { TK, SubStatus, Sub } from "./dashboard-types";

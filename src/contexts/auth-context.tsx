@@ -8,6 +8,7 @@ import { logError } from "@/lib/error-logger";
 interface User {
   id: string;
   email: string;
+  emailConfirmed: boolean;
 }
 
 interface Profile {
@@ -56,7 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (!isMounted) return;
       if (session?.user) {
-        setUser({ id: session.user.id, email: session.user.email! });
+        setUser({ id: session.user.id, email: session.user.email!, emailConfirmed: !!session.user.email_confirmed_at });
         await fetchProfile(session.user.id);
       } else {
         setUser(null);
@@ -77,7 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!isMounted) return;
 
         if (user) {
-          setUser({ id: user.id, email: user.email! });
+          setUser({ id: user.id, email: user.email!, emailConfirmed: !!user.email_confirmed_at });
           await fetchProfile(user.id);
         }
       } catch (error) {

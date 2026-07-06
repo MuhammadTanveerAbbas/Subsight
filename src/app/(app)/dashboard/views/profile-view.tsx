@@ -414,29 +414,29 @@ export function ProfileView({
         </div>
         {[
           {
-            Icon: Lock,
-            label: "End to End Encrypted",
-            desc: "Your data is encrypted in transit and at rest",
+            Icon: Shield,
+            label: "Data You Control",
+            desc: "Your data stays in your own Supabase database",
           },
           {
-            Icon: Shield,
-            label: "No Third Party Sharing",
-            desc: "We never sell or share your data",
+            Icon: Lock,
+            label: "Encrypted in Transit",
+            desc: "All traffic encrypted via HTTPS/TLS",
           },
           {
             Icon: Globe,
-            label: "Supabase Powered",
-            desc: "Enterprise grade security with PostgreSQL",
+            label: "Supabase Hosted",
+            desc: "Backed by PostgreSQL with Row Level Security",
           },
           {
             Icon: Bell,
-            label: "Smart Reminders",
-            desc: "Never miss a subscription renewal again",
+            label: "Renewal Reminders",
+            desc: "Email reminders via SMTP (Pro feature)",
           },
           {
             Icon: Sparkles,
-            label: "AI Powered Insights",
-            desc: "Real-time analysis powered by Groq",
+            label: "AI Analysis",
+            desc: "Spending summaries via Groq Llama (Pro feature)",
           },
         ].map((item) => (
           <div

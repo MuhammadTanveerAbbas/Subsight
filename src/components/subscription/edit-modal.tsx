@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { X, RefreshCw, Save, ToggleLeft, ToggleRight } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { updateSubscription as updateSubscriptionApi } from "@/lib/subscriptions-api";
+import { useSubscriptions } from "@/contexts/subscription-context";
+import { BILLING_CYCLE_LABELS, BILLING_CYCLES } from "@/lib/types";
 import type { Sub, SubStatus } from "@/app/(app)/dashboard/dashboard-types";
 import type { T } from "@/app/(app)/dashboard/dashboard-constants";
 
@@ -69,12 +71,14 @@ function SelectRow({
   value,
   onChange,
   options,
+  labels,
   t,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   options: string[];
+  labels?: Record<string, string>;
   t: T;
 }) {
   return (
@@ -108,7 +112,7 @@ function SelectRow({
         }}
       >
         {options.map((o) => (
-          <option key={o}>{o}</option>
+          <option key={o} value={o}>{labels?.[o] || o}</option>
         ))}
       </select>
     </div>
@@ -129,6 +133,7 @@ export function EditModal({
   const [form, setForm] = useState<Sub>({ ...sub });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { refetchSubscriptions } = useSubscriptions();
   const f =
     <K extends keyof Sub>(k: K) =>
     (v: Sub[K]) =>
@@ -138,22 +143,18 @@ export function EditModal({
     setSaving(true);
     setError(null);
     try {
-      const supabase = createClient();
-      const { error: dbError } = await supabase
-        .from("subscriptions")
-        .update({
-          name: form.name,
-          category: form.category,
-          amount: form.amount,
-          billing_cycle: form.cycle,
-          provider: form.provider,
-          notes: form.notes,
-          auto_renew: form.autoRenew,
-          currency: form.currency,
-          status: form.status,
-        })
-        .eq("id", form.id);
-      if (dbError) throw dbError;
+      await updateSubscriptionApi(form.id, {
+        name: form.name,
+        category: form.category,
+        amount: form.amount,
+        billingCycle: form.cycle,
+        provider: form.provider,
+        notes: form.notes,
+        autoRenew: form.autoRenew,
+        currency: form.currency,
+        status: form.status,
+      });
+      await refetchSubscriptions();
       onSave(form);
     } catch (err: any) {
       setError(err.message || "Failed to save changes");
@@ -328,7 +329,8 @@ export function EditModal({
               label="Billing Cycle"
               value={form.cycle}
               onChange={(v) => f("cycle")(v)}
-              options={["Daily", "Weekly", "Monthly", "Quarterly", "Annually"]}
+              options={BILLING_CYCLES.map((c) => c)}
+              labels={BILLING_CYCLE_LABELS}
               t={t}
             />
           </div>

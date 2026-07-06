@@ -23,7 +23,7 @@ afterEach(() => {
   delete process.env.STRIPE_PRICE_ID
 })
 
-function buildMockSupabase(authResult: { data: { user: { id: string; email: string } | null } }) {
+function buildMockSupabase(authResult: { data: { user: { id: string; email: string; email_confirmed_at?: string } | null } }) {
   const queryBuilder = {
     select: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
@@ -69,7 +69,7 @@ describe('Checkout endpoint', () => {
   })
 
   it('returns rate limit error when exceeded', async () => {
-    const user = { id: 'user-1', email: 'test@example.com' }
+    const user = { id: 'user-1', email: 'test@example.com', email_confirmed_at: '2026-01-01T00:00:00Z' }
     const supabase = buildMockSupabase({ data: { user } })
     supabase.queryBuilder.single.mockResolvedValue({
       data: { stripe_customer_id: 'cus_existing' },
@@ -98,7 +98,7 @@ describe('Checkout endpoint', () => {
   })
 
   it('creates checkout session with new customer', async () => {
-    const user = { id: 'user-new', email: 'new@example.com' }
+    const user = { id: 'user-new', email: 'new@example.com', email_confirmed_at: '2026-01-01T00:00:00Z' }
     const supabase = buildMockSupabase({ data: { user } })
     supabase.queryBuilder.single.mockResolvedValue({
       data: { stripe_customer_id: null },
@@ -139,7 +139,7 @@ describe('Checkout endpoint', () => {
   })
 
   it('creates checkout session with existing customer', async () => {
-    const user = { id: 'user-existing', email: 'existing@example.com' }
+    const user = { id: 'user-existing', email: 'existing@example.com', email_confirmed_at: '2026-01-01T00:00:00Z' }
     const supabase = buildMockSupabase({ data: { user } })
 
     const queryBuilder = {
@@ -180,7 +180,7 @@ describe('Checkout endpoint', () => {
   })
 
   it('returns 500 when Stripe session creation fails', async () => {
-    const user = { id: 'user-fail', email: 'fail@example.com' }
+    const user = { id: 'user-fail', email: 'fail@example.com', email_confirmed_at: '2026-01-01T00:00:00Z' }
     const supabase = buildMockSupabase({ data: { user } })
 
     const queryBuilder = {
@@ -213,7 +213,7 @@ describe('Checkout endpoint', () => {
   it('throws error when NEXT_PUBLIC_APP_URL is not set', async () => {
     delete process.env.NEXT_PUBLIC_APP_URL
 
-    const user = { id: 'user-no-url', email: 'nourl@example.com' }
+    const user = { id: 'user-no-url', email: 'nourl@example.com', email_confirmed_at: '2026-01-01T00:00:00Z' }
     const supabase = buildMockSupabase({ data: { user } })
 
     const queryBuilder = {
@@ -242,7 +242,7 @@ describe('Checkout endpoint', () => {
   it('rate limit resets after window expires', async () => {
     vi.useFakeTimers()
 
-    const user = { id: 'user-rate-reset', email: 'reset@example.com' }
+    const user = { id: 'user-rate-reset', email: 'reset@example.com', email_confirmed_at: '2026-01-01T00:00:00Z' }
     const supabase = buildMockSupabase({ data: { user } })
     supabase.queryBuilder.single.mockResolvedValue({
       data: { stripe_customer_id: 'cus_reset' },

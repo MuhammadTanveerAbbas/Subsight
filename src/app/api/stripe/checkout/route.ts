@@ -1,8 +1,7 @@
-import { createClient } from '@/lib/supabase/server'
+import { getAuthenticatedUser } from '@/lib/api-auth'
 import { getStripe } from '@/lib/stripe'
+import { checkRateLimit } from '@/lib/rate-limit'
 import { NextRequest } from 'next/server'
-
-const rateLimitMap = new Map<string, { count: number; reset: number }>()
 
 function isValidRedirectUrl(url: string, baseUrl: string): boolean {
   try {
@@ -15,19 +14,14 @@ function isValidRedirectUrl(url: string, baseUrl: string): boolean {
 
 export async function POST(req: NextRequest) {
   const stripe = getStripe()
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await getAuthenticatedUser({ requireVerified: true })
+  if (!auth.user) return Response.json({ error: auth.error }, { status: auth.status })
 
-  const now = Date.now()
-  const record = rateLimitMap.get(user.id)
-  if (record && now < record.reset && record.count >= 10) {
+  const { supabase, user } = auth
+
+  const rateCheck = await checkRateLimit(`checkout:${user.id}`, 10, 60000)
+  if (!rateCheck.success) {
     return Response.json({ error: 'Rate limit exceeded' }, { status: 429 })
-  }
-  if (!record || now > record.reset) {
-    rateLimitMap.set(user.id, { count: 1, reset: now + 60000 })
-  } else {
-    record.count++
   }
 
   const { data: profile } = await supabase

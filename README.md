@@ -2,7 +2,7 @@
 
 > Modern subscription tracking app with AI-powered insights
 
-Subsight is an open-source subscription tracker that gives you real-time visibility into every recurring charge. Self-hosted, privacy-first, and free.
+Subsight is an open-source subscription tracker that gives you real-time visibility into every recurring charge. Self-hosted and privacy-first. Free tier available with optional Pro upgrade for advanced features.
 
 [Live Demo](https://subsight-tracker.vercel.app) | [MIT License](LICENSE)
 
@@ -24,7 +24,7 @@ Subsight is an open-source subscription tracker that gives you real-time visibil
 - **Supabase Auth + RLS** -- Secure authentication with Google OAuth and row-level security
 - **Dark/light theme** -- Fully themed UI that persists across sessions
 - **Stripe billing** -- Pro plan with subscription payments and customer portal
-- **Privacy-first** -- You own your data. No tracking. Self-hostable.
+- **Privacy-first** -- You own your data. Self-hostable. Analytics are not collected or shared.
 
 ---
 
@@ -37,9 +37,10 @@ Subsight is an open-source subscription tracker that gives you real-time visibil
 | Styling | Tailwind CSS v3 + shadcn/ui (Radix UI primitives) |
 | Backend | Supabase (PostgreSQL, Auth, RLS) |
 | AI | Groq SDK |
+| Rate Limiting | Upstash Redis (with in-memory fallback) |
 | Charts | Recharts |
-| Forms | React Hook Form + Zod |
-| PDF Export | jsPDF + html2canvas |
+| Forms | Zod validation (API routes + client forms) |
+| PDF Export | Browser print dialog |
 | Email | Nodemailer (SMTP) |
 | Payments | Stripe |
 | Testing | Vitest + Playwright |
@@ -136,6 +137,8 @@ pnpm test:coverage    # Tests with coverage
 | `SMTP_USER` | No | SMTP username |
 | `SMTP_PASS` | No | SMTP password |
 | `SMTP_FROM` | No | Email from address |
+| `UPSTASH_REDIS_REST_URL` | No | Upstash Redis REST URL (rate limiting) |
+| `UPSTASH_REDIS_REST_TOKEN` | No | Upstash Redis REST token |
 | `CRON_SECRET` | No | Vercel Cron job authentication |
 
 ---
@@ -167,19 +170,18 @@ src/
 │   │   ├── keep-alive/        # Warm-up ping (cron)
 │   │   └── health/            # Health check
 │   ├── auth/                  # OAuth callback + reset password
-│   └── settings/              # Settings page
+│   └── settings/              # Redirects to dashboard settings tab
 ├── components/
 │   ├── subscription/          # Dashboard shared components (badge, edit-modal, kpi)
-│   ├── auth/                  # Google sign-in button
 │   ├── marketing/             # Nav + footer for marketing pages
-│   └── ui/                    # shadcn/ui component library
+│   └── ui/                    # shadcn/ui primitives (button, card, input, toast)
 ├── contexts/                  # React contexts (auth, loading, subscription)
 ├── hooks/                     # Custom hooks (use-mobile, use-toast)
 ├── lib/                       # Core utilities
 │   ├── supabase/              # Supabase client + server helpers
 │   ├── groq-service.ts        # AI autofill + spending summary
 │   ├── email-service.ts       # SMTP renewal reminder emails
-│   ├── export.ts              # JSON / CSV / PDF export
+│   ├── export.ts              # JSON / CSV / PDF export utilities
 │   ├── currency.ts            # Multi-currency conversion
 │   ├── duplicates.ts          # Duplicate subscription detection
 │   ├── renewal-calculator.ts  # Next renewal date logic
@@ -187,7 +189,6 @@ src/
 │   ├── types.ts               # Shared TypeScript types
 │   ├── validation.ts          # Zod schemas
 │   ├── rate-limit.ts          # Rate limiting
-│   ├── analytics.ts           # Analytics helpers
 │   ├── chart-helpers.ts       # Chart data formatters
 │   ├── error-logger.ts        # Error logging utility
 │   └── utils.ts               # General utilities

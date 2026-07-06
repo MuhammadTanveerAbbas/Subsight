@@ -9,28 +9,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-
-// ─── Theme tokens ─────────────────────────────────────────────────────────────
-const DARK = {
-  bg:"#080808", surface:"#111111", surface2:"#181818", surface3:"#1e1e1e",
-  border:"#1f1f1f", border2:"#2a2a2a",
-  text:"#f0f0f0", text2:"#a0a0a0", text3:"#585858",
-  green:"#22c55e", green2:"#16a34a",
-  greenDim:"rgba(34,197,94,0.08)", greenBorder:"rgba(34,197,94,0.22)", greenGlow:"rgba(34,197,94,0.14)",
-  red:"#ef4444", amber:"#f59e0b",
-  navBg:"rgba(8,8,8,0.92)", shadow:"rgba(0,0,0,0.7)", grid:"rgba(255,255,255,0.025)",
-} as const;
-const LIGHT = {
-  bg:"#f8f8f6", surface:"#ffffff", surface2:"#f2f2ef", surface3:"#eaeae6",
-  border:"#e4e4e0", border2:"#d0d0ca",
-  text:"#111111", text2:"#545450", text3:"#888880",
-  green:"#16a34a", green2:"#15803d",
-  greenDim:"rgba(22,163,74,0.08)", greenBorder:"rgba(22,163,74,0.22)", greenGlow:"rgba(22,163,74,0.10)",
-  red:"#dc2626", amber:"#d97706",
-  navBg:"rgba(248,248,246,0.92)", shadow:"rgba(0,0,0,0.12)", grid:"rgba(0,0,0,0.04)",
-} as const;
-type Theme = typeof DARK | typeof LIGHT;
-type ThemeKey = "dark" | "light";
+import type { Theme, ThemeKey } from "./marketing-constants";
+import { DARK, LIGHT } from "./marketing-constants";
 
 // ─── Hooks ────────────────────────────────────────────────────────────────────
 function useInView(threshold = 0.10) {
@@ -520,7 +500,7 @@ export default function LandingPage() {
           </div>
           <Reveal delay={100}>
             <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:28, marginTop:40, flexWrap:"wrap" }}>
-              {[{ icon:Lock,label:"End-to-End Encrypted" },{ icon:Globe,label:"Self-Hostable" },{ icon:Sparkles,label:"Groq AI Powered" },{ icon:RefreshCw,label:"Open Source MIT" },{ icon:ArrowUpRight,label:"Live on Vercel" }].map(({ icon:Icon,label }) => (
+              {[{ icon:Lock,label:"Encrypted in Transit" },{ icon:Globe,label:"Self-Hostable" },{ icon:Sparkles,label:"Groq AI Powered" },{ icon:RefreshCw,label:"Open Source MIT" },{ icon:ArrowUpRight,label:"Live on Vercel" }].map(({ icon:Icon,label }) => (
                 <div key={label} style={{ display:"flex", alignItems:"center", gap:7, color:t.text2 }}>
                   <Icon size={13} color={t.green} strokeWidth={1.5} />
                   <span style={{ fontSize:12, fontFamily:"var(--font-mono)", letterSpacing:"0.04em" }}>{label}</span>
@@ -572,7 +552,7 @@ export default function LandingPage() {
           </Reveal>
           <div className="price-row" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:24, alignItems:"stretch" }}>
             <Reveal delay={0}>
-              <PriceCard t={t} plan="Free" price="$0" sub="/month" desc="Everything you need to get started, no credit card required." cta="Get Started Free" href="/sign-up" features={["Up to 10 subscriptions","Basic analytics dashboard","AI auto-fill (5 / month)","Simulation mode","Export to JSON","Community support"]} />
+              <PriceCard t={t} plan="Free" price="$0" sub="/month" desc="Everything you need to get started, no credit card required." cta="Get Started Free" href="/sign-up" features={["Up to 5 subscriptions","Basic analytics dashboard","AI auto-fill (5 / month)","Simulation mode","Export to JSON","Community support"]} />
             </Reveal>
             <Reveal delay={80}>
               <PriceCard t={t} highlight plan="Pro" price={annual?"$86":"$9"} sub={annual?"/year":"/month"} desc="For power users who want the full experience." cta="Start Pro" href="/sign-up" features={["Unlimited subscriptions","Advanced analytics & charts","Unlimited AI auto-fill","Export to JSON, CSV & PDF","Renewal alerts & spending goals","Custom categories","Priority support"]} />
@@ -589,7 +569,7 @@ export default function LandingPage() {
           </Reveal>
           <div style={{ maxWidth:720, marginTop:52, display:"flex", flexDirection:"column", gap:4 }}>
             {[
-              ["Is Subsight really free?","Yes  forever. Subsight is MIT-licensed and fully open source. The hosted version is free during beta. Self-hosted is free forever. You only pay for Supabase and Groq usage, both of which have generous free tiers that cover most users."],
+              ["Is Subsight really free?","Subsight is MIT-licensed and fully open source. Self-hosted is free. The hosted version has a free tier with 5 subscriptions and a Pro plan for unlimited use. You only pay for Supabase and Groq usage for self-hosted, both have generous free tiers that cover most users."],
               ["Do I need a Groq API key?","Only for AI auto-fill. Every other feature  dashboard, tracking, simulation, export, analytics, settings  works without it. You can add a key at any time in Settings."],
               ["Where is my data stored?","In your own Supabase PostgreSQL database. Subsight never has direct access to your data. You own it completely, and you can export or delete it at any time."],
               ["Can it detect subscriptions from my bank?","Not currently. Subsight is manual + AI-assisted. Bank auto-detection is on the roadmap, but we prioritize privacy  no bank credentials needed today."],

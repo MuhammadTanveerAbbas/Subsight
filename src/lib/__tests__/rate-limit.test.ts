@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { checkRateLimit } from '../rate-limit'
 
 beforeEach(() => {
-  vi.resetModules()
   vi.useFakeTimers()
 })
 
@@ -9,115 +9,118 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
-describe('rateLimit', () => {
+describe('checkRateLimit', () => {
   it('allows requests under the limit', async () => {
-    const { rateLimit } = await import('../rate-limit')
     for (let i = 0; i < 5; i++) {
-      expect(rateLimit('test-key')).toBe(true)
+      const result = await checkRateLimit('test-a', 5, 60000)
+      expect(result.success).toBe(true)
     }
   })
 
   it('allows requests up to the limit', async () => {
-    const { rateLimit } = await import('../rate-limit')
     for (let i = 0; i < 5; i++) {
-      expect(rateLimit('test-key', 5, 60000)).toBe(true)
+      const result = await checkRateLimit('test-b', 5, 60000)
+      expect(result.success).toBe(true)
     }
   })
 
   it('blocks requests over the limit', async () => {
-    const { rateLimit } = await import('../rate-limit')
     for (let i = 0; i < 5; i++) {
-      rateLimit('test-key', 5, 60000)
+      await checkRateLimit('test-c', 5, 60000)
     }
-    expect(rateLimit('test-key', 5, 60000)).toBe(false)
+    const result = await checkRateLimit('test-c', 5, 60000)
+    expect(result.success).toBe(false)
   })
 
   it('resets after window expires', async () => {
-    const { rateLimit } = await import('../rate-limit')
-
     for (let i = 0; i < 5; i++) {
-      rateLimit('test-key', 5, 60000)
+      await checkRateLimit('test-d', 5, 60000)
     }
-    expect(rateLimit('test-key', 5, 60000)).toBe(false)
+    const blocked = await checkRateLimit('test-d', 5, 60000)
+    expect(blocked.success).toBe(false)
 
     vi.advanceTimersByTime(60001)
-    expect(rateLimit('test-key', 5, 60000)).toBe(true)
+    const allowed = await checkRateLimit('test-d', 5, 60000)
+    expect(allowed.success).toBe(true)
   })
 
   it('tracks different keys independently', async () => {
-    const { rateLimit } = await import('../rate-limit')
+    for (let i = 0; i < 5; i++) {
+      await checkRateLimit('key-a', 5, 60000)
+    }
+    const aBlocked = await checkRateLimit('key-a', 5, 60000)
+    expect(aBlocked.success).toBe(false)
 
     for (let i = 0; i < 5; i++) {
-      rateLimit('key-a', 5, 60000)
+      const result = await checkRateLimit('key-b', 5, 60000)
+      expect(result.success).toBe(true)
     }
-    expect(rateLimit('key-a', 5, 60000)).toBe(false)
-
-    for (let i = 0; i < 5; i++) {
-      expect(rateLimit('key-b', 5, 60000)).toBe(true)
-    }
-    expect(rateLimit('key-b', 5, 60000)).toBe(false)
+    const bBlocked = await checkRateLimit('key-b', 5, 60000)
+    expect(bBlocked.success).toBe(false)
   })
 
   it('uses default limit of 5 when not specified', async () => {
-    const { rateLimit } = await import('../rate-limit')
-
     for (let i = 0; i < 5; i++) {
-      rateLimit('default-key')
+      const result = await checkRateLimit('default-limit')
+      expect(result.success).toBe(true)
     }
-    expect(rateLimit('default-key')).toBe(false)
+    const blocked = await checkRateLimit('default-limit')
+    expect(blocked.success).toBe(false)
   })
 
   it('uses default window of 60000ms when not specified', async () => {
-    const { rateLimit } = await import('../rate-limit')
-
     for (let i = 0; i < 5; i++) {
-      rateLimit('window-key')
+      await checkRateLimit('default-window')
     }
-    expect(rateLimit('window-key')).toBe(false)
+    const blocked = await checkRateLimit('default-window')
+    expect(blocked.success).toBe(false)
 
     vi.advanceTimersByTime(60001)
-    expect(rateLimit('window-key')).toBe(true)
+    const allowed = await checkRateLimit('default-window')
+    expect(allowed.success).toBe(true)
   })
 
   it('accepts custom limit parameter', async () => {
-    const { rateLimit } = await import('../rate-limit')
-
     for (let i = 0; i < 3; i++) {
-      expect(rateLimit('custom-limit', 3, 60000)).toBe(true)
+      const result = await checkRateLimit('custom-limit', 3, 60000)
+      expect(result.success).toBe(true)
     }
-    expect(rateLimit('custom-limit', 3, 60000)).toBe(false)
+    const blocked = await checkRateLimit('custom-limit', 3, 60000)
+    expect(blocked.success).toBe(false)
   })
 
   it('accepts custom window parameter', async () => {
-    const { rateLimit } = await import('../rate-limit')
-
     for (let i = 0; i < 5; i++) {
-      rateLimit('custom-window', 5, 10000)
+      await checkRateLimit('custom-window', 5, 10000)
     }
-    expect(rateLimit('custom-window', 5, 10000)).toBe(false)
+    const blocked = await checkRateLimit('custom-window', 5, 10000)
+    expect(blocked.success).toBe(false)
 
     vi.advanceTimersByTime(10001)
-    expect(rateLimit('custom-window', 5, 10000)).toBe(true)
+    const allowed = await checkRateLimit('custom-window', 5, 10000)
+    expect(allowed.success).toBe(true)
   })
 
   it('allows request again after partial window expiry', async () => {
-    const { rateLimit } = await import('../rate-limit')
-
-    rateLimit('partial-key', 2, 60000)
-    rateLimit('partial-key', 2, 60000)
-    expect(rateLimit('partial-key', 2, 60000)).toBe(false)
+    await checkRateLimit('partial-key', 2, 60000)
+    await checkRateLimit('partial-key', 2, 60000)
+    const blocked = await checkRateLimit('partial-key', 2, 60000)
+    expect(blocked.success).toBe(false)
 
     vi.advanceTimersByTime(30000)
-    expect(rateLimit('partial-key', 2, 60000)).toBe(false)
+    const stillBlocked = await checkRateLimit('partial-key', 2, 60000)
+    expect(stillBlocked.success).toBe(false)
 
     vi.advanceTimersByTime(30001)
-    expect(rateLimit('partial-key', 2, 60000)).toBe(true)
+    const allowed = await checkRateLimit('partial-key', 2, 60000)
+    expect(allowed.success).toBe(true)
   })
 
   it('handles rapid consecutive calls correctly', async () => {
-    const { rateLimit } = await import('../rate-limit')
-    const results = Array.from({ length: 7 }, () => rateLimit('rapid-key', 5, 60000))
-    expect(results.filter(Boolean)).toHaveLength(5)
-    expect(results.filter((r) => !r)).toHaveLength(2)
+    const results = await Promise.all(
+      Array.from({ length: 7 }, () => checkRateLimit('rapid-key', 5, 60000))
+    )
+    expect(results.filter((r) => r.success)).toHaveLength(5)
+    expect(results.filter((r) => !r.success)).toHaveLength(2)
   })
 })

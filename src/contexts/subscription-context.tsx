@@ -15,10 +15,14 @@ import type {
   CustomCategory,
   Currency,
 } from "@/lib/types";
+import { useAuth } from "./auth-context";
 import { logError } from "@/lib/error-logger";
 import { createClient } from "@/lib/supabase/client";
-import { useAuth } from "./auth-context";
-import { calculateNextRenewalDate } from "@/lib/renewal-calculator";
+import {
+  createSubscription as createSubscriptionApi,
+  updateSubscription as updateSubscriptionApi,
+  deleteSubscription as deleteSubscriptionApi,
+} from "@/lib/subscriptions-api";
 import { useToast } from "@/hooks/use-toast";
 
 const IS_SERVER = typeof window === "undefined";
@@ -83,6 +87,7 @@ interface SubscriptionContextType {
   displayCurrency: Currency;
   setDisplayCurrency: (currency: Currency) => void;
   loading: boolean;
+  refetchSubscriptions: () => Promise<void>;
 }
 
 const SubscriptionContext = createContext<SubscriptionContextType | undefined>(
@@ -120,324 +125,133 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("subsight:quota-exceeded", handler);
   }, [toast]);
 
-  useEffect(() => {
-    let isMounted = true;
-
+  const refetchSubscriptions = useCallback(async () => {
     if (!user) {
       setSubscriptions([]);
       setLoading(false);
       return;
     }
 
-    const fetchSubscriptions = async () => {
-      try {
-        const supabase = createClient();
-        const { data, error } = await supabase
-          .from("subscriptions")
-          .select(
-            "id, name, provider, category, icon, start_date, billing_cycle, amount, currency, notes, active_status, auto_renew, reminder_enabled, reminder_days_before, next_renewal_date, last_reminder_sent, usage_count, last_used",
-          )
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: false });
+    setLoading(true);
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from("subscriptions")
+        .select(
+          "id, name, provider, category, icon, start_date, billing_cycle, amount, currency, notes, active_status, auto_renew, reminder_enabled, reminder_days_before, next_renewal_date, last_reminder_sent, usage_count, last_used",
+        )
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
 
-        if (error) throw error;
+      if (error) throw error;
 
-        if (data && isMounted) {
-          const formattedSubs = data.map((sub) => ({
-            id: sub.id,
-            name: sub.name,
-            provider: sub.provider,
-            category: sub.category,
-            icon: sub.icon,
-            startDate: sub.start_date,
-            billingCycle: sub.billing_cycle as any,
-            amount: Number(sub.amount),
-            currency: sub.currency as any,
-            notes: sub.notes || "",
-            activeStatus: sub.active_status,
-            autoRenew: sub.auto_renew,
-            reminderEnabled: sub.reminder_enabled ?? false,
-            reminderDaysBefore: sub.reminder_days_before ?? 3,
-            nextRenewalDate: sub.next_renewal_date ?? null,
-            lastReminderSent: sub.last_reminder_sent ?? null,
-            usageCount: sub.usage_count,
-            lastUsed: sub.last_used,
-          }));
-          setSubscriptions(formattedSubs);
-        }
-      } catch (error) {
-        logError(error, { context: "fetchSubscriptions", userId: user.id });
-      } finally {
-        if (isMounted) setLoading(false);
+      if (data) {
+        const formattedSubs = data.map((sub) => ({
+          id: sub.id,
+          name: sub.name,
+          provider: sub.provider,
+          category: sub.category,
+          icon: sub.icon,
+          startDate: sub.start_date,
+          billingCycle: sub.billing_cycle as any,
+          amount: Number(sub.amount),
+          currency: sub.currency as any,
+          notes: sub.notes || "",
+          activeStatus: sub.active_status,
+          autoRenew: sub.auto_renew,
+          reminderEnabled: sub.reminder_enabled ?? false,
+          reminderDaysBefore: sub.reminder_days_before ?? 3,
+          nextRenewalDate: sub.next_renewal_date ?? null,
+          lastReminderSent: sub.last_reminder_sent ?? null,
+          usageCount: sub.usage_count,
+          lastUsed: sub.last_used,
+        }));
+        setSubscriptions(formattedSubs);
       }
-    };
-
-    fetchSubscriptions();
-
-    return () => {
-      isMounted = false;
-    };
+    } catch (error) {
+      logError(error, { context: "fetchSubscriptions", userId: user.id });
+    } finally {
+      setLoading(false);
+    }
   }, [user]);
+
+  useEffect(() => {
+    refetchSubscriptions();
+  }, [refetchSubscriptions]);
 
   const addSubscription = useCallback(
     async (subscription: Omit<Subscription, "id">) => {
       if (!user) throw new Error("User not authenticated");
 
-      const supabase = createClient();
-
       try {
-        const [countResult, profileResult] = await Promise.all([
-          supabase
-            .from("subscriptions")
-            .select("id", { count: "exact", head: true })
-            .eq("user_id", user.id),
-          supabase
-            .from("profiles")
-            .select("subscription_tier")
-            .eq("id", user.id)
-            .single(),
-        ]);
-
-        let profile = profileResult.data;
-        const profileError = profileResult.error;
-
-        if (profileError && profileError.code === "PGRST116") {
-          const { data: newProfile, error: createError } = await supabase
-            .from("profiles")
-            .insert({
-              id: user.id,
-              subscription_tier: "free",
-              subscription_status: "inactive",
-            })
-            .select()
-            .single();
-
-          if (createError)
-            throw new Error(`Failed to create profile: ${createError.message}`);
-          profile = newProfile;
-        } else if (profileError) {
-          throw new Error(`Failed to fetch profile: ${profileError.message}`);
-        }
-
-        if (
-          profile?.subscription_tier === "free" &&
-          (countResult.count ?? 0) >= 5
-        ) {
+        await createSubscriptionApi({
+          name: subscription.name,
+          amount: subscription.amount,
+          billingCycle: subscription.billingCycle,
+          category: subscription.category || null,
+          provider: subscription.provider || null,
+          startDate: subscription.startDate?.split("T")[0],
+          currency: subscription.currency,
+          autoRenew: subscription.autoRenew,
+          notes: subscription.notes || null,
+        });
+        await refetchSubscriptions();
+      } catch (error) {
+        if ((error as Error & { upgrade?: boolean })?.upgrade) {
           setUpgradePromptMessage(
             "You have reached the 5 subscription limit on the free plan.",
           );
           setUpgradePromptOpen(true);
-          const err = new Error("Free plan limit reached");
-          (err as any).upgrade = true;
-          throw err;
         }
-
-        const isPro = profile?.subscription_tier === "pro";
-        const nextRenewal = calculateNextRenewalDate(
-          subscription.startDate,
-          subscription.billingCycle,
-        );
-        const nextRenewalDate = nextRenewal
-          ? nextRenewal.toISOString().split("T")[0]
-          : null;
-
-        const { data, error } = await supabase
-          .from("subscriptions")
-          .insert({
-            user_id: user.id,
-            name: subscription.name,
-            provider: subscription.provider,
-            category: subscription.category,
-            icon: subscription.icon || "default",
-            start_date: subscription.startDate,
-            billing_cycle: subscription.billingCycle,
-            amount: subscription.amount,
-            currency: subscription.currency,
-            notes: subscription.notes || "",
-            active_status: subscription.activeStatus,
-            auto_renew: subscription.autoRenew,
-            usage_count: subscription.usageCount || 0,
-          })
-          .select()
-          .single();
-
-        if (error) throw new Error(`Database error: ${error.message}`);
-        if (!data) throw new Error("No data returned from database");
-
-        const updateData: any = {};
-        if (nextRenewalDate) updateData.next_renewal_date = nextRenewalDate;
-        if (isPro) {
-          updateData.reminder_enabled = subscription.reminderEnabled ?? false;
-          updateData.reminder_days_before =
-            subscription.reminderDaysBefore ?? 3;
-        }
-
-        if (Object.keys(updateData).length > 0) {
-          await supabase
-            .from("subscriptions")
-            .update(updateData)
-            .eq("id", data.id);
-        }
-
-        const newSub: Subscription = {
-          id: data.id,
-          name: data.name,
-          provider: data.provider,
-          category: data.category,
-          icon: data.icon,
-          startDate: data.start_date,
-          billingCycle: data.billing_cycle as any,
-          amount: Number(data.amount),
-          currency: data.currency as any,
-          notes: data.notes || "",
-          activeStatus: data.active_status,
-          autoRenew: data.auto_renew,
-          reminderEnabled: subscription.reminderEnabled ?? false,
-          reminderDaysBefore: subscription.reminderDaysBefore ?? 3,
-          nextRenewalDate: nextRenewalDate,
-          lastReminderSent: null,
-          usageCount: data.usage_count,
-          lastUsed: data.last_used,
-        };
-        setSubscriptions((prev) => [newSub, ...prev]);
-
-        if (typeof window !== "undefined" && (window as any).analytics) {
-          (window as any).analytics.track("subscription_added", {
-            category: subscription.category,
-            billingCycle: subscription.billingCycle,
-            currency: subscription.currency,
-          });
-        }
-      } catch (error) {
-        if ((error as any)?.upgrade) throw error;
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : String(error) || "Unknown error";
         logError(error, { context: "addSubscription" });
-        throw new Error(errorMessage);
+        throw error instanceof Error ? error : new Error(String(error));
       }
     },
-    [user],
+    [user, refetchSubscriptions],
   );
 
   const updateSubscription = useCallback(
     async (id: string, updates: Partial<Subscription>) => {
       if (!user) return;
-      const supabase = createClient();
 
       try {
-        if (
-          updates.reminderEnabled === true ||
-          updates.reminderDaysBefore !== undefined
-        ) {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("subscription_tier")
-            .eq("id", user.id)
-            .single();
+        await updateSubscriptionApi(id, {
+          name: updates.name,
+          provider: updates.provider,
+          category: updates.category,
+          startDate: updates.startDate?.split("T")[0],
+          billingCycle: updates.billingCycle,
+          amount: updates.amount,
+          currency: updates.currency,
+          notes: updates.notes,
+          activeStatus: updates.activeStatus,
+          autoRenew: updates.autoRenew,
+          reminderEnabled: updates.reminderEnabled,
+          reminderDaysBefore: updates.reminderDaysBefore,
+        });
 
-          if (profile?.subscription_tier !== "pro") {
-            setUpgradePromptMessage(
-              "Email reminders are available on the Pro plan.",
-            );
-            setUpgradePromptOpen(true);
-            const err = new Error("Pro feature");
-            (err as any).upgrade = true;
-            throw err;
-          }
-        }
-
-        const dbUpdates: any = {};
-        if (updates.name !== undefined) dbUpdates.name = updates.name;
-        if (updates.provider !== undefined)
-          dbUpdates.provider = updates.provider;
-        if (updates.category !== undefined)
-          dbUpdates.category = updates.category;
-        if (updates.icon !== undefined) dbUpdates.icon = updates.icon;
-        if (updates.startDate !== undefined)
-          dbUpdates.start_date = updates.startDate;
-        if (updates.billingCycle !== undefined)
-          dbUpdates.billing_cycle = updates.billingCycle;
-        if (updates.amount !== undefined) dbUpdates.amount = updates.amount;
-        if (updates.currency !== undefined)
-          dbUpdates.currency = updates.currency;
-        if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
-        if (updates.activeStatus !== undefined)
-          dbUpdates.active_status = updates.activeStatus;
-        if (updates.autoRenew !== undefined)
-          dbUpdates.auto_renew = updates.autoRenew;
-        if (updates.reminderEnabled !== undefined)
-          dbUpdates.reminder_enabled = updates.reminderEnabled;
-        if (updates.reminderDaysBefore !== undefined)
-          dbUpdates.reminder_days_before = updates.reminderDaysBefore;
-        if (updates.nextRenewalDate !== undefined)
-          dbUpdates.next_renewal_date = updates.nextRenewalDate;
-        if (updates.lastReminderSent !== undefined)
-          dbUpdates.last_reminder_sent = updates.lastReminderSent;
-        if (updates.usageCount !== undefined)
-          dbUpdates.usage_count = updates.usageCount;
-        if (updates.lastUsed !== undefined)
-          dbUpdates.last_used = updates.lastUsed;
-
-        if (
-          updates.startDate !== undefined ||
-          updates.billingCycle !== undefined
-        ) {
-          const current = subscriptions.find((s) => s.id === id);
-          const startDate = updates.startDate ?? current?.startDate;
-          const billingCycle = updates.billingCycle ?? current?.billingCycle;
-          if (startDate && billingCycle) {
-            const nextRenewal = calculateNextRenewalDate(
-              startDate,
-              billingCycle,
-            );
-            dbUpdates.next_renewal_date = nextRenewal
-              ? nextRenewal.toISOString().split("T")[0]
-              : null;
-          }
-        }
-
-        const { error } = await supabase
-          .from("subscriptions")
-          .update(dbUpdates)
-          .eq("id", id)
-          .eq("user_id", user.id);
-        if (error) throw error;
-
-        setSubscriptions((prev) =>
-          prev.map((sub) => (sub.id === id ? { ...sub, ...updates } : sub)),
-        );
-
-        if (typeof window !== "undefined" && (window as any).analytics) {
-          (window as any).analytics.track("subscription_updated", { id });
-        }
+        await refetchSubscriptions();
       } catch (error) {
+        if ((error as Error & { upgrade?: boolean })?.upgrade) {
+          setUpgradePromptMessage(
+            "Email reminders are available on the Pro plan.",
+          );
+          setUpgradePromptOpen(true);
+        }
         logError(error, { context: "updateSubscription", id });
         throw error;
       }
     },
-    [user, subscriptions],
+    [user, refetchSubscriptions],
   );
 
   const deleteSubscription = useCallback(
     async (id: string) => {
       if (!user) return;
-      const supabase = createClient();
 
       try {
-        const { error } = await supabase
-          .from("subscriptions")
-          .delete()
-          .eq("id", id)
-          .eq("user_id", user.id);
-        if (error) throw error;
-
+        await deleteSubscriptionApi(id);
         setSubscriptions((prev) => prev.filter((sub) => sub.id !== id));
-
-        if (typeof window !== "undefined" && (window as any).analytics) {
-          (window as any).analytics.track("subscription_deleted", { id });
-        }
       } catch (error) {
         logError(error, { context: "deleteSubscription", id });
         throw error;
@@ -562,6 +376,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       displayCurrency,
       setDisplayCurrency,
       loading,
+      refetchSubscriptions,
     }),
     [
       subscriptions,
@@ -582,6 +397,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       displayCurrency,
       setDisplayCurrency,
       loading,
+      refetchSubscriptions,
     ],
   );
 

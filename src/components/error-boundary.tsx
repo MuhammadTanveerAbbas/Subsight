@@ -3,6 +3,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { AlertCircle } from 'lucide-react';
+import { logError } from '@/lib/error-logger';
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
@@ -27,12 +28,10 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     const safeMessage = error.message.replace(/[\r\n]/g, ' ')
     console.error('Error caught by boundary:', safeMessage, errorInfo.componentStack?.replace(/[\r\n]/g, ' '))
     
-    if (typeof window !== 'undefined' && (window as any).analytics) {
-      (window as any).analytics.track('error', {
-        error: safeMessage,
-        componentStack: errorInfo.componentStack,
-      })
-    }
+    logError(error, {
+      componentStack: errorInfo.componentStack,
+      source: 'ErrorBoundary',
+    })
   }
 
   render() {

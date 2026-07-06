@@ -4,23 +4,27 @@ import { useState } from "react";
 import {
   Plus, Sparkles, RefreshCw, CreditCard, ToggleLeft, ToggleRight,
 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { BILLING_CYCLE_LABELS, BILLING_CYCLES, CURRENCIES } from "@/lib/types";
+import { createSubscription } from "@/lib/subscriptions-api";
+import { fetchWithTimeout } from "@/lib/fetch-client";
 import type { T } from "@/app/(app)/dashboard/dashboard-constants";
 
 export function AddView({
   t,
   onSuccess,
   toast,
+  isPro = false,
 }: {
   t: T;
-  onSuccess: () => void;
+  onSuccess: () => void | Promise<void>;
   toast: (m: string, tp: "success" | "error" | "info") => void;
+  isPro?: boolean;
 }) {
   const blank = {
     name: "",
     category: "",
     amount: "",
-    cycle: "Monthly",
+    cycle: "monthly",
     startDate: "",
     provider: "",
     autoRenew: true,
@@ -35,14 +39,19 @@ export function AddView({
     setForm((p) => ({ ...p, [k]: v }));
 
   const aiAutofill = async () => {
+    if (!isPro) {
+      toast("AI autofill is a Pro feature", "info");
+      return;
+    }
     if (!form.name) return;
     setAiLoad(true);
     setError(null);
     try {
-      const res = await fetch("/api/ai/autofill", {
+      const res = await fetchWithTimeout("/api/ai/autofill", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: form.name }),
+        timeoutMs: 30_000,
       });
       if (!res.ok) {
         const data = await res.json();
@@ -54,12 +63,7 @@ export function AddView({
         category: data.category || p.category,
         amount: data.amount ? String(data.amount) : p.amount,
         provider: data.provider || p.provider,
-        cycle:
-          data.billingCycle === "yearly"
-            ? "Annually"
-            : data.billingCycle === "monthly"
-              ? "Monthly"
-              : p.cycle,
+        cycle: data.billingCycle || p.cycle,
         autoRenew: data.autoRenew ?? p.autoRenew,
         currency: data.currency || p.currency,
       }));
@@ -76,33 +80,20 @@ export function AddView({
     setLoading(true);
     setError(null);
     try {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
-      const startDate =
-        form.startDate || new Date().toISOString().split("T")[0];
-      const { error: dbError } = await supabase.from("subscriptions").insert({
-        user_id: user.id,
+      await createSubscription({
         name: form.name,
         amount: parseFloat(form.amount),
-        billing_cycle: form.cycle,
+        billingCycle: form.cycle,
         category: form.category || null,
         provider: form.provider || null,
-        start_date: startDate,
+        startDate: form.startDate || undefined,
         currency: form.currency,
-        auto_renew: form.autoRenew,
-        status: "active",
+        autoRenew: form.autoRenew,
         notes: form.notes || null,
-        active_status: true,
-        icon: "default",
       });
-      if (dbError) throw dbError;
       setForm(blank);
       toast("Subscription added", "success");
-      onSuccess();
+      await onSuccess();
     } catch (err: any) {
       setError(err.message || "Failed to add subscription");
     } finally {
@@ -211,6 +202,7 @@ export function AddView({
                 value={form.name}
                 onChange={(e) => f("name")(e.target.value)}
                 placeholder="e.g. Netflix"
+                disabled={loading}
                 style={{ ...iStyle, flex: 1 }}
                 onFocus={(e) =>
                   ((e.target as HTMLInputElement).style.borderColor =
@@ -222,13 +214,13 @@ export function AddView({
               />
               <button
                 onClick={aiAutofill}
-                disabled={!form.name || aiLoading}
+                disabled={!form.name || loading || aiLoading}
                 style={{
                   background: t.greenDim,
                   border: `1px solid ${t.greenBorder}`,
                   borderRadius: 8,
                   padding: "0 14px",
-                  cursor: form.name && !aiLoading ? "pointer" : "not-allowed",
+                  cursor: form.name && !loading && !aiLoading ? "pointer" : "not-allowed",
                   color: t.green,
                   opacity: !form.name ? 0.5 : 1,
                   flexShrink: 0,
@@ -261,6 +253,7 @@ export function AddView({
                 <select
                   value={form.currency}
                   onChange={(e) => f("currency")(e.target.value)}
+                  disabled={loading}
                   style={{
                     background: t.surface2,
                     border: `1px solid ${t.border}`,
@@ -269,12 +262,13 @@ export function AddView({
                     fontSize: 12,
                     color: t.text,
                     fontFamily: "var(--font-mono)",
-                    cursor: "pointer",
+                    cursor: loading ? "not-allowed" : "pointer",
                     outline: "none",
                     flexShrink: 0,
+                    opacity: loading ? 0.6 : 1,
                   }}
                 >
-                  {["USD", "EUR", "GBP", "PKR", "CAD", "AUD"].map((c) => (
+                  {CURRENCIES.map((c) => (
                     <option key={c}>{c}</option>
                   ))}
                 </select>
@@ -285,6 +279,7 @@ export function AddView({
                   step="0.01"
                   min="0"
                   placeholder="0.00"
+                  disabled={loading}
                   style={{ ...iStyle }}
                   onFocus={(e) =>
                     ((e.target as HTMLInputElement).style.borderColor =
@@ -302,13 +297,12 @@ export function AddView({
               <select
                 value={form.cycle}
                 onChange={(e) => f("cycle")(e.target.value)}
-                style={{ ...iStyle, cursor: "pointer" }}
+                disabled={loading}
+                style={{ ...iStyle, cursor: loading ? "not-allowed" : "pointer" }}
               >
-                {["Daily", "Weekly", "Monthly", "Quarterly", "Annually"].map(
-                  (c) => (
-                    <option key={c}>{c}</option>
-                  ),
-                )}
+                {BILLING_CYCLES.map((c) => (
+                  <option key={c} value={c}>{BILLING_CYCLE_LABELS[c]}</option>
+                ))}
               </select>
             </div>
           </div>
@@ -320,7 +314,8 @@ export function AddView({
               <select
                 value={form.category}
                 onChange={(e) => f("category")(e.target.value)}
-                style={{ ...iStyle, cursor: "pointer" }}
+                disabled={loading}
+                style={{ ...iStyle, cursor: loading ? "not-allowed" : "pointer" }}
               >
                 <option value="">Select category</option>
                 {[
@@ -345,6 +340,7 @@ export function AddView({
                 value={form.startDate}
                 onChange={(e) => f("startDate")(e.target.value)}
                 type="date"
+                disabled={loading}
                 style={{ ...iStyle }}
                 onFocus={(e) =>
                   ((e.target as HTMLInputElement).style.borderColor =
@@ -362,6 +358,7 @@ export function AddView({
               value={form.provider}
               onChange={(e) => f("provider")(e.target.value)}
               placeholder="e.g. Netflix Inc."
+              disabled={loading}
               style={{ ...iStyle }}
               onFocus={(e) =>
                 ((e.target as HTMLInputElement).style.borderColor =
@@ -379,6 +376,7 @@ export function AddView({
               onChange={(e) => f("notes")(e.target.value)}
               rows={2}
               placeholder="Optional notes…"
+              disabled={loading}
               style={{ ...iStyle, resize: "vertical" }}
               onFocus={(e) =>
                 ((e.target as HTMLTextAreaElement).style.borderColor =
@@ -424,11 +422,13 @@ export function AddView({
             </div>
             <button
               onClick={() => f("autoRenew")(!form.autoRenew)}
+              disabled={loading}
               style={{
                 background: "none",
                 border: "none",
-                cursor: "pointer",
+                cursor: loading ? "not-allowed" : "pointer",
                 color: form.autoRenew ? t.green : t.text3,
+                opacity: loading ? 0.5 : 1,
               }}
             >
               {form.autoRenew ? (

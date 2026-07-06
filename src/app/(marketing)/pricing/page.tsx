@@ -4,28 +4,8 @@ import { useState, useEffect } from "react";
 import { Check, X, ArrowRight, ChevronDown, ChevronUp, PieChart, Sun, Moon } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-
-// ─── Tokens ───────────────────────────────────────────────────────────────────
-const DARK = {
-  bg:"#080808", surface:"#111111", surface2:"#181818", surface3:"#1e1e1e",
-  border:"#1f1f1f", border2:"#2a2a2a",
-  text:"#f0f0f0", text2:"#a0a0a0", text3:"#585858",
-  green:"#22c55e", green2:"#16a34a",
-  greenDim:"rgba(34,197,94,0.08)", greenBorder:"rgba(34,197,94,0.22)", greenGlow:"rgba(34,197,94,0.14)",
-  red:"#ef4444", amber:"#f59e0b",
-  navBg:"rgba(8,8,8,0.92)", shadow:"rgba(0,0,0,0.70)",
-} as const;
-const LIGHT = {
-  bg:"#f8f8f6", surface:"#ffffff", surface2:"#f2f2ef", surface3:"#eaeae6",
-  border:"#e4e4e0", border2:"#d0d0ca",
-  text:"#111111", text2:"#545450", text3:"#888880",
-  green:"#16a34a", green2:"#15803d",
-  greenDim:"rgba(22,163,74,0.08)", greenBorder:"rgba(22,163,74,0.22)", greenGlow:"rgba(22,163,74,0.10)",
-  red:"#dc2626", amber:"#d97706",
-  navBg:"rgba(248,248,246,0.92)", shadow:"rgba(0,0,0,0.12)",
-} as const;
-type T  = typeof DARK | typeof LIGHT;
-type TK = "dark" | "light";
+import { DARK, LIGHT } from "../marketing-constants";
+import type { Theme as T, ThemeKey as TK } from "../marketing-constants";
 
 const PAGE_CSS = `
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -111,7 +91,7 @@ function Label({ text, t }: { text:string; t:T }) {
 }
 
 const PRICE_FEATURES = [
-  { f:"Active Subscriptions",  free:"Up to 10",    pro:"Unlimited"  },
+  { f:"Active Subscriptions",  free:"Up to 5",     pro:"Unlimited"  },
   { f:"AI Auto-Fill",          free:"5 / month",   pro:"Unlimited"  },
   { f:"Analytics Dashboard",   free:"Basic",       pro:"Advanced"   },
   { f:"Simulation Mode",       free:true,          pro:true         },
@@ -145,7 +125,7 @@ function PricingPage() {
       plan:"Free", price:"$0", sub:"/month", highlight:false,
       cta:"Get Started Free", href:"/sign-up",
       desc:"Everything you need to get started, no credit card required.",
-      features:["Up to 10 subscriptions","Basic analytics dashboard","AI auto-fill (5 / month)","Simulation mode","Export to JSON","Community support"],
+      features:["Up to 5 subscriptions","Basic analytics dashboard","AI auto-fill (5 / month)","Simulation mode","Export to JSON","Community support"],
     },
     {
       plan:"Pro", price:annual?"$86":"$9", sub:annual?"/year":"/month", highlight:true,
@@ -252,10 +232,10 @@ function PricingPage() {
           <div style={{ maxWidth:700, margin:"0 auto" }}>
             <h2 style={{ fontFamily:"var(--font-display)", fontSize:"clamp(24px,4vw,40px)", fontWeight:800, letterSpacing:-1.5, color:t.text, marginBottom:36, textAlign:"center" }}>Pricing FAQ</h2>
             {[
-              ["Is the free plan really free?","Yes  the Free plan is free forever. No credit card required. You get up to 10 subscriptions, basic analytics, and JSON export at no cost."],
+              ["Is the free plan really free?","Yes — the Free plan costs $0/month. No credit card required. You get up to 5 subscriptions, basic analytics, and JSON export at no cost. Pro is an optional upgrade."],
               ["What's included in Pro?","Pro gives you unlimited subscriptions, advanced analytics, unlimited AI auto-fill, CSV & PDF export, renewal alerts, spending goals, custom categories, and priority support."],
               ["Can I upgrade or downgrade anytime?","Yes  switch plans at any time. Downgrades take effect at the end of the current billing cycle."],
-              ["Do you offer refunds?","Yes  if you're not satisfied within 14 days of upgrading to Pro, we'll issue a full refund. No questions asked."],
+              ["Do you offer refunds?","Refunds are handled on a case-by-case basis. Contact our support team if you need assistance with a Pro plan refund."],
             ].map(([q,a],i) => (
               <div key={i} onClick={()=>setFaqOpen(faqOpen===i?null:i)} style={{ border:`1px solid ${faqOpen===i?t.border2:t.border}`, borderRadius:9, overflow:"hidden", cursor:"pointer", background:t.surface, marginBottom:4, transition:"border-color 0.2s" }}>
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"17px 22px" }}>
