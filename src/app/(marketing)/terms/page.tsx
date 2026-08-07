@@ -4,7 +4,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useEffect } from "react";
-import { ArrowRight, PieChart, Sun, Moon } from "lucide-react";
+import { ArrowRight, Sun, Moon } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 

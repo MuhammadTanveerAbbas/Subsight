@@ -55,7 +55,7 @@ function AuthShell({ t, children }: { t: T; children: React.ReactNode }) {
       </Link>
       <div className="relative z-10 animate-[fadeUp_0.6s_ease_both]">{children}</div>
       <p className="relative z-10 mt-7 text-center font-mono text-[11px]" style={{ color: "var(--text3)" }}>
-        © 2025 Subsight ·{" "}
+        © 2026 Subsight ·{" "}
         <Link href="/privacy" className="transition-colors duration-200 hover:opacity-75" style={{ color: "var(--text3)" }}>
           Privacy
         </Link>{" "}

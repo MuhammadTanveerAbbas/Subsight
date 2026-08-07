@@ -30,7 +30,7 @@ export function ExportView({
 
   const exportPDF = () => {
     exportSubscriptionsPDF();
-    toast("PDF export triggered — check print dialog", "info");
+    toast("PDF export triggered. Check print dialog", "info");
   };
 
   return (

@@ -72,7 +72,7 @@ export function OverviewView({
 
       <div
         className="chart-2col"
-        style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 14 }}
+        style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 14, minWidth: 0 }}
       >
         <div
           style={{
@@ -215,7 +215,7 @@ export function OverviewView({
           {catData.length > 0 ? (
             <>
               <ResponsiveContainer width="100%" height={120}>
-                <RechartsPie>
+                <RechartsPie width={200} height={120}>
                   <Pie
                     data={catData}
                     cx="50%"

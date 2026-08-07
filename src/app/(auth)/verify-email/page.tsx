@@ -134,7 +134,7 @@ export default function VerifyEmailPage() {
               color: "var(--green)",
             }}
           >
-            <CheckCircle2 size={13} /> Verification email sent — check your inbox.
+            <CheckCircle2 size={13} /> Verification email sent. Check your inbox.
           </div>
         )}
 

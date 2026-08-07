@@ -44,15 +44,17 @@ export function SubsView({
   const toggleStatus = async (id: string) => {
     const sub = subs.find((s) => s.id === id);
     if (!sub) return;
+    if (sim) {
+      // Simulation mode: only update local state, no API call
+      const newStatus: SubStatus = sub.status === "active" ? "inactive" : "active";
+      setSubs((prev) => prev.map((s) => s.id === id ? { ...s, status: newStatus } : s));
+      return;
+    }
     const newActive = sub.status !== "active";
     const newStatus: SubStatus = newActive ? "active" : "inactive";
     try {
       await updateSubscription(id, { activeStatus: newActive });
-      setSubs((prev) =>
-        prev.map((s) =>
-          s.id === id ? { ...s, status: newStatus } : s,
-        ),
-      );
+      setSubs((prev) => prev.map((s) => s.id === id ? { ...s, status: newStatus } : s));
     } catch {
       toast("Failed to update status", "error");
     }
@@ -330,11 +332,11 @@ export function SubsView({
                   >
                     <td style={{ padding: "11px 14px" }}>
                       <button
-                        onClick={() => !sim && toggleStatus(s.id)}
+                        onClick={() => toggleStatus(s.id)}
                         style={{
                           background: "none",
                           border: "none",
-                          cursor: sim ? "default" : "pointer",
+                          cursor: "pointer",
                           display: "flex",
                           alignItems: "center",
                         }}

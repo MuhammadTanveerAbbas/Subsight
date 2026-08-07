@@ -52,6 +52,11 @@ export default function Dashboard() {
   useEffect(() => {
     localStorage.setItem("subsight-theme", themeKey);
     document.documentElement.setAttribute("data-theme", themeKey);
+    // Apply CSS variables for billing page (uses var(--green) etc.)
+    const tokens = themeKey === "dark"
+      ? { "--bg":"#080808","--surface":"#111111","--surface2":"#181818","--surface3":"#1e1e1e","--border":"#1f1f1f","--border2":"#2a2a2a","--text":"#f0f0f0","--text2":"#a0a0a0","--text3":"#585858","--green":"#22c55e","--green2":"#16a34a","--green-dim":"rgba(34,197,94,0.08)","--green-border":"rgba(34,197,94,0.22)","--red":"#ef4444","--red-dim":"rgba(239,68,68,0.10)","--amber":"#f59e0b","--amber-dim":"rgba(245,158,11,0.10)","--blue":"#3b82f6","--blue-dim":"rgba(59,130,246,0.10)" }
+      : { "--bg":"#f8f8f6","--surface":"#ffffff","--surface2":"#f2f2ef","--surface3":"#eaeae6","--border":"#e4e4e0","--border2":"#d0d0ca","--text":"#111111","--text2":"#545450","--text3":"#888880","--green":"#16a34a","--green2":"#15803d","--green-dim":"rgba(22,163,74,0.08)","--green-border":"rgba(22,163,74,0.22)","--red":"#dc2626","--red-dim":"rgba(220,38,38,0.10)","--amber":"#d97706","--amber-dim":"rgba(217,119,6,0.10)","--blue":"#2563eb","--blue-dim":"rgba(37,99,235,0.10)" };
+    Object.entries(tokens).forEach(([k, v]) => document.documentElement.style.setProperty(k, v));
   }, [themeKey]);
 
   useEffect(() => {
@@ -59,8 +64,6 @@ export default function Dashboard() {
       setSubs([]);
       return;
     }
-
-    // Map context subscriptions to dashboard format
     const mappedSubs = subscriptions.map((s) => ({
       id: s.id,
       name: s.name,
@@ -74,39 +77,23 @@ export default function Dashboard() {
       provider: s.provider || "",
       notes: s.notes || "",
     }));
-
     setSubs(mappedSubs);
   }, [subscriptions]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tab = params.get("tab");
-    if (tab && VALID_TABS.has(tab)) {
-      setActive(tab);
-    }
-    if (params.get("upgraded") === "true") {
-      showToast("Welcome to Pro! All features are now unlocked.", "success");
-    }
-    if (tab || params.get("upgraded") === "true") {
-      window.history.replaceState({}, "", "/dashboard");
-    }
+    if (tab && VALID_TABS.has(tab)) setActive(tab);
+    if (params.get("upgraded") === "true") showToast("Welcome to Pro! All features are now unlocked.", "success");
+    if (tab || params.get("upgraded") === "true") window.history.replaceState({}, "", "/dashboard");
   }, []);
 
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey) {
-        if (e.key === "e") {
-          e.preventDefault();
-          setActive("export");
-        }
-        if (e.key === "s") {
-          e.preventDefault();
-          setActive("export");
-        }
-        if (e.key === "a") {
-          e.preventDefault();
-          setActive("add");
-        }
+        if (e.key === "e") { e.preventDefault(); setActive("export"); }
+        if (e.key === "s") { e.preventDefault(); setActive("export"); }
+        if (e.key === "a") { e.preventDefault(); setActive("add"); }
       }
     };
     window.addEventListener("keydown", h);
@@ -128,15 +115,7 @@ export default function Dashboard() {
 
   const SBW = collapsed ? 62 : 226;
 
-  const SidebarLink = ({
-    id,
-    label,
-    Icon,
-  }: {
-    id: string;
-    label: string;
-    Icon: React.ElementType;
-  }) => {
+  const SidebarLink = ({ id, label, Icon }: { id: string; label: string; Icon: React.ElementType }) => {
     const isActive = active === id;
     return (
       <button
@@ -149,29 +128,16 @@ export default function Dashboard() {
           gap: 10,
           padding: collapsed ? "11px 0 11px 18px" : "9px 14px",
           background: isActive ? t.greenDim : "transparent",
-          borderLeft: isActive
-            ? `3px solid ${t.green}`
-            : "3px solid transparent",
+          borderLeft: isActive ? `3px solid ${t.green}` : "3px solid transparent",
           border: "none",
           cursor: "pointer",
           color: isActive ? t.green : t.text2,
           transition: "all 0.15s",
         }}
       >
-        <Icon
-          size={17}
-          strokeWidth={isActive ? 2 : 1.5}
-          style={{ flexShrink: 0 }}
-        />
+        <Icon size={17} strokeWidth={isActive ? 2 : 1.5} style={{ flexShrink: 0 }} />
         {!collapsed && (
-          <span
-            style={{
-              fontSize: 13,
-              fontWeight: isActive ? 600 : 400,
-              whiteSpace: "nowrap",
-              fontFamily: "var(--font-display)",
-            }}
-          >
+          <span style={{ fontSize: 13, fontWeight: isActive ? 600 : 400, whiteSpace: "nowrap", fontFamily: "var(--font-display)" }}>
             {label}
           </span>
         )}
@@ -182,86 +148,30 @@ export default function Dashboard() {
   const renderView = () => {
     if (loading) {
       return (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            height: "60vh",
-            flexDirection: "column",
-            gap: 16,
-          }}
-        >
-          <RefreshCw
-            size={24}
-            color={t.green}
-            style={{ animation: "spin 1s linear infinite" }}
-          />
-          <span
-            style={{
-              fontSize: 13,
-              color: t.text3,
-              fontFamily: "var(--font-mono)",
-            }}
-          >
-            Loading your subscriptions...
-          </span>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "60vh", flexDirection: "column", gap: 16 }}>
+          <RefreshCw size={24} color={t.green} style={{ animation: "spin 1s linear infinite" }} />
+          <span style={{ fontSize: 13, color: t.text3, fontFamily: "var(--font-mono)" }}>Loading your subscriptions...</span>
         </div>
       );
     }
     switch (active) {
-      case "overview":
-        return <OverviewView t={t} subs={subs} onNav={navTo} />;
-      case "subscriptions":
-        return (
-          <SubsView
-            t={t}
-            subs={subs}
-            setSubs={setSubs}
-            onAdd={() => navTo("add")}
-            toast={showToast}
-          />
-        );
-      case "analytics":
-        return <AnalyticsView t={t} subs={subs} />;
-      case "ai-summary":
-        return <AISummaryView t={t} subs={subs} isPro={isPro} />;
-      case "add":
-        return (
-          <AddView
-            t={t}
-            onSuccess={async () => {
-              await refetchSubscriptions();
-              navTo("subscriptions");
-            }}
-            toast={showToast}
-            isPro={isPro}
-          />
-        );
-      case "export":
-        return <ExportView t={t} subs={subs} toast={showToast} />;
-      case "settings":
-        return <SettingsView t={t} toast={showToast} />;
-      case "billing":
-        return <BillingPage />;
-      case "profile":
-        return <ProfileView t={t} toast={showToast} />;
-      default:
-        return <OverviewView t={t} subs={subs} onNav={navTo} />;
+      case "overview": return <OverviewView t={t} subs={subs} onNav={navTo} />;
+      case "subscriptions": return <SubsView t={t} subs={subs} setSubs={setSubs} onAdd={() => navTo("add")} toast={showToast} />;
+      case "analytics": return <AnalyticsView t={t} subs={subs} />;
+      case "ai-summary": return <AISummaryView t={t} subs={subs} isPro={isPro} />;
+      case "add": return <AddView t={t} onSuccess={async () => { await refetchSubscriptions(); navTo("subscriptions"); }} toast={showToast} isPro={isPro} />;
+      case "export": return <ExportView t={t} subs={subs} toast={showToast} />;
+      case "settings": return <SettingsView t={t} toast={showToast} />;
+      case "billing": return <BillingPage />;
+      case "profile": return <ProfileView t={t} toast={showToast} />;
+      default: return <OverviewView t={t} subs={subs} onNav={navTo} />;
     }
   };
 
+  const activeMonthly = subs.filter((s) => s.status === "active").reduce((a, s) => a + s.amount, 0);
+
   return (
-    <div
-      style={{
-        display: "flex",
-        minHeight: "100vh",
-        background: t.bg,
-        color: t.text,
-        fontFamily: "var(--font-display)",
-        transition: "background 0.4s, color 0.4s",
-      }}
-    >
+    <div style={{ display: "flex", minHeight: "100vh", background: t.bg, color: t.text, fontFamily: "var(--font-display)", transition: "background 0.4s, color 0.4s" }}>
       <style>{`
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
         :root{--font-display:var(--font-inter),system-ui,sans-serif;--font-mono:var(--font-jetbrains-mono),'Courier New',monospace}
@@ -280,18 +190,24 @@ export default function Dashboard() {
           .mob-sb-btn{display:flex!important}
           .main-pad{padding:14px!important}
           .add-grid{grid-template-columns:1fr!important}
-          .main-content{margin-left:0!important}
+          .main-content{margin-left:0!important;width:100%!important}
+          .header-pad{padding:0 14px!important}
+          .header-subtitle{display:none!important}
+          .email-verify-banner{display:none!important}
         }
         @media(max-width:640px){
           .kpi-grid{grid-template-columns:1fr 1fr!important}
           .chart-2col{grid-template-columns:1fr!important}
           .ana-2col{grid-template-columns:1fr!important}
+          .add-inner-grid{grid-template-columns:1fr!important}
+          .billing-stat-grid{grid-template-columns:1fr!important}
         }
         @media(max-width:440px){
           .kpi-grid{grid-template-columns:1fr!important}
         }
       `}</style>
 
+      {/* Desktop Sidebar */}
       <aside
         className="sidebar-desk"
         style={{
@@ -311,150 +227,51 @@ export default function Dashboard() {
           display: "flex",
         }}
       >
-        <div
-          style={{
-            height: 62,
-            display: "flex",
-            alignItems: "center",
-            padding: collapsed ? "0 0 0 16px" : "0 18px",
-            gap: 9,
-            borderBottom: `1px solid ${t.border}`,
-            flexShrink: 0,
-          }}
-        >
-          <img
-            src="/icon.svg"
-            alt="Subsight"
-            width={28}
-            height={28}
-            style={{ borderRadius: 6, flexShrink: 0, display: "block" }}
-          />
+        <div style={{ height: 62, display: "flex", alignItems: "center", padding: collapsed ? "0 0 0 16px" : "0 18px", gap: 9, borderBottom: `1px solid ${t.border}`, flexShrink: 0 }}>
+          <img src="/icon.svg" alt="Subsight" width={28} height={28} style={{ borderRadius: 6, flexShrink: 0, display: "block" }} />
           {!collapsed && (
-            <span
-              style={{
-                fontFamily: "var(--font-display)",
-                fontSize: 17,
-                fontWeight: 800,
-                color: t.text,
-                letterSpacing: -0.5,
-                whiteSpace: "nowrap",
-              }}
-            >
+            <span style={{ fontFamily: "var(--font-display)", fontSize: 17, fontWeight: 800, color: t.text, letterSpacing: -0.5, whiteSpace: "nowrap" }}>
               Subsight
             </span>
           )}
         </div>
         <nav style={{ flex: 1, padding: "10px 0", overflowY: "auto" }}>
-          {NAV_MAIN.map((item) => (
-            <SidebarLink key={item.id} {...item} />
-          ))}
+          {NAV_MAIN.map((item) => <SidebarLink key={item.id} {...item} />)}
         </nav>
-        <div
-          style={{
-            padding: "10px 0",
-            borderTop: `1px solid ${t.border}`,
-            flexShrink: 0,
-          }}
-        >
-          {NAV_BOTTOM.map((item) => (
-            <SidebarLink key={item.id} {...item} />
-          ))}
+        <div style={{ padding: "10px 0", borderTop: `1px solid ${t.border}`, flexShrink: 0 }}>
+          {NAV_BOTTOM.map((item) => <SidebarLink key={item.id} {...item} />)}
         </div>
       </aside>
 
+      {/* Mobile Sidebar Overlay */}
       {mobileSB && (
         <div style={{ position: "fixed", inset: 0, zIndex: 200 }}>
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              background: "rgba(0,0,0,0.6)",
-            }}
-            onClick={() => setMobileSB(false)}
-          />
-          <aside
-            style={{
-              position: "absolute",
-              left: 0,
-              top: 0,
-              bottom: 0,
-              width: 236,
-              background: t.sidebarBg,
-              borderRight: `1px solid ${t.border}`,
-              display: "flex",
-              flexDirection: "column",
-              zIndex: 201,
-            }}
-          >
-            <div
-              style={{
-                height: 62,
-                display: "flex",
-                alignItems: "center",
-                padding: "0 18px",
-                gap: 9,
-                borderBottom: `1px solid ${t.border}`,
-              }}
-            >
-              <img
-                src="/icon.svg"
-                alt="Subsight"
-                width={28}
-                height={28}
-                style={{ borderRadius: 6, display: "block" }}
-              />
-              <span
-                style={{
-                  fontFamily: "var(--font-display)",
-                  fontSize: 17,
-                  fontWeight: 800,
-                  color: t.text,
-                  letterSpacing: -0.5,
-                }}
-              >
-                Subsight
-              </span>
-              <button
-                onClick={() => setMobileSB(false)}
-                style={{
-                  marginLeft: "auto",
-                  background: "none",
-                  border: "none",
-                  color: t.text3,
-                  cursor: "pointer",
-                }}
-              >
+          <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.6)" }} onClick={() => setMobileSB(false)} />
+          <aside style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 236, background: t.sidebarBg, borderRight: `1px solid ${t.border}`, display: "flex", flexDirection: "column", zIndex: 201 }}>
+            <div style={{ height: 62, display: "flex", alignItems: "center", padding: "0 18px", gap: 9, borderBottom: `1px solid ${t.border}` }}>
+              <img src="/icon.svg" alt="Subsight" width={28} height={28} style={{ borderRadius: 6, display: "block" }} />
+              <span style={{ fontFamily: "var(--font-display)", fontSize: 17, fontWeight: 800, color: t.text, letterSpacing: -0.5 }}>Subsight</span>
+              <button onClick={() => setMobileSB(false)} style={{ marginLeft: "auto", background: "none", border: "none", color: t.text3, cursor: "pointer" }}>
                 <X size={18} />
               </button>
             </div>
             <nav style={{ flex: 1, padding: "10px 0", overflowY: "auto" }}>
-              {NAV_MAIN.map((item) => (
-                <SidebarLink key={item.id} {...item} />
-              ))}
+              {NAV_MAIN.map((item) => <SidebarLink key={item.id} {...item} />)}
             </nav>
-            <div
-              style={{ padding: "10px 0", borderTop: `1px solid ${t.border}` }}
-            >
-              {NAV_BOTTOM.map((item) => (
-                <SidebarLink key={item.id} {...item} />
-              ))}
+            <div style={{ padding: "10px 0", borderTop: `1px solid ${t.border}` }}>
+              {NAV_BOTTOM.map((item) => <SidebarLink key={item.id} {...item} />)}
             </div>
           </aside>
         </div>
       )}
 
+      {/* Main Content */}
       <div
-        style={{
-          flex: 1,
-          marginLeft: SBW,
-          minHeight: "100vh",
-          display: "flex",
-          flexDirection: "column",
-          transition: "margin-left 0.25s cubic-bezier(0.4,0,0.2,1)",
-        }}
-        className="sidebar-desk-offset main-content"
+        className="main-content"
+        style={{ flex: 1, marginLeft: SBW, minHeight: "100vh", display: "flex", flexDirection: "column", transition: "margin-left 0.25s cubic-bezier(0.4,0,0.2,1)", minWidth: 0 }}
       >
         <header
+          className="header-pad"
           style={{
             height: 62,
             display: "flex",
@@ -469,96 +286,42 @@ export default function Dashboard() {
             top: 0,
             zIndex: 40,
             flexShrink: 0,
+            gap: 8,
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
             <button
               className="mob-sb-btn"
               onClick={() => setMobileSB(true)}
-              style={{
-                background: "none",
-                border: "none",
-                color: t.text2,
-                cursor: "pointer",
-                display: "none",
-                alignItems: "center",
-              }}
+              style={{ background: "none", border: "none", color: t.text2, cursor: "pointer", display: "none", alignItems: "center", flexShrink: 0 }}
             >
               <Menu size={20} />
             </button>
-            <div>
-              <div
-                style={{
-                  fontFamily: "var(--font-display)",
-                  fontSize: 15,
-                  fontWeight: 700,
-                  color: t.text,
-                  letterSpacing: -0.3,
-                }}
-              >
-                {NAV_MAIN.find((n) => n.id === active)?.label ||
-                  NAV_BOTTOM.find((n) => n.id === active)?.label ||
-                  "Dashboard"}
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 700, color: t.text, letterSpacing: -0.3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {NAV_MAIN.find((n) => n.id === active)?.label || NAV_BOTTOM.find((n) => n.id === active)?.label || "Dashboard"}
               </div>
-              <div
-                style={{
-                  fontSize: 10,
-                  color: t.text3,
-                  fontFamily: "var(--font-mono)",
-                  marginTop: 1,
-                }}
-              >
-                {subs.length} subscriptions · $
-                {subs
-                  .filter((s) => s.status === "active")
-                  .reduce((a, s) => a + s.amount, 0)
-                  .toFixed(2)}
-                /mo
+              <div className="header-subtitle" style={{ fontSize: 10, color: t.text3, fontFamily: "var(--font-mono)", marginTop: 1 }}>
+                {subs.filter((s) => s.status === "active").length} active · ${activeMonthly.toFixed(2)}/mo
               </div>
             </div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
             {user && !user.emailConfirmed && (
               <div
-                style={{
-                  fontSize: 11,
-                  color: t.amber,
-                  background: t.amberDim,
-                  border: `1px solid ${t.amber}44`,
-                  borderRadius: 8,
-                  padding: "7px 14px",
-                  fontFamily: "var(--font-mono)",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                }}
+                className="email-verify-banner"
+                style={{ fontSize: 11, color: t.amber, background: t.amberDim, border: `1px solid ${t.amber}44`, borderRadius: 8, padding: "7px 14px", fontFamily: "var(--font-mono)", display: "flex", alignItems: "center", gap: 8 }}
               >
-                <span>Please verify your email</span>
+                <span>Verify your email</span>
                 <button
                   onClick={async () => {
                     const { createClient } = await import("@/lib/supabase/client");
                     const supabase = createClient();
-                    const { error } = await supabase.auth.resend({
-                      type: "signup",
-                      email: user.email,
-                      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
-                    });
-                    if (error) {
-                      showToast(error.message, "error");
-                    } else {
-                      setEmailSent(true);
-                      showToast("Verification email sent", "success");
-                    }
+                    const { error } = await supabase.auth.resend({ type: "signup", email: user.email, options: { emailRedirectTo: `${window.location.origin}/auth/callback` } });
+                    if (error) showToast(error.message, "error");
+                    else { setEmailSent(true); showToast("Verification email sent", "success"); }
                   }}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    color: t.amber,
-                    textDecoration: "underline",
-                    cursor: "pointer",
-                    fontFamily: "var(--font-mono)",
-                    fontSize: 11,
-                  }}
+                  style={{ background: "none", border: "none", color: t.amber, textDecoration: "underline", cursor: "pointer", fontFamily: "var(--font-mono)", fontSize: 11 }}
                   disabled={emailSent}
                 >
                   {emailSent ? "Sent" : "Resend"}
@@ -566,59 +329,24 @@ export default function Dashboard() {
               </div>
             )}
             <button
-              onClick={() => {
-                const n = themeKey === "dark" ? "light" : ("dark" as TK);
-                setThemeKey(n);
-              }}
-              style={{
-                width: 34,
-                height: 34,
-                border: `1px solid ${t.border2}`,
-                borderRadius: 9,
-                background: t.surface2,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-                transition: "all 0.2s",
-              }}
+              onClick={() => setThemeKey(themeKey === "dark" ? "light" : "dark" as TK)}
+              style={{ width: 34, height: 34, border: `1px solid ${t.border2}`, borderRadius: 9, background: t.surface2, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.2s", flexShrink: 0 }}
             >
-              {themeKey === "dark" ? (
-                <Sun size={14} color={t.text2} />
-              ) : (
-                <Moon size={14} color={t.text2} />
-              )}
+              {themeKey === "dark" ? <Sun size={14} color={t.text2} /> : <Moon size={14} color={t.text2} />}
             </button>
             <button
               onClick={() => navTo("add")}
-              style={{
-                background: t.green,
-                color: "#000",
-                border: "none",
-                borderRadius: 9,
-                padding: "8px 16px",
-                fontSize: 12,
-                fontWeight: 700,
-                fontFamily: "var(--font-display)",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-              }}
+              style={{ background: t.green, color: "#000", border: "none", borderRadius: 9, padding: "8px 14px", fontSize: 12, fontWeight: 700, fontFamily: "var(--font-display)", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, flexShrink: 0, whiteSpace: "nowrap" }}
             >
               <Plus size={12} /> Add
             </button>
           </div>
         </header>
 
-        <main
-          className="main-pad"
-          style={{ flex: 1, padding: "28px", overflowY: "auto" }}
-        >
+        <main className="main-pad" style={{ flex: 1, padding: "28px", overflowY: "auto", overflowX: "hidden" }}>
           {renderView()}
         </main>
       </div>
-
     </div>
   );
 }

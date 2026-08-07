@@ -1,7 +1,7 @@
 import Groq from 'groq-sdk'
 import { escapeHtml, sanitizeText } from './validation'
 
-// Valid Groq model IDs — https://console.groq.com/docs/models
+// Valid Groq model IDs: https://console.groq.com/docs/models
 const MODELS = {
   fast: 'llama-3.1-8b-instant',
   quality: 'llama-3.3-70b-versatile',

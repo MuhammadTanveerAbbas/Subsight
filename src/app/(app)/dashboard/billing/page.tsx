@@ -77,7 +77,7 @@ export default function BillingPage() {
         <p className="m-0 font-mono text-[13px]" style={{ color: "var(--text3)" }}>Manage your subscription and billing information</p>
       </div>
 
-      <div className="mb-7 grid grid-cols-2 gap-3.5">
+      <div className="billing-stat-grid mb-7 grid grid-cols-2 gap-3.5">
         <StatCard icon={<CreditCard size={18} color="var(--green)" />} label="Current Plan" value={isPro ? "Pro" : "Free"} cssVar="var(--green)" />
         <StatCard icon={isPro ? <CheckCircle size={18} color="var(--green)" /> : <XCircle size={18} color="var(--text3)" />}
           label="Status" value={status === "active" ? "Active" : status === "past_due" ? "Past Due" : status === "canceled" ? "Canceled" : "Inactive"}

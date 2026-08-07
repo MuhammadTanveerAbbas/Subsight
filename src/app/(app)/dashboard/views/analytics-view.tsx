@@ -197,7 +197,7 @@ export function AnalyticsView({ t, subs }: { t: T; subs: Sub[] }) {
 
       <div
         className="ana-2col"
-        style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}
+        style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, minWidth: 0 }}
       >
         <div
           style={{
@@ -299,7 +299,7 @@ export function AnalyticsView({ t, subs }: { t: T; subs: Sub[] }) {
           {catData.length > 0 ? (
             <>
               <ResponsiveContainer width="100%" height={140}>
-                <RechartsPie>
+                <RechartsPie width={200} height={140}>
                   <Pie
                     data={catData}
                     cx="50%"

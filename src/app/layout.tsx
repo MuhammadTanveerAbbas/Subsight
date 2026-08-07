@@ -94,12 +94,13 @@ export default function RootLayout({
     <html
       lang="en"
       className={cn("dark", inter.variable, jetbrainsMono.variable)}
+      data-scroll-behavior="smooth"
     >
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#22c55e" />
       </head>
-      <body className="font-body antialiased">
+      <body className="font-body antialiased" suppressHydrationWarning>
         <ErrorBoundary>
           <AuthProvider>
             <LoadingProvider>

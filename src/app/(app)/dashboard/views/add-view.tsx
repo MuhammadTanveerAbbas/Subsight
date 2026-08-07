@@ -245,6 +245,7 @@ export function AddView({
             </div>
           </div>
           <div
+            className="add-inner-grid"
             style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}
           >
             <div>
@@ -307,6 +308,7 @@ export function AddView({
             </div>
           </div>
           <div
+            className="add-inner-grid"
             style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}
           >
             <div>
@@ -486,6 +488,7 @@ export function AddView({
           padding: "22px",
           position: "sticky",
           top: 24,
+          alignSelf: "start",
         }}
       >
         <div

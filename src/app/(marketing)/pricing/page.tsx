@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Check, X, ArrowRight, ChevronDown, ChevronUp, PieChart, Sun, Moon } from "lucide-react";
+import { Check, ArrowRight, ChevronDown, ChevronUp, Zap, BarChart2, Bell, Tag, Target, FileDown, Sun, Moon } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { DARK, LIGHT } from "../marketing-constants";
@@ -14,10 +14,13 @@ const PAGE_CSS = `
   a{color:inherit;text-decoration:none}
   ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#2a2a2a;border-radius:3px}
   *{scrollbar-width:thin;scrollbar-color:#2a2a2a transparent}
+  @media(max-width:900px){
+    .features-grid{grid-template-columns:repeat(2,1fr)!important}
+  }
   @media(max-width:768px){
     .nav-links{display:none!important}
     .price-grid{grid-template-columns:1fr!important}
-    .compare-wrap{overflow-x:auto!important}
+    .features-grid{grid-template-columns:1fr!important}
     .section-pad{padding:72px 16px!important}
     .cta-inner{flex-direction:column!important;align-items:stretch!important;text-align:center!important}
     .cta-btns{justify-content:center!important}
@@ -27,6 +30,7 @@ const PAGE_CSS = `
   }
   @media(max-width:480px){
     .section-pad{padding:56px 14px!important}
+    .features-grid{grid-template-columns:1fr!important}
   }
 `;
 
@@ -90,26 +94,14 @@ function Label({ text, t }: { text:string; t:T }) {
   return <span style={{ fontSize:10, letterSpacing:"0.18em", textTransform:"uppercase", color:t.green, fontFamily:"var(--font-mono)", display:"block", marginBottom:14 }}>// {text}</span>;
 }
 
-const PRICE_FEATURES = [
-  { f:"Active Subscriptions",  free:"Up to 5",     pro:"Unlimited"  },
-  { f:"AI Auto-Fill",          free:"5 / month",   pro:"Unlimited"  },
-  { f:"Analytics Dashboard",   free:"Basic",       pro:"Advanced"   },
-  { f:"Simulation Mode",       free:true,          pro:true         },
-  { f:"Export JSON",           free:true,          pro:true         },
-  { f:"Export CSV",            free:false,         pro:true         },
-  { f:"Export PDF",            free:false,         pro:true         },
-  { f:"Renewal Alerts",        free:false,         pro:true         },
-  { f:"Custom Categories",     free:false,         pro:true         },
-  { f:"Spending Goals",        free:false,         pro:true         },
-  { f:"Priority Support",      free:false,         pro:true         },
-  { f:"Self-Host Option",      free:true,          pro:true         },
+const PRO_FEATURES = [
+  { icon: Zap,      title:"Unlimited AI Auto-Fill",   desc:"Type a service name. AI fills provider, price, category, and cycle instantly." },
+  { icon: BarChart2,title:"Advanced Analytics",        desc:"Monthly bar charts, category donut breakdown, annual totals, and trend lines." },
+  { icon: Bell,     title:"Renewal Alerts",            desc:"Email reminders 1, 3, 7, or 14 days before any subscription renews." },
+  { icon: Tag,      title:"Custom Categories",         desc:"Create categories with your own colors and icons to match your workflow." },
+  { icon: Target,   title:"Spending Goals",            desc:"Set monthly or annual budget targets per category and track progress visually." },
+  { icon: FileDown, title:"CSV & PDF Export",          desc:"Export your full subscription list in CSV or PDF, in addition to JSON." },
 ];
-type CV = boolean | string;
-function CCell({ v }: { v:CV }) {
-  if (v===true)  return <Check size={14} color="#22c55e"/>;
-  if (v===false) return <X size={13} color="#ef4444" style={{ opacity:0.5 }}/>;
-  return <span style={{ fontSize:11, fontFamily:"var(--font-mono)", color:"#a0a0a0" }}>{v}</span>;
-}
 
 function PricingPage() {
   const [themeKey, setThemeKey] = useState<TK>("dark");
@@ -198,31 +190,30 @@ function PricingPage() {
           </div>
         </section>
 
-        {/* Feature comparison */}
+        {/* Pro features grid */}
         <section className="section-pad" style={{ padding:"20px 24px 80px", background:t.surface }}>
-          <div style={{ maxWidth:860, margin:"0 auto" }}>
-            <h2 style={{ fontFamily:"var(--font-display)", fontSize:"clamp(24px,4vw,40px)", fontWeight:800, letterSpacing:-1.5, color:t.text, marginBottom:8, textAlign:"center" }}>Full Feature Comparison</h2>
-            <p style={{ fontSize:13, color:t.text3, fontFamily:"var(--font-mono)", textAlign:"center", marginBottom:36 }}>Everything included in both plans  no hidden limits.</p>
-            <div className="compare-wrap" style={{ borderRadius:12, border:`1px solid ${t.border}`, overflow:"hidden" }}>
-              <table style={{ width:"100%", borderCollapse:"collapse", minWidth:480 }}>
-                <thead>
-                  <tr style={{ background:t.surface2 }}>
-                    <th style={{ padding:"14px 20px", textAlign:"left", fontSize:10.5, color:t.text3, fontFamily:"var(--font-mono)", letterSpacing:"0.1em", textTransform:"uppercase", fontWeight:400, borderBottom:`1px solid ${t.border}` }}>Feature</th>
-                    {[["Free", false],["Pro", true]].map(([p, hi], i) => (
-                      <th key={String(p)} style={{ padding:"14px 20px", textAlign:"center", fontSize:12, fontFamily:"var(--font-mono)", color:hi?t.green:t.text2, letterSpacing:"0.06em", borderBottom:`1px solid ${t.border}`, background:hi?t.greenDim:"transparent", borderTop:hi?`2px solid ${t.green}`:"2px solid transparent", fontWeight:hi?600:400 }}>{String(p)}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {PRICE_FEATURES.map((row,ri) => (
-                    <tr key={ri} style={{ background:ri%2===0?t.surface:t.surface2 }}>
-                      <td style={{ padding:"13px 20px", fontSize:13, color:t.text, fontFamily:"var(--font-display)", borderBottom:`1px solid ${t.border}` }}>{row.f}</td>
-                      <td style={{ padding:"13px 20px", textAlign:"center", borderBottom:`1px solid ${t.border}` }}><CCell v={row.free}/></td>
-                      <td style={{ padding:"13px 20px", textAlign:"center", borderBottom:`1px solid ${t.border}`, background:t.greenDim }}><CCell v={row.pro}/></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <div style={{ maxWidth:900, margin:"0 auto" }}>
+            <Label text="Pro Plan" t={t}/>
+            <h2 style={{ fontFamily:"var(--font-display)", fontSize:"clamp(24px,4vw,40px)", fontWeight:800, letterSpacing:-1.5, color:t.text, marginBottom:10 }}>Everything in Pro, explained.</h2>
+            <p style={{ fontSize:13, color:t.text3, fontFamily:"var(--font-mono)", marginBottom:40, lineHeight:1.7 }}>No vague feature names. Here&apos;s exactly what you unlock when you upgrade.</p>
+            <div className="features-grid" style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:16 }}>
+              {PRO_FEATURES.map(({ icon: Icon, title, desc }) => (
+                <div key={title} style={{ background:t.surface2, border:`1px solid ${t.border}`, borderRadius:12, padding:"24px 22px", display:"flex", flexDirection:"column", gap:12, transition:"border-color 0.2s" }}
+                  onMouseEnter={e=>(e.currentTarget as HTMLElement).style.borderColor=t.greenBorder}
+                  onMouseLeave={e=>(e.currentTarget as HTMLElement).style.borderColor=t.border}>
+                  <div style={{ width:36, height:36, borderRadius:9, background:t.greenDim, border:`1px solid ${t.greenBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                    <Icon size={16} color={t.green}/>
+                  </div>
+                  <div>
+                    <p style={{ fontSize:13.5, fontWeight:700, color:t.text, fontFamily:"var(--font-display)", marginBottom:6 }}>{title}</p>
+                    <p style={{ fontSize:12, color:t.text3, fontFamily:"var(--font-mono)", lineHeight:1.7 }}>{desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div style={{ marginTop:24, padding:"18px 22px", background:t.greenDim, border:`1px solid ${t.greenBorder}`, borderRadius:10, display:"flex", alignItems:"center", gap:12 }}>
+              <Check size={15} color={t.green} style={{ flexShrink:0 }}/>
+              <p style={{ fontSize:12.5, color:t.text2, fontFamily:"var(--font-mono)", lineHeight:1.6 }}>Free plan includes: up to 5 subscriptions, basic analytics, AI auto-fill (5/month), simulation mode, JSON export, and community support. Forever free, no credit card needed.</p>
             </div>
           </div>
         </section>
@@ -232,9 +223,9 @@ function PricingPage() {
           <div style={{ maxWidth:700, margin:"0 auto" }}>
             <h2 style={{ fontFamily:"var(--font-display)", fontSize:"clamp(24px,4vw,40px)", fontWeight:800, letterSpacing:-1.5, color:t.text, marginBottom:36, textAlign:"center" }}>Pricing FAQ</h2>
             {[
-              ["Is the free plan really free?","Yes — the Free plan costs $0/month. No credit card required. You get up to 5 subscriptions, basic analytics, and JSON export at no cost. Pro is an optional upgrade."],
+              ["Is the free plan really free?","Yes, the Free plan costs $0/month. No credit card required. You get up to 5 subscriptions, basic analytics, and JSON export at no cost. Pro is an optional upgrade."],
               ["What's included in Pro?","Pro gives you unlimited subscriptions, advanced analytics, unlimited AI auto-fill, CSV & PDF export, renewal alerts, spending goals, custom categories, and priority support."],
-              ["Can I upgrade or downgrade anytime?","Yes  switch plans at any time. Downgrades take effect at the end of the current billing cycle."],
+              ["Can I upgrade or downgrade anytime?","Yes, switch plans at any time. Downgrades take effect at the end of the current billing cycle."],
               ["Do you offer refunds?","Refunds are handled on a case-by-case basis. Contact our support team if you need assistance with a Pro plan refund."],
             ].map(([q,a],i) => (
               <div key={i} onClick={()=>setFaqOpen(faqOpen===i?null:i)} style={{ border:`1px solid ${faqOpen===i?t.border2:t.border}`, borderRadius:9, overflow:"hidden", cursor:"pointer", background:t.surface, marginBottom:4, transition:"border-color 0.2s" }}>

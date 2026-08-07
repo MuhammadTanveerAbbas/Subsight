@@ -12,9 +12,6 @@ export function SettingsView({
   toast: (m: string, tp: "success" | "error" | "info") => void;
 }) {
   const [currency, setCurrency] = useState("USD");
-  const [goalPeriod, setGoalPeriod] = useState("Monthly");
-  const [goalAmt, setGoalAmt] = useState("");
-  const [goalCur, setGoalCur] = useState("USD");
   const [catInput, setCatInput] = useState("");
   const [cats, setCats] = useState<string[]>([]);
   const [notifs, setNotifs] = useState({
