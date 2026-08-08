@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Sparkles, ToggleLeft, Download, Search, Shield,
   ArrowRight, Check, ChevronDown, ChevronUp,
   TrendingUp, Zap, Sun, Moon, Bell, CreditCard,
-  BarChart3, ArrowUpRight, Lock, Globe, RefreshCw, GitBranch, Server, Infinity,
+  BarChart3, ArrowUpRight, Lock, Globe, RefreshCw, GitBranch,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -415,16 +415,13 @@ export default function LandingPage() {
           {/* Badge pill */}
           <div style={{ animation:"heroIn 0.65s ease both", marginBottom:36 }}>
             <span style={{ display:"inline-flex", alignItems:"center", gap:0, border:`1px solid ${t.greenBorder}`, borderRadius:999, background:t.greenDim, overflow:"hidden" }}>
-              {([
-                { Icon: GitBranch, label: "Open Source" },
-                { Icon: Server,    label: "Self-Hosted" },
-                { Icon: Infinity,  label: "Free Forever" },
-              ] as { Icon: React.ElementType; label: string }[]).map(({ Icon, label }, i) => (
-                <span key={i} style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"6px 14px", fontSize:11, color:t.green, fontFamily:"var(--font-mono)", letterSpacing:"0.04em", borderRight: i < 2 ? `1px solid ${t.greenBorder}` : "none" }}>
-                  <Icon size={10} color={t.green} strokeWidth={1.8} />
-                  {label}
-                </span>
-              ))}
+              <span style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"6px 14px", fontSize:11, color:t.green, fontFamily:"var(--font-mono)", letterSpacing:"0.04em" }}>
+                <GitBranch size={10} color={t.green} strokeWidth={1.8} /> Open Source
+              </span>
+              <span style={{ color:t.greenBorder, fontSize:11, userSelect:"none" }}>|</span>
+              <span style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"6px 14px", fontSize:11, color:t.green, fontFamily:"var(--font-mono)", letterSpacing:"0.04em" }}>
+                <Shield size={10} color={t.green} strokeWidth={1.8} /> Privacy First
+              </span>
             </span>
           </div>
 
@@ -455,10 +452,10 @@ export default function LandingPage() {
           {/* Stats grid */}
           <div className="stats-grid" style={{ animation:"heroIn 0.65s ease 0.34s both", display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:1, marginTop:64, background:t.border, border:`1px solid ${t.border}`, borderRadius:14, overflow:"hidden", maxWidth:760, width:"100%" }}>
             {[
-              { n:0,   p:"$", s:"",      l:"Hidden Fees" },
-              { n:100, p:"",  s:"%",     l:"Free & Open Source" },
-              { n:140, p:"$", s:"+",     l:"Avg Monthly Savings" },
-              { n:14,  p:"",  s:" subs", l:"Avg Tracked / User" },
+              { n:100, p:"",  s:"%",     l:"Open Source" },
+              { n:5,   p:"",  s:" min",  l:"To Setup" },
+              { n:24,  p:"",  s:"/7",    l:"Renewal Alerts" },
+              { n:3,   p:"",  s:"x",      l:"Export Formats" },
             ].map((item,i) => (
               <div key={i} style={{ background:t.surface, padding:"28px 18px", textAlign:"center" }}>
                 <div style={{ fontFamily:"var(--font-display)", fontSize:"clamp(24px,3.5vw,38px)", fontWeight:800, color:t.text, lineHeight:1, letterSpacing:-1 }}>
