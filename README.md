@@ -234,6 +234,7 @@ src/
 ## Key Architecture Decisions
 
 - **No Server Actions** -- All server logic lives in API Route Handlers for clarity and testability
+- **Self-healing Groq** -- AI access is centralized in `src/lib/groq-service.ts`: models are discovered via the Groq API and cached server-side (6h TTL), the preferred models are preserved with automatic fallback to compatible alternates, and 429/transient failures use bounded retries with `Retry-After` + jittered backoff. A Groq outage never crashes the app.
 - **Service role key** -- Used ONLY in webhook and cron endpoints that need to bypass RLS
 - **RLS-first** -- Every table has Row Level Security enabled with verified policies
 - **Stripe webhook idempotency** -- Duplicate events are safely ignored via `processed_webhook_events` table
