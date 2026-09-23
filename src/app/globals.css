@@ -7,7 +7,7 @@
   --font-mono: var(--font-jetbrains-mono), 'Courier New', monospace;
 }
 
-/* Custom design tokens — single source of truth */
+/* Custom design tokens single source of truth */
 :root {
   --bg: #080808;
   --surface: #111111;

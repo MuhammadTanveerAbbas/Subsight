@@ -163,7 +163,7 @@ describe('Subscriptions API', () => {
     expect(response.status).toBe(400)
   })
 
-  it('returns 403 when free plan limit is reached', async () => {
+  it('allows free users to create subscriptions beyond 5 (no limit)', async () => {
     const supabase = buildMockSupabase({
       user: verifiedUser(),
       profileTier: 'free',
@@ -184,8 +184,8 @@ describe('Subscriptions API', () => {
     const response = await POST(req as any)
     const body = await response.json()
 
-    expect(response.status).toBe(403)
-    expect(body.error).toContain('Free plan limit reached')
+    expect(response.status).toBe(200)
+    expect(body.success).toBe(true)
   })
 
   it('creates subscription for authenticated user', async () => {

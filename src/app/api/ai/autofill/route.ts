@@ -12,20 +12,11 @@ export async function POST(req: NextRequest) {
   const auth = await getAuthenticatedUser({ requireVerified: true })
   if (!auth.user) return Response.json({ error: auth.error }, { status: auth.status })
 
-  const { supabase, user } = auth
+  const { user } = auth
 
-  const rateCheck = await checkRateLimit(`autofill:${user.id}`, 10, 60000)
+  const rateCheck = await checkRateLimit(`autofill:${user.id}`, 20, 60000)
   if (!rateCheck.success) {
     return Response.json({ error: 'Rate limit exceeded' }, { status: 429 })
-  }
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('subscription_tier')
-    .eq('id', user.id)
-    .single()
-  if (profile?.subscription_tier !== 'pro') {
-    return Response.json({ error: 'Pro subscription required' }, { status: 403 })
   }
 
   let name: string
@@ -43,4 +34,3 @@ export async function POST(req: NextRequest) {
     return Response.json({ error: 'AI service unavailable' }, { status: 500 })
   }
 }
-

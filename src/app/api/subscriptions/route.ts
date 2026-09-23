@@ -113,19 +113,6 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  if (profile?.subscription_tier !== 'pro') {
-    const { count } = await supabase
-      .from('subscriptions')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id)
-    if (count != null && count >= 5) {
-      return Response.json(
-        { error: 'Free plan limit reached (max 5 subscriptions). Upgrade to Pro for unlimited.' },
-        { status: 403 },
-      )
-    }
-  }
-
   const { error: dbError } = await supabase.from('subscriptions').insert({
     user_id: user.id,
     name: body.name.trim().slice(0, 100),
@@ -174,24 +161,6 @@ export async function PATCH(req: NextRequest) {
   }
 
   const { id, ...updates } = body
-
-  if (
-    updates.reminderEnabled === true ||
-    updates.reminderDaysBefore !== undefined
-  ) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('subscription_tier')
-      .eq('id', user.id)
-      .single()
-
-    if (profile?.subscription_tier !== 'pro') {
-      return Response.json(
-        { error: 'Email reminders are available on the Pro plan.' },
-        { status: 403 },
-      )
-    }
-  }
 
   const { data: existing, error: fetchError } = await supabase
     .from('subscriptions')

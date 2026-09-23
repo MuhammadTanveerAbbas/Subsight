@@ -82,7 +82,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           await fetchProfile(user.id);
         }
       } catch (error) {
-        logError(error, { context: "initSession" });
+        if ((error as any)?.message || (error as any)?.code) {
+          logError(error, { context: "initSession" });
+        }
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -109,7 +111,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error && error.code !== "PGRST116") throw error;
       if (data) setProfile(data);
     } catch (error: any) {
-      logError(error, { context: "fetchProfile", userId });
+      if (error?.message || error?.code) {
+        logError(error, { context: "fetchProfile", userId });
+      }
     }
   };
 

@@ -162,11 +162,11 @@ export async function sendRenewalReminder({
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
-    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
                  margin: 0; padding: 0; background: #f3f4f6;">
       <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
         <!-- Header -->
-        <div style="background: linear-gradient(135deg, ${accentColor} 0%, ${accentColor}dd 100%); 
+        <div style="background: linear-gradient(135deg, ${accentColor} 0%, ${accentColor}dd 100%);
                     border-radius: 12px 12px 0 0; padding: 32px 24px; text-align: center; color: white;">
           <div style="font-size: 48px; margin-bottom: 12px;">${emoji}</div>
           <h1 style="font-size: 28px; font-weight: 700; margin: 0 0 8px;">${safeSubName}</h1>
@@ -194,7 +194,7 @@ export async function sendRenewalReminder({
           <!-- Action Message -->
           <div style="background: ${accentColor}11; border-radius: 8px; padding: 16px; margin-bottom: 24px; border: 1px solid ${accentColor}33;">
             <p style="margin: 0; color: #1a1a1a; font-size: 14px;">
-              ${isUrgent 
+              ${isUrgent
                 ? `<strong>⚠️ Action needed:</strong> Your ${safeSubName} subscription will renew tomorrow. Make sure you have sufficient funds or cancel if you no longer need it.`
                 : `Your ${safeSubName} subscription will renew on ${safeRenewalDate}. Review your subscription to ensure it's still needed.`
               }
@@ -203,11 +203,11 @@ export async function sendRenewalReminder({
 
           <!-- CTA Button -->
           <div style="text-align: center; margin-bottom: 24px;">
-            <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard" 
-               style="background: ${accentColor}; color: white; padding: 14px 32px; 
-                      border-radius: 8px; text-decoration: none; font-weight: 600; 
+            <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard"
+               style="background: ${accentColor}; color: white; padding: 14px 32px;
+                      border-radius: 8px; text-decoration: none; font-weight: 600;
                       display: inline-block; font-size: 16px; transition: opacity 0.2s;">
-              Manage Subscription →
+              Manage Subscription ➜
             </a>
           </div>
 

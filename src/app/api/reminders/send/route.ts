@@ -23,9 +23,8 @@ export async function GET(req: NextRequest) {
   try {
     const { data: subscriptions, error: fetchError } = await supabase
       .from('subscriptions')
-      .select('*, profiles!inner(subscription_tier)')
+      .select('*')
       .eq('reminder_enabled', true)
-      .eq('profiles.subscription_tier', 'pro')
       .not('next_renewal_date', 'is', null)
 
     if (fetchError) {

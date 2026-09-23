@@ -1,15 +1,8 @@
 -- ============================================================
 -- Subsight Full Database Schema
--- Consolidated from:
---   supabase/schema.sql
---   supabase/migrations/001_fix_schema.sql
---   supabase/migrations/002_rls_and_constraints.sql
---   supabase/migrations/003_system_categories_rls.sql
--- Last updated: 2026-05-23
+-- Last updated: 2026-09-23
 -- ============================================================
 -- Run this file only on a fresh database.
--- For existing databases, run the individual migration files
--- in order (001 → 002 → 003) via the Supabase SQL Editor.
 -- ============================================================
 
 -- Drop existing tables (fresh install only)
@@ -144,13 +137,13 @@ CREATE TABLE processed_webhook_events (
 -- ============================================================
 -- Row Level Security
 -- ============================================================
-ALTER TABLE profiles                ENABLE ROW LEVEL SECURITY;
-ALTER TABLE subscriptions           ENABLE ROW LEVEL SECURITY;
-ALTER TABLE categories              ENABLE ROW LEVEL SECURITY;
-ALTER TABLE spending_goals          ENABLE ROW LEVEL SECURITY;
-ALTER TABLE ai_summaries            ENABLE ROW LEVEL SECURITY;
-ALTER TABLE export_logs             ENABLE ROW LEVEL SECURITY;
-ALTER TABLE notification_settings   ENABLE ROW LEVEL SECURITY;
+ALTER TABLE profiles                 ENABLE ROW LEVEL SECURITY;
+ALTER TABLE subscriptions            ENABLE ROW LEVEL SECURITY;
+ALTER TABLE categories               ENABLE ROW LEVEL SECURITY;
+ALTER TABLE spending_goals           ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ai_summaries             ENABLE ROW LEVEL SECURITY;
+ALTER TABLE export_logs              ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notification_settings    ENABLE ROW LEVEL SECURITY;
 ALTER TABLE processed_webhook_events ENABLE ROW LEVEL SECURITY;
 
 -- profiles policies
@@ -165,37 +158,44 @@ CREATE POLICY "Users can insert own subscriptions" ON subscriptions FOR INSERT W
 CREATE POLICY "Users can update own subscriptions" ON subscriptions FOR UPDATE USING (auth.uid() = user_id);
 CREATE POLICY "Users can delete own subscriptions" ON subscriptions FOR DELETE USING (auth.uid() = user_id);
 
--- categories policy (includes system categories with NULL user_id)
-CREATE POLICY "Users manage own categories" ON categories FOR ALL USING (auth.uid() = user_id);
+-- categories policies (includes system categories with NULL user_id)
+CREATE POLICY "Users manage own categories"      ON categories FOR ALL    USING (auth.uid() = user_id);
 CREATE POLICY "Users can view system categories" ON categories FOR SELECT USING (user_id IS NULL);
 
 -- spending_goals policy
-CREATE POLICY "Users manage own goals" ON spending_goals FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Users manage own goals"         ON spending_goals        FOR ALL USING (auth.uid() = user_id);
 
 -- ai_summaries policy
-CREATE POLICY "Users access own summaries" ON ai_summaries FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Users access own summaries"     ON ai_summaries          FOR ALL USING (auth.uid() = user_id);
 
 -- export_logs policy
-CREATE POLICY "Users access own export logs" ON export_logs FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Users access own export logs"   ON export_logs           FOR ALL USING (auth.uid() = user_id);
 
 -- notification_settings policy
-CREATE POLICY "Users manage own notifications" ON notification_settings FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Users manage own notifications" ON notification_settings  FOR ALL USING (auth.uid() = user_id);
 
--- processed_webhook_events policy (service-role only; no user access needed)
-CREATE POLICY "Service role manages webhook events" ON processed_webhook_events FOR ALL USING (true);
+-- processed_webhook_events:
+-- Service role bypasses RLS entirely. JWT roles are revoked at the table level.
+-- Deny-all restrictive policy satisfies the linter (REVOKE alone does not silence it).
+REVOKE ALL ON processed_webhook_events FROM anon, authenticated;
+CREATE POLICY "No direct access" ON processed_webhook_events AS RESTRICTIVE USING (false);
 
 -- ============================================================
 -- Functions & Triggers
 -- ============================================================
 
 -- Auto-update updated_at on row changes
+-- SECURITY INVOKER: runs as the calling user, no elevated privileges needed.
+-- SET search_path: prevents search_path hijacking attacks.
 CREATE OR REPLACE FUNCTION handle_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
   NEW.updated_at = NOW();
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql
+   SECURITY INVOKER
+   SET search_path = public, pg_temp;
 
 CREATE TRIGGER handle_profiles_updated_at
   BEFORE UPDATE ON profiles
@@ -213,14 +213,17 @@ CREATE TRIGGER handle_notification_settings_updated_at
   BEFORE UPDATE ON notification_settings
   FOR EACH ROW EXECUTE FUNCTION handle_updated_at();
 
--- Normalize billing_cycle to lowercase (defensive — catches capitalized input)
+-- Normalize billing_cycle to lowercase (defensive catches capitalized input)
+-- SECURITY INVOKER: runs as the calling user, no elevated privileges needed.
 CREATE OR REPLACE FUNCTION normalize_billing_cycle()
 RETURNS TRIGGER AS $$
 BEGIN
   NEW.billing_cycle = LOWER(NEW.billing_cycle);
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql
+   SECURITY INVOKER
+   SET search_path = public, pg_temp;
 
 CREATE TRIGGER normalize_subscriptions_billing_cycle
   BEFORE INSERT OR UPDATE ON subscriptions
@@ -240,6 +243,12 @@ CREATE INDEX idx_ai_summaries_user_expires   ON ai_summaries(user_id, expires_at
 -- ============================================================
 -- Auto-create profile on new user signup
 -- ============================================================
+-- SECURITY DEFINER: required so the trigger can write to profiles
+--   from the auth.users context (different schema).
+-- SET search_path: prevents search_path hijacking even with SECURITY DEFINER.
+-- REVOKE EXECUTE FROM PUBLIC: closes the /rest/v1/rpc/handle_new_user endpoint
+--   entirely. Postgres grants EXECUTE to PUBLIC by default; revoking PUBLIC
+--   covers anon and authenticated automatically.
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -253,7 +262,11 @@ BEGIN
   ON CONFLICT (id) DO NOTHING;
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql
+   SECURITY DEFINER
+   SET search_path = public, pg_temp;
+
+REVOKE EXECUTE ON FUNCTION public.handle_new_user() FROM PUBLIC;
 
 CREATE OR REPLACE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users

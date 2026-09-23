@@ -645,7 +645,7 @@ export default function LandingPage() {
                   style={{ fontSize:12, color:t.text2, fontFamily:"var(--font-mono)", border:`1px solid ${t.border}`, borderRadius:8, padding:"8px 18px", background:"transparent", transition:"all 0.2s" }}
                   onMouseEnter={e=>{ (e.currentTarget as HTMLElement).style.borderColor=t.border2; (e.currentTarget as HTMLElement).style.color=t.text; }}
                   onMouseLeave={e=>{ (e.currentTarget as HTMLElement).style.borderColor=t.border; (e.currentTarget as HTMLElement).style.color=t.text2; }}>
-                  Try it free →
+                  Try it free ➜
                 </Link>
               </div>
             </div>

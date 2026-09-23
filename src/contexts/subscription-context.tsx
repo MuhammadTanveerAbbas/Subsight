@@ -101,7 +101,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [upgradePromptOpen, setUpgradePromptOpen] = useState(false);
   const [upgradePromptMessage, setUpgradePromptMessage] = useState(
-    "You have reached the 5 subscription limit on the free plan.",
+    "Upgrade to Pro for more features.",
   );
   const [spendingGoals, setSpendingGoals] = useLocalStorage<SpendingGoal[]>(
     "spendingGoals",
@@ -125,55 +125,71 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("subsight:quota-exceeded", handler);
   }, [toast]);
 
+  const { loading: authLoading } = useAuth();
+
   const refetchSubscriptions = useCallback(async () => {
     if (!user) {
       setSubscriptions([]);
-      setLoading(false);
+      if (!authLoading) setLoading(false);
       return;
     }
 
     setLoading(true);
-    try {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from("subscriptions")
-        .select(
-          "id, name, provider, category, icon, start_date, billing_cycle, amount, currency, notes, active_status, auto_renew, reminder_enabled, reminder_days_before, next_renewal_date, last_reminder_sent, usage_count, last_used",
-        )
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
+    const MAX_ATTEMPTS = 3;
+    let lastError: unknown = null;
 
-      if (error) throw error;
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+      try {
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from("subscriptions")
+          .select(
+            "id, name, provider, category, icon, start_date, billing_cycle, amount, currency, notes, active_status, auto_renew, reminder_enabled, reminder_days_before, next_renewal_date, last_reminder_sent, usage_count, last_used",
+          )
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false });
 
-      if (data) {
-        const formattedSubs = data.map((sub) => ({
-          id: sub.id,
-          name: sub.name,
-          provider: sub.provider,
-          category: sub.category,
-          icon: sub.icon,
-          startDate: sub.start_date,
-          billingCycle: sub.billing_cycle as any,
-          amount: Number(sub.amount),
-          currency: sub.currency as any,
-          notes: sub.notes || "",
-          activeStatus: sub.active_status,
-          autoRenew: sub.auto_renew,
-          reminderEnabled: sub.reminder_enabled ?? false,
-          reminderDaysBefore: sub.reminder_days_before ?? 3,
-          nextRenewalDate: sub.next_renewal_date ?? null,
-          lastReminderSent: sub.last_reminder_sent ?? null,
-          usageCount: sub.usage_count,
-          lastUsed: sub.last_used,
-        }));
-        setSubscriptions(formattedSubs);
+        if (error) throw error;
+
+        if (data) {
+          const formattedSubs = data.map((sub) => ({
+            id: sub.id,
+            name: sub.name,
+            provider: sub.provider,
+            category: sub.category,
+            icon: sub.icon,
+            startDate: sub.start_date,
+            billingCycle: sub.billing_cycle as any,
+            amount: Number(sub.amount),
+            currency: sub.currency as any,
+            notes: sub.notes || "",
+            activeStatus: sub.active_status,
+            autoRenew: sub.auto_renew,
+            reminderEnabled: sub.reminder_enabled ?? false,
+            reminderDaysBefore: sub.reminder_days_before ?? 3,
+            nextRenewalDate: sub.next_renewal_date ?? null,
+            lastReminderSent: sub.last_reminder_sent ?? null,
+            usageCount: sub.usage_count,
+            lastUsed: sub.last_used,
+          }));
+          setSubscriptions(formattedSubs);
+        }
+        // Success break out of retry loop
+        setLoading(false);
+        return;
+      } catch (error) {
+        lastError = error;
+        if (attempt < MAX_ATTEMPTS) {
+          // Exponential backoff: 500ms, 1000ms
+          await new Promise((r) => setTimeout(r, 500 * attempt));
+        }
       }
-    } catch (error) {
-      logError(error, { context: "fetchSubscriptions", userId: user.id });
-    } finally {
-      setLoading(false);
     }
-  }, [user]);
+
+    // All attempts failed
+    logError(lastError, { context: "fetchSubscriptions", userId: user.id });
+    setLoading(false);
+  }, [user, authLoading]);
 
   useEffect(() => {
     refetchSubscriptions();
@@ -197,13 +213,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
         });
         await refetchSubscriptions();
       } catch (error) {
-        if ((error as Error & { upgrade?: boolean })?.upgrade) {
-          setUpgradePromptMessage(
-            "You have reached the 5 subscription limit on the free plan.",
-          );
-          setUpgradePromptOpen(true);
-        }
-        logError(error, { context: "addSubscription" });
+        logError(error, { context: 'addSubscription' });
         throw error instanceof Error ? error : new Error(String(error));
       }
     },

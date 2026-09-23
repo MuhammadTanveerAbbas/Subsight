@@ -19,228 +19,133 @@ export function ExportView({
   toast: (m: string, tp: "success" | "error" | "info") => void;
 }) {
   const exportJSON = () => {
-    exportSubscriptionsJSON(subs);
-    toast("Exported as JSON", "success");
+    try {
+      exportSubscriptionsJSON(subs);
+      toast("Exported as JSON", "success");
+    } catch {
+      toast("JSON export failed. Please try again.", "error");
+    }
   };
 
   const exportCSV = () => {
-    exportSubscriptionsCSV(subs);
-    toast("Exported as CSV", "success");
+    try {
+      exportSubscriptionsCSV(subs);
+      toast("Exported as CSV", "success");
+    } catch {
+      toast("CSV export failed. Please try again.", "error");
+    }
   };
 
   const exportPDF = () => {
-    exportSubscriptionsPDF();
-    toast("PDF export triggered. Check print dialog", "info");
+    try {
+      exportSubscriptionsPDF();
+      toast("PDF export opened check your print dialog", "info");
+    } catch {
+      toast("PDF export failed. Please try again.", "error");
+    }
   };
+
+  const options = [
+    {
+      title: "JSON Export",
+      desc: "Full data with all fields and metadata. Ideal for backup or migrating to another tool.",
+      Icon: FileText,
+      action: exportJSON,
+      shortcut: "Ctrl+E",
+    },
+    {
+      title: "CSV Export",
+      desc: "Spreadsheet-compatible. Open directly in Excel, Google Sheets, or Numbers.",
+      Icon: BarChart3,
+      action: exportCSV,
+      shortcut: "Ctrl+S",
+    },
+    {
+      title: "PDF Export",
+      desc: "Print-ready document with a clean summary of all your subscriptions.",
+      Icon: Download,
+      action: exportPDF,
+      shortcut: "Ctrl+P",
+    },
+  ];
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       <div>
-        <h2
-          style={{
-            fontFamily: "var(--font-display)",
-            fontSize: 22,
-            fontWeight: 800,
-            color: t.text,
-            letterSpacing: -0.5,
-          }}
-        >
+        <h2 style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 800, color: t.text, letterSpacing: -0.5 }}>
           Export Data
         </h2>
-        <p
-          style={{
-            fontSize: 11.5,
-            color: t.text3,
-            fontFamily: "var(--font-mono)",
-            marginTop: 3,
-          }}
-        >
+        <p style={{ fontSize: 11.5, color: t.text3, fontFamily: "var(--font-mono)", marginTop: 3, lineHeight: 1.5 }}>
           Download your subscription data in multiple formats
         </p>
       </div>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill,minmax(270px,1fr))",
-          gap: 16,
-        }}
-      >
-        {[
-          {
-            title: "JSON Export",
-            desc: "Full data with all fields and metadata. Ideal for backup or migrating to another tool.",
-            Icon: FileText,
-            action: exportJSON,
-            shortcut: "Ctrl+E",
-          },
-          {
-            title: "CSV Export",
-            desc: "Spreadsheet-compatible. Open directly in Excel, Google Sheets, or Numbers.",
-            Icon: BarChart3,
-            action: exportCSV,
-            shortcut: "Ctrl+S",
-          },
-          {
-            title: "PDF Export",
-            desc: "Print-ready document with a clean summary of all your subscriptions.",
-            Icon: Download,
-            action: exportPDF,
-            shortcut: "Ctrl+P",
-          },
-        ].map((opt) => (
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))", gap: 16 }}>
+        {options.map((opt) => (
           <div
             key={opt.title}
             style={{
-              background: t.surface,
-              border: `1px solid ${t.border}`,
-              borderRadius: 12,
-              padding: "24px 22px",
-              display: "flex",
-              flexDirection: "column",
-              gap: 16,
+              background: t.surface, border: `1px solid ${t.border}`, borderRadius: 12,
+              padding: "24px 22px", display: "flex", flexDirection: "column", gap: 16,
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <div
-                style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 10,
-                  background: t.greenDim,
-                  border: `1px solid ${t.greenBorder}`,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <opt.Icon size={18} color={t.green} strokeWidth={1.5} />
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{
+                width: 44, height: 44, borderRadius: 10,
+                background: t.greenDim, border: `1px solid ${t.greenBorder}`,
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <opt.Icon size={18} color={t.green} strokeWidth={1.5} aria-hidden="true" />
               </div>
-              <span
-                style={{
-                  fontSize: 10,
-                  color: t.text3,
-                  background: t.surface2,
-                  border: `1px solid ${t.border}`,
-                  borderRadius: 5,
-                  padding: "3px 8px",
-                  fontFamily: "var(--font-mono)",
-                }}
-              >
+              <span style={{
+                fontSize: 10, color: t.text3, background: t.surface2,
+                border: `1px solid ${t.border}`, borderRadius: 5,
+                padding: "3px 8px", fontFamily: "var(--font-mono)",
+              }}>
                 {opt.shortcut}
               </span>
             </div>
             <div>
-              <div
-                style={{
-                  fontFamily: "var(--font-display)",
-                  fontSize: 15,
-                  fontWeight: 700,
-                  color: t.text,
-                  marginBottom: 7,
-                }}
-              >
+              <div style={{ fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 700, color: t.text, marginBottom: 7 }}>
                 {opt.title}
               </div>
-              <div
-                style={{
-                  fontSize: 12.5,
-                  color: t.text2,
-                  fontFamily: "var(--font-mono)",
-                  lineHeight: 1.65,
-                }}
-              >
+              <div style={{ fontSize: 12.5, color: t.text2, fontFamily: "var(--font-mono)", lineHeight: 1.65 }}>
                 {opt.desc}
               </div>
             </div>
             <button
               onClick={opt.action}
+              aria-label={opt.title}
               style={{
-                background: t.green,
-                color: "#000",
-                border: "none",
-                borderRadius: 8,
-                padding: "11px",
-                fontSize: 13,
-                fontWeight: 700,
-                fontFamily: "var(--font-display)",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 7,
-                transition: "background 0.2s",
+                background: t.green, color: "#000", border: "none", borderRadius: 8,
+                padding: 11, fontSize: 13, fontWeight: 700, fontFamily: "var(--font-display)",
+                cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                gap: 7, transition: "background 0.2s",
+                boxShadow: `0 2px 8px ${t.green}44`,
               }}
-              onMouseEnter={(e) =>
-                ((e.currentTarget as HTMLElement).style.background = t.green2)
-              }
-              onMouseLeave={(e) =>
-                ((e.currentTarget as HTMLElement).style.background = t.green)
-              }
+              onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = t.green2)}
+              onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = t.green)}
             >
-              <Download size={13} /> {opt.title.split(" ")[0]}
+              <Download size={13} aria-hidden="true" /> {opt.title.split(" ")[0]}
             </button>
           </div>
         ))}
       </div>
-      <div
-        style={{
-          background: t.surface,
-          border: `1px solid ${t.border}`,
-          borderRadius: 12,
-          padding: "22px",
-        }}
-      >
-        <div
-          style={{
-            fontSize: 13,
-            fontWeight: 700,
-            color: t.text,
-            fontFamily: "var(--font-display)",
-            marginBottom: 16,
-          }}
-        >
+
+      <div style={{ background: t.surface, border: `1px solid ${t.border}`, borderRadius: 12, padding: "22px" }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: t.text, fontFamily: "var(--font-display)", marginBottom: 14 }}>
           Keyboard Shortcuts
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {[
-            ["Ctrl + E", "Export JSON"],
-            ["Ctrl + S", "Export CSV"],
-            ["Ctrl + P", "Export PDF"],
-            ["Ctrl + A", "Add New Subscription"],
-          ].map(([k, v]) => (
-            <div
-              key={k}
-              style={{ display: "flex", alignItems: "center", gap: 14 }}
-            >
-              <kbd
-                style={{
-                  background: t.surface2,
-                  border: `1px solid ${t.border2}`,
-                  borderRadius: 5,
-                  padding: "4px 10px",
-                  fontSize: 11,
-                  color: t.text,
-                  fontFamily: "var(--font-mono)",
-                  whiteSpace: "nowrap",
-                }}
-              >
+          {([["Ctrl + E", "Export JSON"], ["Ctrl + S", "Export CSV"], ["Ctrl + P", "Export PDF"], ["Ctrl + A", "Add New Subscription"]] as [string,string][]).map(([k, v]) => (
+            <div key={k} style={{ display: "flex", alignItems: "center", gap: 14 }}>
+              <kbd style={{
+                background: t.surface2, border: `1px solid ${t.border2}`, borderRadius: 5,
+                padding: "4px 10px", fontSize: 11, color: t.text, fontFamily: "var(--font-mono)", whiteSpace: "nowrap",
+              }}>
                 {k}
               </kbd>
-              <span
-                style={{
-                  fontSize: 12,
-                  color: t.text2,
-                  fontFamily: "var(--font-mono)",
-                }}
-              >
-                {v}
-              </span>
+              <span style={{ fontSize: 12, color: t.text2, fontFamily: "var(--font-mono)" }}>{v}</span>
             </div>
           ))}
         </div>

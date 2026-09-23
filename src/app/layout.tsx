@@ -76,13 +76,13 @@ export const metadata: Metadata = {
 const inter = Inter({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-inter",
+  variable: "--font-display",
 });
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-jetbrains-mono",
+  variable: "--font-mono",
 });
 
 export default function RootLayout({
