@@ -63,28 +63,79 @@ function Skeleton({ w = "100%", h = 16, r = 6 }: { w?: string | number; h?: numb
 function LoadingSkeleton() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      {/* KPI row */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(220px,1fr))", gap: 14 }}>
+      {/* KPI row: same grid + class as the overview so the four boxes sit in one row */}
+      <div className="kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 14 }}>
         {[0,1,2,3].map(i => (
           <div key={i} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, padding: "20px 22px", display: "flex", flexDirection: "column", gap: 12 }}>
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <Skeleton w="55%" h={10} />
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <Skeleton w="45%" h={10} />
               <Skeleton w={32} h={32} r={8} />
             </div>
-            <Skeleton w="40%" h={28} r={6} />
-            <Skeleton w="65%" h={10} />
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <Skeleton w="55%" h={26} r={6} />
+              <Skeleton w="70%" h={10} />
+            </div>
           </div>
         ))}
       </div>
-      {/* Chart row */}
-      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 14 }}>
-        <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, padding: "22px", height: 260, display: "flex", flexDirection: "column", gap: 14 }}>
-          <Skeleton w="35%" h={14} />
+
+      {/* Chart row: same class and shape as the real cards, no fixed height */}
+      <div className="chart-2col" style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 14, minWidth: 0 }}>
+        <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, padding: "20px 22px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <Skeleton w={130} h={12} />
+              <Skeleton w={175} h={9} />
+            </div>
+            <Skeleton w={76} h={24} r={6} />
+          </div>
           <Skeleton w="100%" h={180} r={8} />
         </div>
-        <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, padding: "22px", height: 260, display: "flex", flexDirection: "column", gap: 14 }}>
-          <Skeleton w="55%" h={14} />
-          <Skeleton w="100%" h={140} r={8} />
+
+        <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, padding: "20px 22px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 14 }}>
+            <Skeleton w={100} h={12} />
+            <Skeleton w={120} h={9} />
+          </div>
+          <div style={{ display: "flex", justifyContent: "center", height: 120, alignItems: "center" }}>
+            <Skeleton w={108} h={108} r={54} />
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 5, marginTop: 8 }}>
+            {[0,1,2,3,4].map(i => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                <Skeleton w={7} h={7} r={2} />
+                <Skeleton w={`${[60,48,55,42,50][i]}%`} h={9} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Recent subscriptions table placeholder */}
+      <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "15px 20px", borderBottom: "1px solid var(--border)" }}>
+          <Skeleton w={130} h={12} />
+          <Skeleton w={60} h={10} />
+        </div>
+        <div style={{ overflowX: "auto" }}>
+          <div style={{ minWidth: 480 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 24, padding: "11px 16px", background: "var(--surface2)", borderBottom: "1px solid var(--border)" }}>
+              <div style={{ flex: 2 }}><Skeleton w="60%" h={9} /></div>
+              <div style={{ flex: 1.4 }}><Skeleton w="55%" h={9} /></div>
+              <div style={{ flex: 1.4 }}><Skeleton w="50%" h={9} /></div>
+              <div style={{ flex: 1.6 }}><Skeleton w="60%" h={9} /></div>
+              <div style={{ flex: 1 }}><Skeleton w="45%" h={9} /></div>
+            </div>
+            {[0,1,2,3,4].map(i => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 24, padding: "11px 16px", borderBottom: i < 4 ? "1px solid var(--border)" : "none" }}>
+                <div style={{ flex: 2 }}><Skeleton w="75%" h={11} /></div>
+                <div style={{ flex: 1.4 }}><Skeleton w="65%" h={10} /></div>
+                <div style={{ flex: 1.4 }}><Skeleton w="60%" h={11} /></div>
+                <div style={{ flex: 1.6 }}><Skeleton w="70%" h={10} /></div>
+                <div style={{ flex: 1 }}><Skeleton w={54} h={18} r={9} /></div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
@@ -220,8 +271,6 @@ export default function Dashboard() {
             justifyContent: collapsed ? "center" : "flex-start",
             background: isActive
               ? `linear-gradient(90deg, ${t.greenDim} 0%, transparent 100%)`
-              : isHovered
-              ? t.surface2
               : "transparent",
             borderLeft: isActive ? `2px solid ${t.green}` : "2px solid transparent",
             cursor: "pointer",
@@ -242,8 +291,8 @@ export default function Dashboard() {
               width: 30,
               height: 30,
               borderRadius: 8,
-              background: isActive ? t.greenDim : isHovered ? t.surface3 : "transparent",
-              border: isActive ? `1.5px solid ${t.green}` : isHovered ? `1px solid ${t.border2}` : "1px solid transparent",
+              background: isActive ? t.greenDim : "transparent",
+              border: isActive ? `1.5px solid ${t.green}` : "1px solid transparent",
               transition: "all 0.18s ease",
               flexShrink: 0,
               filter: isActive ? `drop-shadow(0 0 6px ${t.green}66)` : "none",
@@ -514,6 +563,7 @@ export default function Dashboard() {
         a:focus-visible{outline:2px solid var(--green);outline-offset:2px}
         .sidebar-desk{display:flex!important}
         .mob-sb-btn{display:none!important}
+        @media(max-width:820px){ .kpi-grid{grid-template-columns:1fr 1fr!important} }
         @media(max-width:768px){
           .sidebar-desk{display:none!important}
           .mob-sb-btn{display:flex!important}
@@ -524,7 +574,6 @@ export default function Dashboard() {
           .email-verify-banner{display:none!important}
         }
         @media(max-width:640px){
-          .kpi-grid{grid-template-columns:1fr 1fr!important}
           .chart-2col{grid-template-columns:1fr!important}
           .ana-2col{grid-template-columns:1fr!important}
           .add-inner-grid{grid-template-columns:1fr!important}

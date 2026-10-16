@@ -57,7 +57,7 @@ export function OverviewView({ t, subs, onNav }: { t: T; subs: Sub[]; onNav: (id
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       {/* KPI cards minmax 220px fits 4 on 1366px screens */}
-      <div className="kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(220px,1fr))", gap: 14 }}>
+      <div className="kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 14 }}>
         <KPI t={t} label="Monthly Spend"  value={`$${monthly.toFixed(2)}`}                                                Icon={DollarSign}  sub={`${active.length} active subscriptions`} trend="neutral" />
         <KPI t={t} label="Active Subs"    value={`${active.length}`}                                                      Icon={CreditCard}  sub={`${subs.length} total tracked`} />
         <KPI t={t} label="Annual Cost"    value={`$${(monthly * 12).toFixed(0)}`}                                         Icon={TrendingUp}  sub="Projected this year" />
