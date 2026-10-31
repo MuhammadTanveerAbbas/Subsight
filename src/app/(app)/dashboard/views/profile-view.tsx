@@ -14,7 +14,7 @@ export function ProfileView({
   toast,
 }: {
   t: T;
-  toast: (m: string, tp: "success" | "error" | "info") => void;
+  toast: (m: string, tp: "success" | "error" | "info" | "warning") => void;
 }) {
   const { user, updateProfile, deleteAccount } = useAuth();
   const [form, setForm]           = useState({ name: "", avatar: "" });
@@ -204,7 +204,7 @@ export function ProfileView({
           { Icon: Lock,     label: "Encrypted in Transit", desc: "All traffic encrypted via HTTPS/TLS" },
           { Icon: Globe,    label: "Supabase Hosted",     desc: "Backed by PostgreSQL with Row Level Security" },
           { Icon: Bell,     label: "Renewal Reminders",   desc: "Email reminders sent before subscriptions renew" },
-          { Icon: Sparkles, label: "AI Analysis",         desc: "Spending summaries powered by Groq Llama 3.3" },
+          { Icon: Sparkles, label: "AI Analysis",         desc: "Spending summaries and auto-fill powered by Groq AI" },
         ].map((item) => (
           <div
             key={item.label}

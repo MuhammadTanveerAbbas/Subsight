@@ -6,9 +6,9 @@ import { useSubscriptions } from "@/contexts/subscription-context";
 import { useToast } from "@/hooks/use-toast";
 import { applyTokens } from "@/lib/design-tokens";
 import {
-  Sun, Moon, Menu, X, RefreshCw, Plus, ChevronLeft, ChevronRight,
+  Sun, Moon, Menu, Plus,
   LayoutDashboard, CreditCard, BarChart3, Sparkles, Download,
-  Settings, User, Receipt,
+  Settings, User, Receipt, MoreHorizontal, ChevronRight,
 } from "lucide-react";
 import {
   DARK, LIGHT, NAV_MAIN, NAV_BOTTOM,
@@ -150,7 +150,7 @@ export default function Dashboard() {
   const [themeKey, setThemeKey] = useState<TK>("dark");
   const [active, setActive] = useState("overview");
   const [collapsed, setCollapsed] = useState(false);
-  const [mobileSB, setMobileSB] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const [subs, setSubs] = useState<Sub[]>([]);
   const [hoveredNav, setHoveredNav] = useState<string | null>(null);
   const tooltipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -198,19 +198,6 @@ export default function Dashboard() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /* ── Global keyboard shortcuts ────────────────────────────────────── */
-  useEffect(() => {
-    const h = (e: KeyboardEvent) => {
-      if (e.ctrlKey || e.metaKey) {
-        if (e.key === "e") { e.preventDefault(); setActive("export"); }
-        if (e.key === "s") { e.preventDefault(); setActive("export"); }
-        if (e.key === "a") { e.preventDefault(); setActive("add"); }
-      }
-    };
-    window.addEventListener("keydown", h);
-    return () => window.removeEventListener("keydown", h);
-  }, []);
-
   /* ── Tablet auto-collapse at ≤1024px ──────────────────────────────── */
   useEffect(() => {
     const mq = window.matchMedia("(max-width:1024px)");
@@ -221,12 +208,11 @@ export default function Dashboard() {
   }, []);
 
   const showToast = useCallback(
-    (msg: string, type: "success" | "error" | "info" = "success") => {
-      const variant = type === "error" ? "destructive" as const : undefined;
+    (msg: string, type: "success" | "error" | "info" | "warning" = "success") => {
       shadcnToast({
-        title: type === "success" ? "Success" : type === "error" ? "Error" : "Info",
+        // Pass the type directly as the variant toast.tsx handles all four
+        variant: type as "success" | "error" | "info" | "warning",
         description: msg,
-        variant,
       });
     },
     [shadcnToast],
@@ -234,7 +220,7 @@ export default function Dashboard() {
 
   const navTo = useCallback((id: string) => {
     setActive(id);
-    setMobileSB(false);
+    setMoreOpen(false);
   }, []);
 
   const SBW = collapsed ? 64 : 228;
@@ -272,7 +258,6 @@ export default function Dashboard() {
             background: isActive
               ? `linear-gradient(90deg, ${t.greenDim} 0%, transparent 100%)`
               : "transparent",
-            borderLeft: isActive ? `2px solid ${t.green}` : "2px solid transparent",
             cursor: "pointer",
             color: isActive ? t.green : isHovered ? t.text : t.text2,
             transition: "all 0.18s ease",
@@ -388,8 +373,8 @@ export default function Dashboard() {
     || NAV_BOTTOM.find((n) => n.id === active)?.label
     || "Dashboard";
 
-  /* ── Shared sidebar inner content ─────────────────────────────────── */
-  const SidebarContent = ({ mobile = false }: { mobile?: boolean }) => (
+  /* ── Sidebar inner content (desktop only) ─────────────────────────── */
+  const SidebarContent = () => (
     <>
       {/* Logo / Brand */}
       <div
@@ -397,12 +382,11 @@ export default function Dashboard() {
           height: 64,
           display: "flex",
           alignItems: "center",
-          padding: collapsed && !mobile ? "0" : "0 16px",
-          justifyContent: collapsed && !mobile ? "center" : "flex-start",
+          padding: collapsed ? "0" : "0 16px",
+          justifyContent: collapsed ? "center" : "flex-start",
           gap: 10,
           borderBottom: `1px solid ${t.border}`,
           flexShrink: 0,
-          position: "relative",
         }}
       >
         <img
@@ -410,20 +394,14 @@ export default function Dashboard() {
           alt="Subsight"
           width={36}
           height={36}
-          style={{
-            display: "block",
-            borderRadius: 10,
-            flexShrink: 0,
-            boxShadow: `0 4px 16px ${t.greenGlow}`,
-          }}
+          style={{ display: "block", borderRadius: 10, flexShrink: 0, boxShadow: `0 4px 16px ${t.greenGlow}` }}
         />
-        {(!collapsed || mobile) && (
+        {!collapsed && (
           <span
             style={{
               fontFamily: "var(--font-display)",
               fontSize: 18,
               fontWeight: 800,
-              color: t.text,
               letterSpacing: -0.6,
               whiteSpace: "nowrap",
               background: `linear-gradient(135deg, ${t.green} 0%, ${t.green2} 100%)`,
@@ -435,31 +413,12 @@ export default function Dashboard() {
             Subsight
           </span>
         )}
-        {mobile && (
-          <button
-            onClick={() => setMobileSB(false)}
-            style={{ marginLeft: "auto", background: "none", border: "none", color: t.text3, cursor: "pointer", padding: 4 }}
-            aria-label="Close menu"
-          >
-            <X size={18} />
-          </button>
-        )}
       </div>
 
       {/* Main nav */}
       <nav style={{ flex: 1, padding: "10px 0", overflowY: "auto", overflowX: "hidden" }} role="navigation" aria-label="Main navigation">
-        {!collapsed && !mobile && (
-          <div
-            style={{
-              fontSize: 9.5,
-              fontWeight: 600,
-              color: t.text3,
-              fontFamily: "var(--font-mono)",
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              padding: "6px 16px 8px",
-            }}
-          >
+        {!collapsed && (
+          <div style={{ fontSize: 9.5, fontWeight: 600, color: t.text3, fontFamily: "var(--font-mono)", letterSpacing: "0.1em", textTransform: "uppercase", padding: "6px 16px 8px" }}>
             Menu
           </div>
         )}
@@ -469,25 +428,9 @@ export default function Dashboard() {
       </nav>
 
       {/* Bottom nav */}
-      <div
-        style={{
-          padding: "10px 0",
-          borderTop: `1px solid ${t.border}`,
-          flexShrink: 0,
-        }}
-      >
-        {!collapsed && !mobile && (
-          <div
-            style={{
-              fontSize: 9.5,
-              fontWeight: 600,
-              color: t.text3,
-              fontFamily: "var(--font-mono)",
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              padding: "6px 16px 8px",
-            }}
-          >
+      <div style={{ padding: "10px 0", borderTop: `1px solid ${t.border}`, flexShrink: 0 }}>
+        {!collapsed && (
+          <div style={{ fontSize: 9.5, fontWeight: 600, color: t.text3, fontFamily: "var(--font-mono)", letterSpacing: "0.1em", textTransform: "uppercase", padding: "6px 16px 8px" }}>
             Account
           </div>
         )}
@@ -496,45 +439,62 @@ export default function Dashboard() {
         ))}
       </div>
 
-
-
-      {/* Collapse toggle desktop only */}
-      {!mobile && (
+      {/* Collapse toggle */}
+      <div style={{ padding: "8px 8px 12px", borderTop: `1px solid ${t.border}`, flexShrink: 0 }}>
         <button
           onClick={() => setCollapsed((c) => !c)}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           style={{
-            position: "absolute",
-            bottom: 100,
-            right: -12,
-            width: 24,
-            height: 24,
-            borderRadius: "50%",
-            background: t.surface,
-            border: `1px solid ${t.border2}`,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "pointer",
-            color: t.text3,
-            transition: "all 0.2s",
-            zIndex: 10,
-            boxShadow: `0 2px 8px ${t.shadow}`,
+            width: "100%", display: "flex", alignItems: "center",
+            justifyContent: collapsed ? "center" : "flex-start",
+            gap: 8, padding: collapsed ? "8px 0" : "8px 10px",
+            background: "transparent", border: `1px solid ${t.border}`,
+            borderRadius: 8, cursor: "pointer", color: t.text3,
+            transition: "all 0.18s ease",
           }}
           onMouseEnter={(e) => {
-            (e.currentTarget as HTMLElement).style.color = t.green;
-            (e.currentTarget as HTMLElement).style.borderColor = t.greenBorder;
+            (e.currentTarget as HTMLElement).style.color = t.text;
+            (e.currentTarget as HTMLElement).style.borderColor = t.border2;
+            (e.currentTarget as HTMLElement).style.background = t.surface2;
           }}
           onMouseLeave={(e) => {
             (e.currentTarget as HTMLElement).style.color = t.text3;
-            (e.currentTarget as HTMLElement).style.borderColor = t.border2;
+            (e.currentTarget as HTMLElement).style.borderColor = t.border;
+            (e.currentTarget as HTMLElement).style.background = "transparent";
           }}
         >
-          {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
+          <Menu size={14} />
+          {!collapsed && (
+            <span style={{ fontSize: 12, fontFamily: "var(--font-display)", fontWeight: 500, whiteSpace: "nowrap" }}>
+              Collapse
+            </span>
+          )}
         </button>
-      )}
+      </div>
     </>
   );
+
+  /* ── Bottom nav items for mobile ──────────────────────────────────── */
+  /* Primary 4 tabs + an "Add" FAB-style centre button */
+  const MOB_PRIMARY = [
+    { id: "overview",      label: "Home",   Icon: LayoutDashboard },
+    { id: "subscriptions", label: "Subs",   Icon: CreditCard },
+    { id: "add",           label: "Add",    Icon: Plus },
+    { id: "analytics",     label: "Stats",  Icon: BarChart3 },
+    { id: "more",          label: "More",   Icon: MoreHorizontal },
+  ] as const;
+
+  /* Items that appear in the More sheet */
+  const MOB_MORE = [
+    { id: "ai-summary", label: "AI Summary", Icon: Sparkles },
+    { id: "export",     label: "Export",     Icon: Download },
+    { id: "billing",    label: "Billing",    Icon: Receipt },
+    { id: "settings",   label: "Settings",   Icon: Settings },
+    { id: "profile",    label: "Profile",    Icon: User },
+  ] as const;
+
+  /* Is the active tab one of the "More" items? */
+  const moreIsActive = MOB_MORE.some((m) => m.id === active);
 
   return (
     <div
@@ -552,7 +512,9 @@ export default function Dashboard() {
         @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
         @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
         @keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes slideInUp{from{opacity:0;transform:translateY(100%)}to{opacity:1;transform:translateY(0)}}
         @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+        @keyframes dropdownSlideDown{from{opacity:0;transform:translateY(-6px) scale(0.98)}to{opacity:1;transform:translateY(0) scale(1)}}
         a{color:inherit;text-decoration:none}
         ::-webkit-scrollbar{width:4px;height:4px}
         ::-webkit-scrollbar-track{background:transparent}
@@ -562,16 +524,17 @@ export default function Dashboard() {
         button:focus-visible{outline:2px solid var(--green);outline-offset:2px}
         a:focus-visible{outline:2px solid var(--green);outline-offset:2px}
         .sidebar-desk{display:flex!important}
-        .mob-sb-btn{display:none!important}
         @media(max-width:820px){ .kpi-grid{grid-template-columns:1fr 1fr!important} }
         @media(max-width:768px){
           .sidebar-desk{display:none!important}
-          .mob-sb-btn{display:flex!important}
           .main-content-wrap{margin-left:0!important;width:100%!important}
-          .main-pad{padding:16px!important}
+          .main-pad{padding:16px 16px 88px!important}
           .add-grid{grid-template-columns:1fr!important}
           .header-pad{padding:0 16px!important}
           .email-verify-banner{display:none!important}
+          .topbar-add-btn{display:none!important}
+          .mob-bottom-nav{display:flex!important}
+          .mob-logo{display:block!important}
         }
         @media(max-width:640px){
           .chart-2col{grid-template-columns:1fr!important}
@@ -581,7 +544,7 @@ export default function Dashboard() {
         }
         @media(max-width:480px){
           .kpi-grid{grid-template-columns:1fr!important}
-          .main-pad{padding:12px!important}
+          .main-pad{padding:12px 12px 88px!important}
         }
       `}</style>
 
@@ -610,38 +573,84 @@ export default function Dashboard() {
         <SidebarContent />
       </aside>
 
-      {/* ── Mobile Sidebar Overlay ───────────────────────────────────── */}
-      {mobileSB && (
+      {/* ── More Sheet Overlay (mobile) ──────────────────────────────── */}
+      {moreOpen && (
         <div
-          style={{ position: "fixed", inset: 0, zIndex: 200 }}
+          style={{ position: "fixed", inset: 0, zIndex: 300 }}
           role="dialog"
           aria-modal="true"
-          aria-label="Navigation menu"
+          aria-label="More navigation"
         >
+          {/* Backdrop */}
           <div
-            style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)" }}
-            onClick={() => setMobileSB(false)}
+            style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)" }}
+            onClick={() => setMoreOpen(false)}
           />
-          <aside
+          {/* Sheet */}
+          <div
             style={{
               position: "absolute",
-              left: 0,
-              top: 0,
-              bottom: 0,
-              width: 240,
-              background: themeKey === "dark"
-                ? "linear-gradient(180deg, #0c0c0e 0%, #0a0a0c 100%)"
-                : "linear-gradient(180deg, #f0f0ee 0%, #eaeae8 100%)",
-              borderRight: `1px solid ${t.border}`,
-              display: "flex",
-              flexDirection: "column",
-              zIndex: 201,
-              boxShadow: `4px 0 32px ${t.shadow}`,
-              animation: "slideUp 0.2s ease",
+              bottom: 64,
+              left: 12,
+              right: 12,
+              background: themeKey === "dark" ? "#141414" : "#ffffff",
+              border: `1px solid ${t.border2}`,
+              borderRadius: 20,
+              padding: "8px 6px",
+              zIndex: 301,
+              boxShadow: `0 -4px 40px ${t.shadow}`,
+              animation: "slideInUp 0.22s cubic-bezier(0.16,1,0.3,1)",
             }}
           >
-            <SidebarContent mobile />
-          </aside>
+            {/* Sheet handle */}
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 6 }}>
+              <div style={{ width: 36, height: 4, borderRadius: 2, background: t.border2 }} />
+            </div>
+            <div style={{ fontSize: 10, fontWeight: 600, color: t.text3, fontFamily: "var(--font-mono)", letterSpacing: "0.1em", textTransform: "uppercase", padding: "4px 10px 10px" }}>
+              More
+            </div>
+            {MOB_MORE.map((item) => {
+              const isActive = active === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => { navTo(item.id); }}
+                  style={{
+                    width: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 14,
+                    padding: "12px 14px",
+                    background: isActive ? t.greenDim : "transparent",
+                    border: "none",
+                    borderRadius: 12,
+                    cursor: "pointer",
+                    color: isActive ? t.green : t.text2,
+                    transition: "background 0.15s, color 0.15s",
+                    textAlign: "left",
+                  }}
+                  onMouseEnter={(e) => { if (!isActive) (e.currentTarget as HTMLElement).style.background = t.surface2; }}
+                  onMouseLeave={(e) => { if (!isActive) (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+                >
+                  <span
+                    style={{
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      width: 36, height: 36, borderRadius: 10,
+                      background: isActive ? t.greenDim : t.surface2,
+                      border: `1px solid ${isActive ? t.greenBorder : t.border}`,
+                      flexShrink: 0,
+                    }}
+                  >
+                    <item.Icon size={16} strokeWidth={isActive ? 2.2 : 1.6} />
+                  </span>
+                  <span style={{ flex: 1, fontSize: 14, fontWeight: isActive ? 600 : 400, fontFamily: "var(--font-display)" }}>
+                    {item.label}
+                  </span>
+                  <ChevronRight size={14} color={t.text3} />
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
 
@@ -681,25 +690,15 @@ export default function Dashboard() {
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
-            {/* Mobile menu button */}
-            <button
-              className="mob-sb-btn"
-              onClick={() => setMobileSB(true)}
-              aria-label="Open navigation menu"
-              style={{
-                background: "none",
-                border: "none",
-                color: t.text2,
-                cursor: "pointer",
-                display: "none",
-                alignItems: "center",
-                flexShrink: 0,
-                padding: 4,
-                borderRadius: 6,
-              }}
-            >
-              <Menu size={20} />
-            </button>
+            {/* Mobile logo (visible only on mobile since sidebar is hidden) */}
+            <img
+              src="/icon.svg"
+              alt="Subsight"
+              width={28}
+              height={28}
+              className="mob-logo"
+              style={{ display: "none", borderRadius: 8, flexShrink: 0 }}
+            />
 
             <div style={{ minWidth: 0 }}>
               <div
@@ -716,15 +715,7 @@ export default function Dashboard() {
               >
                 {activeLabel}
               </div>
-              <div
-                style={{
-                  fontSize: 10,
-                  color: t.text3,
-                  fontFamily: "var(--font-mono)",
-                  marginTop: 1,
-                  lineHeight: 1.4,
-                }}
-              >
+              <div style={{ fontSize: 10, color: t.text3, fontFamily: "var(--font-mono)", marginTop: 1, lineHeight: 1.4 }}>
                 {subs.filter((s) => s.status === "active").length} active ·{" "}
                 <span style={{ color: t.green }}>${activeMonthly.toFixed(2)}/mo</span>
               </div>
@@ -737,17 +728,10 @@ export default function Dashboard() {
               <div
                 className="email-verify-banner"
                 style={{
-                  fontSize: 11,
-                  color: t.amber,
-                  background: t.amberDim,
-                  border: `1px solid ${t.amber}44`,
-                  borderRadius: 8,
-                  padding: "7px 12px",
-                  fontFamily: "var(--font-mono)",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  lineHeight: 1.4,
+                  fontSize: 11, color: t.amber, background: t.amberDim,
+                  border: `1px solid ${t.amber}44`, borderRadius: 8,
+                  padding: "7px 12px", fontFamily: "var(--font-mono)",
+                  display: "flex", alignItems: "center", gap: 8, lineHeight: 1.4,
                 }}
               >
                 <span>Verify email</span>
@@ -765,14 +749,9 @@ export default function Dashboard() {
                   }}
                   disabled={emailSent}
                   style={{
-                    background: "none",
-                    border: "none",
-                    color: t.amber,
-                    textDecoration: "underline",
-                    cursor: emailSent ? "default" : "pointer",
-                    fontFamily: "var(--font-mono)",
-                    fontSize: 11,
-                    opacity: emailSent ? 0.7 : 1,
+                    background: "none", border: "none", color: t.amber,
+                    textDecoration: "underline", cursor: emailSent ? "default" : "pointer",
+                    fontFamily: "var(--font-mono)", fontSize: 11, opacity: emailSent ? 0.7 : 1,
                   }}
                 >
                   {emailSent ? "Sent ✓" : "Resend"}
@@ -785,52 +764,30 @@ export default function Dashboard() {
               onClick={() => setThemeKey(themeKey === "dark" ? "light" : "dark" as TK)}
               aria-label={`Switch to ${themeKey === "dark" ? "light" : "dark"} mode`}
               style={{
-                width: 34,
-                height: 34,
-                border: `1px solid ${t.border2}`,
-                borderRadius: 9,
-                background: t.surface2,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-                transition: "all 0.2s",
-                flexShrink: 0,
+                width: 34, height: 34, border: `1px solid ${t.border2}`, borderRadius: 9,
+                background: t.surface2, display: "flex", alignItems: "center",
+                justifyContent: "center", cursor: "pointer", transition: "all 0.2s", flexShrink: 0,
               }}
             >
-              {themeKey === "dark"
-                ? <Sun size={14} color={t.text2} />
-                : <Moon size={14} color={t.text2} />}
+              {themeKey === "dark" ? <Sun size={14} color={t.text2} /> : <Moon size={14} color={t.text2} />}
             </button>
 
-            {/* Add button */}
+            {/* Add button hidden on mobile (Add is in bottom bar) */}
             <button
+              className="topbar-add-btn"
               onClick={() => navTo("add")}
               aria-label="Add new subscription"
               style={{
-                background: t.green,
-                color: "#000",
-                border: "none",
-                borderRadius: 9,
-                padding: "8px 14px",
-                fontSize: 12,
-                fontWeight: 700,
-                fontFamily: "var(--font-display)",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                flexShrink: 0,
-                whiteSpace: "nowrap",
+                background: t.green, color: "#000", border: "none", borderRadius: 9,
+                padding: "8px 14px", fontSize: 12, fontWeight: 700,
+                fontFamily: "var(--font-display)", cursor: "pointer",
+                display: "flex", alignItems: "center", gap: 6,
+                flexShrink: 0, whiteSpace: "nowrap",
                 transition: "background 0.2s, transform 0.1s",
                 boxShadow: `0 2px 8px ${t.green}44`,
               }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.background = t.green2;
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.background = t.green;
-              }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = t.green2; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = t.green; }}
             >
               <Plus size={12} strokeWidth={2.5} /> Add
             </button>
@@ -840,18 +797,141 @@ export default function Dashboard() {
         {/* Page content */}
         <main
           className="main-pad"
-          style={{
-            flex: 1,
-            padding: "28px",
-            overflowY: "auto",
-            overflowX: "hidden",
-            animation: "fadeIn 0.2s ease",
-          }}
+          style={{ flex: 1, padding: "28px", overflowY: "auto", overflowX: "hidden", animation: "fadeIn 0.2s ease" }}
           key={active}
         >
           {renderView()}
         </main>
       </div>
+
+      {/* ── Mobile Bottom Nav Bar ────────────────────────────────────── */}
+      <nav
+        className="mob-bottom-nav"
+        aria-label="Mobile navigation"
+        style={{
+          display: "none", /* shown via CSS on ≤768px */
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: 64,
+          zIndex: 100,
+          background: themeKey === "dark"
+            ? "rgba(10,10,12,0.96)"
+            : "rgba(248,248,246,0.96)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          borderTop: `1px solid ${t.border}`,
+          alignItems: "center",
+          justifyContent: "space-around",
+          paddingBottom: "env(safe-area-inset-bottom, 0px)",
+        }}
+      >
+        {MOB_PRIMARY.map((item) => {
+          const isAdd = item.id === "add";
+          const isMore = item.id === "more";
+          const isActive = isMore ? (moreOpen || moreIsActive) : (active === item.id && !moreOpen);
+
+          return (
+            <button
+              key={item.id}
+              onClick={() => {
+                if (isMore) {
+                  setMoreOpen((o) => !o);
+                } else {
+                  setMoreOpen(false);
+                  navTo(item.id);
+                }
+              }}
+              aria-label={item.label}
+              aria-current={isActive ? "page" : undefined}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: isAdd ? 0 : 4,
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                padding: "6px 8px",
+                borderRadius: 12,
+                minWidth: 52,
+                position: "relative",
+                transition: "all 0.15s ease",
+                outline: "none",
+              }}
+            >
+              {isAdd ? (
+                /* FAB-style Add button */
+                <span
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: 44,
+                    height: 44,
+                    borderRadius: 14,
+                    background: t.green,
+                    boxShadow: `0 4px 16px ${t.green}55`,
+                    transition: "transform 0.15s, box-shadow 0.15s",
+                  }}
+                >
+                  <item.Icon size={20} color="#000" strokeWidth={2.5} />
+                </span>
+              ) : (
+                <>
+                  {/* Icon */}
+                  <span
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: 32,
+                      height: 28,
+                      borderRadius: 8,
+                      position: "relative",
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    {/* Active pill indicator */}
+                    {isActive && (
+                      <span
+                        style={{
+                          position: "absolute",
+                          inset: 0,
+                          borderRadius: 8,
+                          background: t.greenDim,
+                          border: `1px solid ${t.greenBorder}`,
+                        }}
+                      />
+                    )}
+                    <item.Icon
+                      size={18}
+                      strokeWidth={isActive ? 2.2 : 1.6}
+                      color={isActive ? t.green : t.text3}
+                      style={{ position: "relative", zIndex: 1, transition: "all 0.15s ease" }}
+                    />
+                  </span>
+                  {/* Label */}
+                  <span
+                    style={{
+                      fontSize: 10,
+                      fontWeight: isActive ? 600 : 400,
+                      color: isActive ? t.green : t.text3,
+                      fontFamily: "var(--font-display)",
+                      lineHeight: 1,
+                      transition: "color 0.15s",
+                    }}
+                  >
+                    {item.label}
+                  </span>
+                </>
+              )}
+            </button>
+          );
+        })}
+      </nav>
     </div>
   );
 }

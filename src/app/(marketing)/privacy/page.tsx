@@ -98,7 +98,7 @@ function PageFooter({ t }: { t:T }) {
             <a key={l} href={h} target={h.startsWith("http")?"_blank":"_self"} rel={h.startsWith("http")?"noopener":""} style={{ fontSize:12, color:t.text3, fontFamily:"var(--font-mono)", transition:"color 0.2s" }} onMouseEnter={e=>(e.currentTarget.style.color=t.green)} onMouseLeave={e=>(e.currentTarget.style.color=t.text3)}>{l}</a>
           ))}
         </div>
-        <p style={{ fontSize:11, color:t.text3, fontFamily:"var(--font-mono)" }}>© 2025 Subsight · MIT License</p>
+        <p style={{ fontSize:11, color:t.text3, fontFamily:"var(--font-mono)" }}>© 2026 Subsight · MIT License</p>
       </div>
     </footer>
   );

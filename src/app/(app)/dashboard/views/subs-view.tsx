@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import {
   Search, ToggleLeft, ToggleRight, AlertTriangle, Edit3, Trash2,
-  RefreshCw, Check, Plus, X, CreditCard,
+  RefreshCw, Plus, X, CreditCard, Power, ChevronDown,
+  CheckCircle2, Clock, AlertCircle, XCircle,
 } from "lucide-react";
 import { useSubscriptions } from "@/contexts/subscription-context";
 import { EditModal } from "@/components/subscription/edit-modal";
@@ -101,6 +102,195 @@ function DeleteConfirmModal({
   );
 }
 
+/* ── Status filter options ────────────────────────────────────────────── */
+const FILTER_OPTIONS = [
+  { value: "all",             label: "All Status",     Icon: null,          color: null },
+  { value: "active",          label: "Active",         Icon: CheckCircle2,  color: "#22c55e" },
+  { value: "warning",         label: "Due Soon",       Icon: Clock,         color: "#f59e0b" },
+  { value: "renewal_passed",  label: "Overdue",        Icon: AlertCircle,   color: "#ef4444" },
+  { value: "inactive",        label: "Inactive",       Icon: XCircle,       color: null },
+] as const;
+
+function StatusFilter({ t, value, onChange }: { t: T; value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const [focusedIdx, setFocusedIdx] = useState<number>(-1);
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  // Focus the list item when focusedIdx changes
+  useEffect(() => {
+    if (!open || focusedIdx < 0) return;
+    const btns = listRef.current?.querySelectorAll<HTMLButtonElement>("button[role='option']");
+    btns?.[focusedIdx]?.focus();
+  }, [open, focusedIdx]);
+
+  // Reset focus index when opening
+  useEffect(() => {
+    if (open) {
+      const current = FILTER_OPTIONS.findIndex((o) => o.value === value);
+      setFocusedIdx(current >= 0 ? current : 0);
+    } else {
+      setFocusedIdx(-1);
+    }
+  }, [open, value]);
+
+  const handleTriggerKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {
+      e.preventDefault();
+      setOpen(true);
+    } else if (e.key === "Escape") {
+      setOpen(false);
+    }
+  };
+
+  const handleOptionKeyDown = (e: React.KeyboardEvent, idx: number, optValue: string) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onChange(optValue);
+      setOpen(false);
+      triggerRef.current?.focus();
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      setOpen(false);
+      triggerRef.current?.focus();
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setFocusedIdx((i) => Math.min(i + 1, FILTER_OPTIONS.length - 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setFocusedIdx((i) => Math.max(i - 1, 0));
+    } else if (e.key === "Home") {
+      e.preventDefault();
+      setFocusedIdx(0);
+    } else if (e.key === "End") {
+      e.preventDefault();
+      setFocusedIdx(FILTER_OPTIONS.length - 1);
+    }
+  };
+
+  const selected = FILTER_OPTIONS.find((o) => o.value === value) ?? FILTER_OPTIONS[0];
+
+  return (
+    <div ref={ref} style={{ position: "relative", flexShrink: 0 }}>
+      {/* Trigger */}
+      <button
+        ref={triggerRef}
+        onClick={() => setOpen((o) => !o)}
+        onKeyDown={handleTriggerKeyDown}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label="Filter by status"
+        style={{
+          display: "flex", alignItems: "center", gap: 8,
+          background: open ? t.surface3 : t.surface2,
+          border: `1px solid ${open ? t.greenBorder : t.border}`,
+          borderRadius: 9, padding: "9px 12px",
+          fontSize: 12, color: t.text, fontFamily: "var(--font-mono)",
+          cursor: "pointer", outline: "none",
+          transition: "border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease",
+          whiteSpace: "nowrap", minWidth: 136,
+          boxShadow: open ? `0 0 0 3px ${t.greenDim}` : "none",
+        }}
+      >
+        {selected.Icon && (
+          <selected.Icon
+            size={11}
+            strokeWidth={2.2}
+            color={selected.color ?? t.text3}
+            aria-hidden="true"
+          />
+        )}
+        {!selected.Icon && <span style={{ width: 11, display: "inline-block" }} />}
+        <span style={{ flex: 1, textAlign: "left" }}>{selected.label}</span>
+        <ChevronDown
+          size={11}
+          color={t.text3}
+          style={{ transition: "transform 0.2s ease", transform: open ? "rotate(180deg)" : "rotate(0deg)", flexShrink: 0 }}
+          aria-hidden="true"
+        />
+      </button>
+
+      {/* Dropdown */}
+      {open && (
+        <div
+          ref={listRef}
+          role="listbox"
+          aria-label="Status filter options"
+          style={{
+            position: "absolute", top: "calc(100% + 5px)", right: 0,
+            background: t.surface,
+            border: `1px solid ${t.border2}`,
+            borderRadius: 11, overflow: "hidden",
+            boxShadow: `0 4px 6px -1px rgba(0,0,0,0.12), 0 12px 36px rgba(0,0,0,0.28), 0 0 0 1px ${t.border}`,
+            zIndex: 200, minWidth: "calc(100% + 16px)",
+            animation: "dropdownSlideDown 0.16s cubic-bezier(0.16,1,0.3,1)",
+            transformOrigin: "top right",
+            padding: "4px",
+          }}
+        >
+          {FILTER_OPTIONS.map((opt, idx) => {
+            const isSelected = opt.value === value;
+            return (
+              <button
+                key={opt.value}
+                role="option"
+                aria-selected={isSelected}
+                tabIndex={-1}
+                onClick={() => { onChange(opt.value); setOpen(false); triggerRef.current?.focus(); }}
+                onKeyDown={(e) => handleOptionKeyDown(e, idx, opt.value)}
+                style={{
+                  width: "100%", display: "flex", alignItems: "center", gap: 9,
+                  padding: "8px 10px",
+                  background: isSelected ? (opt.color ? `${opt.color}18` : t.surface2) : "transparent",
+                  border: "none", cursor: "pointer",
+                  borderRadius: 7,
+                  fontSize: 12, fontFamily: "var(--font-mono)",
+                  color: isSelected ? (opt.color ?? t.text) : t.text2,
+                  textAlign: "left",
+                  transition: "background 0.12s ease, color 0.12s ease",
+                  outline: "none",
+                }}
+                onMouseEnter={(e) => {
+                  if (!isSelected) {
+                    (e.currentTarget as HTMLElement).style.background = t.surface2;
+                    (e.currentTarget as HTMLElement).style.color = t.text;
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isSelected) {
+                    (e.currentTarget as HTMLElement).style.background = "transparent";
+                    (e.currentTarget as HTMLElement).style.color = t.text2;
+                  }
+                }}
+              >
+                {opt.Icon
+                  ? <opt.Icon size={11} strokeWidth={2.2} color={opt.color ?? t.text3} aria-hidden="true" />
+                  : <span style={{ width: 11, display: "inline-block" }} />
+                }
+                <span style={{ flex: 1 }}>{opt.label}</span>
+                {isSelected && (
+                  <CheckCircle2 size={10} color={opt.color ?? t.green} aria-hidden="true" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function SubsView({
   t, subs, setSubs, onAdd, toast,
 }: {
@@ -108,7 +298,7 @@ export function SubsView({
   subs: Sub[];
   setSubs: React.Dispatch<React.SetStateAction<Sub[]>>;
   onAdd: () => void;
-  toast: (m: string, tp: "success" | "error" | "info") => void;
+  toast: (m: string, tp: "success" | "error" | "info" | "warning") => void;
 }) {
   const [search, setSearch]   = useState("");
   const [filter, setFilter]   = useState("all");
@@ -257,22 +447,7 @@ export function SubsView({
               onBlur={(e)  => ((e.target as HTMLInputElement).style.borderColor = t.border)}
             />
           </div>
-          <select
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            aria-label="Filter by status"
-            style={{
-              background: t.surface2, border: `1px solid ${t.border}`, borderRadius: 9,
-              padding: "9px 13px", fontSize: 12, color: t.text,
-              fontFamily: "var(--font-mono)", cursor: "pointer", outline: "none",
-            }}
-          >
-            <option value="all">All Status</option>
-            <option value="active">Active</option>
-            <option value="warning">Due Soon</option>
-            <option value="renewal_passed">Renewal Passed</option>
-            <option value="inactive">Inactive</option>
-          </select>
+          <StatusFilter t={t} value={filter} onChange={setFilter} />
         </div>
 
         {/* Empty state */}
@@ -346,19 +521,41 @@ export function SubsView({
                           onClick={() => toggleStatus(s.id)}
                           aria-label={`${s.status === "active" ? "Deactivate" : "Activate"} ${s.name}`}
                           aria-pressed={s.status === "active"}
-                          style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", padding: 2 }}
+                          title={s.status === "active" ? "Deactivate" : "Activate"}
+                          style={{
+                            background: s.status === "active" ? t.greenDim : t.surface3,
+                            border: `1px solid ${s.status === "active" ? `${t.green}44` : t.border2}`,
+                            borderRadius: 7,
+                            width: 28,
+                            height: 28,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            cursor: "pointer",
+                            color: s.status === "active" ? t.green : t.text3,
+                            transition: "all 0.18s",
+                            flexShrink: 0,
+                          }}
+                          onMouseEnter={(e) => {
+                            const el = e.currentTarget as HTMLElement;
+                            if (s.status === "active") {
+                              el.style.background = t.redDim;
+                              el.style.borderColor = `${t.red}44`;
+                              el.style.color = t.red;
+                            } else {
+                              el.style.background = t.greenDim;
+                              el.style.borderColor = `${t.green}44`;
+                              el.style.color = t.green;
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            const el = e.currentTarget as HTMLElement;
+                            el.style.background = s.status === "active" ? t.greenDim : t.surface3;
+                            el.style.borderColor = s.status === "active" ? `${t.green}44` : t.border2;
+                            el.style.color = s.status === "active" ? t.green : t.text3;
+                          }}
                         >
-                          <div
-                            style={{
-                              width: 18, height: 18, borderRadius: 4,
-                              background: s.status === "active" ? t.green : t.surface3,
-                              border: `1px solid ${s.status === "active" ? t.green : t.border2}`,
-                              display: "flex", alignItems: "center", justifyContent: "center",
-                              transition: "all 0.18s",
-                            }}
-                          >
-                            {s.status === "active" && <Check size={11} color="#000" strokeWidth={2.5} aria-hidden="true" />}
-                          </div>
+                          <Power size={12} strokeWidth={2.2} aria-hidden="true" />
                         </button>
                       </td>
                       {/* Name */}

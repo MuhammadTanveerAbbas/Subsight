@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Globe, Tag, Plus, X, Bell, Save, RefreshCw, ToggleRight, ToggleLeft } from "lucide-react";
+import { Globe, Tag, Plus, X, Bell, Save, RefreshCw, ToggleRight, ToggleLeft, Mail, CheckCircle2, XCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/contexts/auth-context";
 import type { T } from "@/app/(app)/dashboard/dashboard-constants";
@@ -11,7 +11,7 @@ export function SettingsView({
   toast,
 }: {
   t: T;
-  toast: (m: string, tp: "success" | "error" | "info") => void;
+  toast: (m: string, tp: "success" | "error" | "info" | "warning") => void;
 }) {
   const { user } = useAuth();
   const [currency, setCurrency] = useState("USD");
@@ -20,6 +20,8 @@ export function SettingsView({
   const [notifs, setNotifs] = useState({ renewal: true, weekly: false, budget: true });
   const [saving, setSaving] = useState(false);
   const [loadingPrefs, setLoadingPrefs] = useState(true);
+  const [smtpTesting, setSmtpTesting] = useState(false);
+  const [smtpStatus, setSmtpStatus] = useState<{ ok: boolean; message: string } | null>(null);
 
   /* ── Load prefs from Supabase (fallback to localStorage) ── */
   useEffect(() => {
@@ -67,6 +69,20 @@ export function SettingsView({
   };
   const removeCat = (c: string) => setCats((p) => p.filter((x) => x !== c));
 
+  const testSmtp = async () => {
+    setSmtpTesting(true);
+    setSmtpStatus(null);
+    try {
+      const res = await fetch("/api/smtp/test", { method: "POST" });
+      const data = await res.json();
+      setSmtpStatus({ ok: data.ok ?? res.ok, message: data.message || data.error || "Unknown result" });
+    } catch {
+      setSmtpStatus({ ok: false, message: "Request failed. Check your network connection." });
+    } finally {
+      setSmtpTesting(false);
+    }
+  };
+
   const save = async () => {
     setSaving(true);
     const prefs = { currency, cats, notifs };
@@ -91,7 +107,7 @@ export function SettingsView({
 
   const sel: React.CSSProperties = {
     background: t.surface2, border: `1px solid ${t.border}`, borderRadius: 8,
-    padding: "10px 13px", fontSize: 13, color: t.text,
+    padding: "9px 13px", fontSize: 13, color: t.text,
     fontFamily: "var(--font-mono)", cursor: "pointer", outline: "none",
   };
 
@@ -99,7 +115,7 @@ export function SettingsView({
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: 14, maxWidth: 680 }}>
         {[1,2,3].map(i => (
-          <div key={i} style={{ background: t.surface, border: `1px solid ${t.border}`, borderRadius: 12, padding: 22, height: 100,
+          <div key={i} style={{ backgroundColor: t.surface, border: `1px solid ${t.border}`, borderRadius: 12, padding: 22, height: 100,
             backgroundImage: `linear-gradient(90deg,${t.surface2} 25%,${t.surface3} 50%,${t.surface2} 75%)`,
             backgroundSize: "200% 100%", animation: "shimmer 1.4s infinite linear" }} />
         ))}
@@ -240,6 +256,53 @@ export function SettingsView({
             </button>
           </div>
         ))}
+      </div>
+
+      {/* SMTP Connection Test */}
+      <div style={{ background: t.surface, border: `1px solid ${t.border}`, borderRadius: 12, padding: 22 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+          <Mail size={14} color={t.green} aria-hidden="true" />
+          <span style={{ fontSize: 14, fontWeight: 700, color: t.text, fontFamily: "var(--font-display)" }}>
+            Email (SMTP)
+          </span>
+        </div>
+        <p style={{ fontSize: 12, color: t.text3, fontFamily: "var(--font-mono)", marginBottom: 14, lineHeight: 1.5 }}>
+          SMTP credentials are configured via environment variables on the server (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM). Use the button below to verify the connection.
+        </p>
+        <button
+          onClick={testSmtp}
+          disabled={smtpTesting}
+          style={{
+            background: t.surface2, color: t.text, border: `1px solid ${t.border2}`, borderRadius: 8,
+            padding: "10px 18px", fontSize: 13, fontWeight: 600, fontFamily: "var(--font-display)",
+            cursor: smtpTesting ? "not-allowed" : "pointer",
+            display: "flex", alignItems: "center", gap: 7, opacity: smtpTesting ? 0.7 : 1,
+            transition: "all 0.2s",
+          }}
+          onMouseEnter={(e) => { if (!smtpTesting) { (e.currentTarget as HTMLElement).style.borderColor = t.green; (e.currentTarget as HTMLElement).style.color = t.green; } }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = t.border2; (e.currentTarget as HTMLElement).style.color = t.text; }}
+        >
+          {smtpTesting
+            ? <><RefreshCw size={13} style={{ animation: "spin 1s linear infinite" }} /> Testing…</>
+            : <><Mail size={13} /> Test SMTP Connection</>
+          }
+        </button>
+        {smtpStatus && (
+          <div style={{
+            marginTop: 12, display: "flex", alignItems: "flex-start", gap: 9,
+            background: smtpStatus.ok ? t.greenDim : `${t.red}11`,
+            border: `1px solid ${smtpStatus.ok ? t.greenBorder : `${t.red}33`}`,
+            borderRadius: 8, padding: "10px 14px",
+          }}>
+            {smtpStatus.ok
+              ? <CheckCircle2 size={14} color={t.green} style={{ flexShrink: 0, marginTop: 1 }} />
+              : <XCircle size={14} color={t.red} style={{ flexShrink: 0, marginTop: 1 }} />
+            }
+            <span style={{ fontSize: 12, color: smtpStatus.ok ? t.green : t.red, fontFamily: "var(--font-mono)", lineHeight: 1.5 }}>
+              {smtpStatus.message}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Save */}

@@ -1,8 +1,8 @@
 import { getAuthenticatedUser } from '@/lib/api-auth'
 import { summarizeSpending } from '@/lib/groq-service'
-import { checkRateLimit } from '@/lib/rate-limit'
 import { NextRequest } from 'next/server'
 import { z } from 'zod'
+import { RateLimitError } from 'groq-sdk'
 
 const summaryRequestSchema = z.object({
   subscriptions: z.array(z.object({
@@ -17,13 +17,6 @@ export async function POST(req: NextRequest) {
   const auth = await getAuthenticatedUser({ requireVerified: true })
   if (!auth.user) return Response.json({ error: auth.error }, { status: auth.status })
 
-  const { user } = auth
-
-  const rateCheck = await checkRateLimit(`summary:${user.id}`, 10, 60000)
-  if (!rateCheck.success) {
-    return Response.json({ error: 'Rate limit exceeded' }, { status: 429 })
-  }
-
   let subscriptions: z.infer<typeof summaryRequestSchema>['subscriptions']
   try {
     const body = summaryRequestSchema.parse(await req.json())
@@ -35,7 +28,18 @@ export async function POST(req: NextRequest) {
   try {
     const summary = await summarizeSpending(subscriptions)
     return Response.json({ summary })
-  } catch {
-    return Response.json({ error: 'AI service unavailable' }, { status: 500 })
+  } catch (err) {
+    // Groq provider rate limit tell the client to back off
+    if (err instanceof RateLimitError) {
+      const retryAfter = err.headers?.get('retry-after')
+      return Response.json(
+        { error: 'AI provider rate limit reached. Please wait a moment and try again.' },
+        {
+          status: 429,
+          headers: retryAfter ? { 'Retry-After': retryAfter } : {},
+        },
+      )
+    }
+    return Response.json({ error: 'AI service unavailable. Please try again shortly.' }, { status: 503 })
   }
 }

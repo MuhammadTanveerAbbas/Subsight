@@ -285,7 +285,6 @@ function FAQItem({ q, a, t, idx }: { q:string; a:string; t:Theme; idx:number }) 
 export default function LandingPage() {
   const [themeKey, setThemeKey] = useState<ThemeKey>("dark");
   const [scrolled, setScrolled] = useState(false);
-  const [annual, setAnnual]     = useState(false);
   const t = themeKey === "dark" ? DARK : LIGHT;
 
   useEffect(() => {
@@ -556,27 +555,39 @@ export default function LandingPage() {
           <Reveal>
             <div style={{ textAlign:"center", marginBottom:48 }}>
               <Label text="Pricing" t={t} />
-              <h2 style={{ fontFamily:"var(--font-display)", fontSize:"clamp(32px,5vw,56px)", fontWeight:800, letterSpacing:-2, color:t.text, lineHeight:1.05 }}>Simple pricing.<br /><span style={{ color:t.green }}>Start free.</span></h2>
-              <p style={{ fontSize:14, color:t.text2, maxWidth:440, margin:"16px auto 0", lineHeight:1.78, fontFamily:"var(--font-mono)" }}>Free forever for the basics. Upgrade to Pro for $9/month when you need more.</p>
-            </div>
-          </Reveal>
-          <Reveal delay={60}>
-            <div style={{ display:"flex", justifyContent:"center", marginBottom:40 }}>
-              <div style={{ display:"inline-flex", alignItems:"center", gap:12, background:t.bg, border:`1px solid ${t.border2}`, borderRadius:999, padding:"8px 24px", cursor:"pointer" }} onClick={()=>setAnnual(!annual)}>
-                <span style={{ fontSize:13, fontFamily:"var(--font-display)", fontWeight:annual?400:700, color:annual?t.text3:t.text }}>Monthly</span>
-                <div style={{ width:44, height:24, borderRadius:999, background:annual?t.green:t.surface3, border:`1px solid ${t.border2}`, position:"relative", transition:"background 0.2s", flexShrink:0 }}>
-                  <div style={{ width:18, height:18, borderRadius:"50%", background:"#fff", position:"absolute", top:3, left:annual?23:3, transition:"left 0.2s" }} />
-                </div>
-                <span style={{ fontSize:13, fontFamily:"var(--font-display)", fontWeight:annual?700:400, color:annual?t.text:t.text3 }}>Annual <span style={{ fontSize:10, color:t.green, fontFamily:"var(--font-mono)" }}>Save $22</span></span>
-              </div>
+              <h2 style={{ fontFamily:"var(--font-display)", fontSize:"clamp(32px,5vw,56px)", fontWeight:800, letterSpacing:-2, color:t.text, lineHeight:1.05 }}>Free forever.<br /><span style={{ color:t.green }}>No credit card.</span></h2>
+              <p style={{ fontSize:14, color:t.text2, maxWidth:480, margin:"16px auto 0", lineHeight:1.78, fontFamily:"var(--font-mono)" }}>Every feature is available to all users at no cost. Paid plans are coming in the future.</p>
             </div>
           </Reveal>
           <div className="price-row" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:24, alignItems:"stretch" }}>
             <Reveal delay={0}>
-              <PriceCard t={t} plan="Free" price="$0" sub="/month" desc="Everything you need to get started, no credit card required." cta="Get Started Free" href="/sign-up" features={["Up to 5 subscriptions","Basic analytics dashboard","AI auto-fill (5 / month)","Simulation mode","Export to JSON","Community support"]} />
+              <PriceCard t={t} highlight plan="Free" price="$0" sub="/month" desc="All features included. No credit card required, no hidden limits." cta="Get Started Free" href="/sign-up" features={["Unlimited subscriptions","Full analytics dashboard","AI-powered spending insights","AI auto-fill for subscription details","Simulation mode (toggle to preview budget)","Export to JSON, CSV, and PDF","Renewal email reminders","Custom categories","Multi-currency support","Dark and light theme"]} />
             </Reveal>
             <Reveal delay={80}>
-              <PriceCard t={t} highlight plan="Pro" price={annual?"$86":"$9"} sub={annual?"/year":"/month"} desc="For power users who want the full experience." cta="Start Pro" href="/sign-up" features={["Unlimited subscriptions","Advanced analytics & charts","Unlimited AI auto-fill","Export to JSON, CSV & PDF","Renewal alerts & spending goals","Custom categories","Priority support"]} />
+              {/* Coming Soon card no pricing, no CTA link */}
+              <div className="price-card" style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:16, padding:"40px 32px", position:"relative", flex:1, minWidth:0, display:"flex", flexDirection:"column", opacity:0.7 }}>
+                <span style={{ position:"absolute", top:-14, left:"50%", transform:"translateX(-50%)", background:t.surface3, color:t.text2, fontSize:9.5, fontWeight:700, padding:"5px 18px", borderRadius:999, fontFamily:"var(--font-mono)", letterSpacing:"0.1em", whiteSpace:"nowrap", border:`1px solid ${t.border2}` }}>COMING SOON</span>
+                <div style={{ marginBottom:24 }}>
+                  <span style={{ fontFamily:"var(--font-mono)", fontSize:10, color:t.text3, letterSpacing:"0.18em", textTransform:"uppercase", display:"block", marginBottom:8 }}>Paid Plan</span>
+                  <p style={{ fontSize:12.5, color:t.text3, fontFamily:"var(--font-mono)", lineHeight:1.6 }}>Paid plans are not yet available. We are working on premium features for teams and power users.</p>
+                </div>
+                <div style={{ display:"flex", alignItems:"baseline", gap:8, marginBottom:8, paddingBottom:24, borderBottom:`1px solid ${t.border}` }}>
+                  <span style={{ fontFamily:"var(--font-display)", fontSize:36, fontWeight:800, color:t.text3, lineHeight:1, letterSpacing:-1 }}>TBA</span>
+                </div>
+                <ul style={{ listStyle:"none", display:"flex", flexDirection:"column", gap:12, marginBottom:32, flex:1, paddingTop:20 }}>
+                  {["Team collaboration","Advanced spending goals","Priority support","Additional export formats","API access"].map((f,i) => (
+                    <li key={i} style={{ fontSize:13, color:t.text3, display:"flex", alignItems:"flex-start", gap:10, fontFamily:"var(--font-mono)" }}>
+                      <span style={{ width:18, height:18, borderRadius:"50%", background:t.surface2, border:`1px solid ${t.border}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1 }}>
+                        <Check size={10} color={t.text3} />
+                      </span>
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <div style={{ display:"flex", width:"100%", padding:"14px", borderRadius:10, fontSize:13, fontFamily:"var(--font-mono)", fontWeight:600, textAlign:"center", background:"transparent", color:t.text3, border:`1px solid ${t.border}`, justifyContent:"center", alignItems:"center", gap:7 }}>
+                  Notify me when available
+                </div>
+              </div>
             </Reveal>
           </div>
         </div>
@@ -607,14 +618,14 @@ export default function LandingPage() {
           `}</style>
           {(() => {
             const faqs = [
-              ["Is Subsight really free?","Subsight is MIT-licensed and fully open source. Self-hosted is free. The hosted version has a free tier with 5 subscriptions and a Pro plan for unlimited use. You only pay for Supabase and Groq usage for self-hosted, both have generous free tiers that cover most users."],
-              ["Do I need a Groq API key?","Only for AI auto-fill. Every other feature (dashboard, tracking, simulation, export, analytics, settings) works without it. You can add a key at any time in Settings."],
-              ["Where is my data stored?","In your own Supabase PostgreSQL database. Subsight never has direct access to your data. You own it completely, and you can export or delete it at any time."],
-              ["Can it detect subscriptions from my bank?","Not currently. Subsight is manual + AI-assisted. Bank auto-detection is on the roadmap, but we prioritize privacy. No bank credentials needed today."],
-              ["What export formats are supported?","JSON, CSV, and PDF, accessible via a single click or keyboard shortcuts: Ctrl+E (JSON), Ctrl+S (CSV), Ctrl+P (PDF)."],
-              ["Is there a mobile app?","Not yet, web-only today, but the interface is fully responsive and works well on mobile browsers. A native app is on the roadmap."],
+              ["Is Subsight really free?","Yes. Every feature is available to all users at no cost, no credit card, no usage caps, no locked features. The app is MIT-licensed and fully open source. If you self-host, you only pay for Supabase and Groq, both of which have generous free tiers."],
+              ["Do I need a Groq API key?","Only for AI auto-fill and AI spending summaries. Every other feature (dashboard, analytics, simulation, export, renewal alerts, settings) works without a Groq key. You can add one at any time in Settings."],
+              ["Where is my data stored?","In your own Supabase PostgreSQL database. Subsight never has direct access to your data. You own it completely and can export or delete it at any time."],
+              ["Can it detect subscriptions from my bank?","Not currently. Subsight is manual and AI-assisted. You enter subscriptions yourself; the AI auto-fill fills in details like price and category once you type a service name."],
+              ["What export formats are supported?","JSON, CSV, and PDF. All three formats are available to all users for free."],
+              ["Is there a mobile app?","Not yet web only, but the interface is fully responsive and works well on mobile browsers. A native app may come in the future."],
               ["Can I self-host on my own server?","Absolutely. Clone the GitHub repo, set up a Supabase project, add your environment variables, and deploy anywhere Next.js runs: Vercel, Railway, fly.io, or any VPS."],
-              ["How does renewal alerting work?","Set your SMTP credentials in Settings and choose a reminder window (1, 3, 7, or 14 days). A cron job checks daily and sends an email before each renewal date."],
+              ["How do renewal reminders work?","Configure SMTP credentials via environment variables on your server, enable reminders on a subscription, and choose a lead time (1, 3, 7, or 14 days). A daily cron job checks and sends an email before each renewal date."],
             ];
             const left  = faqs.filter((_,i) => i % 2 === 0);
             const right = faqs.filter((_,i) => i % 2 !== 0);
@@ -689,7 +700,7 @@ export default function LandingPage() {
             </div>
             {[
               { title:"Product",    links:[["Features","#features"],["Pricing","#pricing"],["Compare","#compare"],["Dashboard","/dashboard"]] },
-              { title:"Resources",  links:[["GitHub","https://github.com/MuhammadTanveerAbbas/Subsight-Tracker"],["Live Demo","https://subsight-tracker.vercel.app/"],["Author","https://themvpguy.vercel.app/"]] },
+              { title:"Resources",  links:[["GitHub","https://github.com/MuhammadTanveerAbbas/Subsight-Tracker"],["Live Demo","https://subsight-tracker.vercel.app/"],["Author","https://muhammadtanveerabbas.vercel.app/"]] },
               { title:"Legal",      links:[["Privacy Policy","/privacy"],["Terms of Service","/terms"]] },
             ].map(col => (
               <div key={col.title}>
@@ -703,7 +714,7 @@ export default function LandingPage() {
             ))}
           </div>
           <div className="footer-bottom" style={{ display:"flex", justifyContent:"space-between", alignItems:"center", paddingTop:24, borderTop:`1px solid ${t.border}`, flexWrap:"wrap", gap:14 }}>
-            <p style={{ fontSize:11, color:t.text3, fontFamily:"var(--font-mono)" }}>© 2025 Subsight · Built by Muhammad Tanveer Abbas · MIT License</p>
+            <p style={{ fontSize:11, color:t.text3, fontFamily:"var(--font-mono)" }}>© 2026 Subsight · Built by Muhammad Tanveer Abbas · MIT License</p>
             <div className="footer-bottom-links" style={{ display:"flex", gap:20 }}>
               {([["GitHub","https://github.com/MuhammadTanveerAbbas/Subsight-Tracker"],["Live App","https://subsight-tracker.vercel.app/"],["Privacy","/privacy"],["Terms","/terms"]] as const).map(([label,href]) => (
                 <a key={label} href={href} target={href.startsWith("http")?"_blank":"_self"} rel={href.startsWith("http")?"noopener":""} style={{ fontSize:11, color:t.text3, fontFamily:"var(--font-mono)", transition:"color 0.2s" }} onMouseEnter={e=>(e.currentTarget.style.color=t.green)} onMouseLeave={e=>(e.currentTarget.style.color=t.text3)}>{label}</a>

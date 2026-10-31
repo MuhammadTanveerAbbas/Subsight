@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { TrendingUp, Layers, PauseCircle, CalendarClock } from "lucide-react";
 import {
   ResponsiveContainer, AreaChart, Area, CartesianGrid, XAxis, YAxis, Tooltip,
   BarChart, Bar, Cell, PieChart as RechartsPie, Pie,
@@ -12,12 +13,6 @@ import type { Sub } from "@/app/(app)/dashboard/dashboard-types";
 const COLORS = ["#22c55e","#3b82f6","#f59e0b","#a78bfa","#06b6d4","#fb923c","#34d399","#f472b6"];
 const TR = "all 0.2s cubic-bezier(0.4,0,0.2,1)";
 
-const ACCENTS = [
-  { color: "#fb923c", glow: "rgba(251,146,60,0.22)"  },
-  { color: "#a78bfa", glow: "rgba(167,139,250,0.22)" },
-  { color: "#ef4444", glow: "rgba(239,68,68,0.22)"   },
-  { color: "#06b6d4", glow: "rgba(6,182,212,0.22)"   },
-];
 
 export function AnalyticsView({ t, subs }: { t: T; subs: Sub[] }) {
   const monthlyData = useMemo(() => buildMonthlyData(subs), [subs]);
@@ -41,25 +36,25 @@ export function AnalyticsView({ t, subs }: { t: T; subs: Sub[] }) {
       l: "Highest Single Sub",
       v: topSub ? `$${topSub.amount.toFixed(2)}` : "-",
       n: topSub ? topSub.name : "No active subs",
-      icon: "↑",
+      Icon: TrendingUp,
     },
     {
       l: "Top Category",
       v: topCat ? `${topCat.value}%` : "-",
       n: topCat ? topCat.name : "No data",
-      icon: "◈",
+      Icon: Layers,
     },
     {
       l: "Inactive Cost / mo",
       v: wastedMonthly > 0 ? `$${wastedMonthly.toFixed(2)}` : "$0.00",
       n: `${inactive.length} paused sub${inactive.length !== 1 ? "s" : ""}`,
-      icon: "⊘",
+      Icon: PauseCircle,
     },
     {
       l: "Billing Mix",
       v: active.length ? `${monthlyCount}m / ${annualCount}y` : "-",
       n: `${active.length} active total`,
-      icon: "⟳",
+      Icon: CalendarClock,
     },
   ];
 
@@ -71,17 +66,6 @@ export function AnalyticsView({ t, subs }: { t: T; subs: Sub[] }) {
     el.style.transform    = on ? "translateY(-2px)" : "translateY(0)";
   };
 
-  const kpiHover = (e: React.MouseEvent<HTMLDivElement>, on: boolean, i: number) => {
-    const el   = e.currentTarget;
-    const acc  = ACCENTS[i]!;
-    const val  = el.querySelector<HTMLElement>(".ana-val");
-    const icon = el.querySelector<HTMLElement>(".ana-icon");
-    el.style.borderColor = on ? acc.color : t.border;
-    el.style.boxShadow   = on ? `0 6px 28px ${acc.glow}` : "none";
-    el.style.transform   = on ? "translateY(-3px)" : "translateY(0)";
-    if (val)  val.style.color  = on ? acc.color : t.text;
-    if (icon) { icon.style.background = on ? `${acc.color}22` : t.surface2; icon.style.color = on ? acc.color : t.text3; }
-  };
 
   return (
     <>
@@ -105,7 +89,7 @@ export function AnalyticsView({ t, subs }: { t: T; subs: Sub[] }) {
 
         {/* Unique KPI strip 4 equal columns, no gaps */}
         <div className="ana-kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>
-          {stats.map((s, i) => (
+          {stats.map((s) => (
             <div
               key={s.l}
               style={{
@@ -118,31 +102,25 @@ export function AnalyticsView({ t, subs }: { t: T; subs: Sub[] }) {
                 transition: TR,
                 cursor: "default",
               }}
-              onMouseEnter={(e) => kpiHover(e, true,  i)}
-              onMouseLeave={(e) => kpiHover(e, false, i)}
             >
-              {/* top accent line */}
-              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: ACCENTS[i]!.color, opacity: 0.6, borderRadius: "14px 14px 0 0" }} />
-
-              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 14 }}>
-                <div style={{ fontSize: 10, color: t.text3, fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.09em", lineHeight: 1.4, transition: TR }}>
-                  {s.l}
-                </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
                 <span
-                  className="ana-icon"
                   style={{
-                    fontSize: 13, color: t.text3,
                     background: t.surface2,
-                    borderRadius: 6, width: 26, height: 26,
+                    border: `1px solid ${t.border}`,
+                    borderRadius: 7, width: 26, height: 26,
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    flexShrink: 0, transition: TR,
+                    flexShrink: 0,
                   }}
                 >
-                  {s.icon}
+                  <s.Icon size={13} strokeWidth={1.8} color={t.text3} aria-hidden="true" />
                 </span>
+                <div style={{ fontSize: 10, color: t.text3, fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.09em", lineHeight: 1.4 }}>
+                  {s.l}
+                </div>
               </div>
 
-              <div className="ana-val" style={{ fontFamily: "var(--font-display)", fontSize: 26, fontWeight: 800, color: t.text, letterSpacing: -0.8, lineHeight: 1, transition: TR }}>
+              <div style={{ fontFamily: "var(--font-display)", fontSize: 26, fontWeight: 800, color: t.text, letterSpacing: -0.8, lineHeight: 1, transition: TR }}>
                 {s.v}
               </div>
               <div style={{ fontSize: 10.5, color: t.text3, fontFamily: "var(--font-mono)", marginTop: 7, lineHeight: 1.4, transition: TR, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>

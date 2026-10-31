@@ -99,7 +99,7 @@ export function AISummaryView({ t, subs }: { t: T; subs: Sub[] }) {
             AI Summary
           </h2>
           <p style={{ fontSize: 11.5, color: t.text3, fontFamily: "var(--font-mono)", marginTop: 3, lineHeight: 1.5 }}>
-            AI-powered spending insights powered by Groq Llama
+            AI-powered spending insights powered by Groq AI
           </p>
         </div>
 

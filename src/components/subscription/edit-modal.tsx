@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { X, RefreshCw, Save, ToggleLeft, ToggleRight } from "lucide-react";
+import { X, RefreshCw, Save, ToggleLeft, ToggleRight, Sparkles, AlertCircle } from "lucide-react";
 import { updateSubscription as updateSubscriptionApi } from "@/lib/subscriptions-api";
 import { useSubscriptions } from "@/contexts/subscription-context";
 import { BILLING_CYCLE_LABELS, BILLING_CYCLES } from "@/lib/types";
+import { fetchWithTimeout } from "@/lib/fetch-client";
 import type { Sub, SubStatus } from "@/app/(app)/dashboard/dashboard-types";
 import type { T } from "@/app/(app)/dashboard/dashboard-constants";
 
@@ -103,7 +104,7 @@ function SelectRow({
           background: t.surface2,
           border: `1px solid ${t.border}`,
           borderRadius: 8,
-          padding: "10px 13px",
+          padding: "9px 13px",
           fontSize: 13,
           color: t.text,
           fontFamily: "var(--font-mono)",
@@ -133,11 +134,64 @@ export function EditModal({
   const [form, setForm] = useState<Sub>({ ...sub });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiProgress, setAiProgress] = useState(0);
+  const [aiSuccess, setAiSuccess] = useState(false);
   const { refetchSubscriptions } = useSubscriptions();
   const f =
     <K extends keyof Sub>(k: K) =>
     (v: Sub[K]) =>
       setForm((p) => ({ ...p, [k]: v }));
+
+  const validCategories = [
+    "Streaming", "Productivity", "Cloud", "Design",
+    "Development", "Music", "Finance", "Education",
+    "Lifestyle", "Other",
+  ];
+
+  const aiAutofill = async () => {
+    if (!form.name.trim()) return;
+    setAiLoading(true);
+    setAiSuccess(false);
+    setError(null);
+    setAiProgress(0);
+    const ticker = setInterval(() => setAiProgress((p) => Math.min(p + 12, 88)), 350);
+    try {
+      const res = await fetchWithTimeout("/api/ai/autofill", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: form.name }),
+        timeoutMs: 30_000,
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "AI autofill failed");
+      }
+      const data = await res.json();
+      const aiCategory = data.category || "";
+      const resolvedCategory = validCategories.includes(aiCategory) ? aiCategory : "";
+      setForm((p) => ({
+        ...p,
+        category:  resolvedCategory || p.category,
+        amount:    data.amount != null ? (parseFloat(String(data.amount)) || p.amount) : p.amount,
+        provider:  data.provider    || p.provider,
+        cycle:     data.billingCycle || p.cycle,
+        autoRenew: data.autoRenew   ?? p.autoRenew,
+        currency:  data.currency    || p.currency,
+        // Fill notes with description only if notes are currently empty
+        notes:     (!p.notes && data.description) ? data.description : p.notes,
+      }));
+      setAiProgress(100);
+      setAiSuccess(true);
+      setTimeout(() => setAiSuccess(false), 3000);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "AI autofill unavailable");
+    } finally {
+      clearInterval(ticker);
+      setTimeout(() => setAiProgress(0), 600);
+      setAiLoading(false);
+    }
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -245,6 +299,7 @@ export function EditModal({
         </div>
         {error && (
           <div
+            role="alert"
             style={{
               background: t.redDim,
               border: `1px solid ${t.red}44`,
@@ -254,19 +309,114 @@ export function EditModal({
               fontSize: 12,
               color: t.red,
               fontFamily: "var(--font-mono)",
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 8,
+              lineHeight: 1.5,
             }}
           >
+            <AlertCircle size={13} style={{ flexShrink: 0, marginTop: 1 }} />
             {error}
           </div>
         )}
+        {aiSuccess && (
+          <div
+            role="status"
+            style={{
+              background: t.greenDim,
+              border: `1px solid ${t.greenBorder}`,
+              borderRadius: 8,
+              padding: "10px 14px",
+              marginBottom: 16,
+              fontSize: 12,
+              color: t.green,
+              fontFamily: "var(--font-mono)",
+            }}
+          >
+            ✓ AI autofill applied successfully
+          </div>
+        )}
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          <InputRow
-            label="Subscription Name *"
-            value={form.name}
-            onChange={(v) => f("name")(v)}
-            placeholder="e.g. Netflix"
-            t={t}
-          />
+          {/* Name + AI Fill */}
+          <div>
+            <label
+              style={{
+                fontSize: 10.5,
+                color: t.text3,
+                fontFamily: "var(--font-mono)",
+                letterSpacing: "0.08em",
+                display: "block",
+                marginBottom: 5,
+              }}
+            >
+              Subscription Name *
+            </label>
+            <div style={{ display: "flex", gap: 8 }}>
+              <input
+                value={form.name}
+                onChange={(e) => f("name")(e.target.value)}
+                placeholder="e.g. Netflix"
+                style={{
+                  flex: 1,
+                  background: t.surface2,
+                  border: `1px solid ${t.border}`,
+                  borderRadius: 8,
+                  padding: "10px 13px",
+                  fontSize: 13,
+                  color: t.text,
+                  fontFamily: "var(--font-mono)",
+                  outline: "none",
+                  transition: "border-color 0.2s",
+                }}
+                onFocus={(e) => ((e.target as HTMLInputElement).style.borderColor = t.greenBorder)}
+                onBlur={(e)  => ((e.target as HTMLInputElement).style.borderColor = t.border)}
+              />
+              <button
+                onClick={aiAutofill}
+                disabled={!form.name.trim() || saving || aiLoading}
+                aria-label="AI auto-fill subscription details"
+                style={{
+                  background: aiLoading ? t.surface3 : t.greenDim,
+                  border: `1px solid ${aiLoading ? t.border2 : t.greenBorder}`,
+                  borderRadius: 8,
+                  padding: "0 14px",
+                  cursor: form.name.trim() && !saving && !aiLoading ? "pointer" : "not-allowed",
+                  color: aiLoading ? t.text3 : t.green,
+                  opacity: !form.name.trim() ? 0.5 : 1,
+                  flexShrink: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  fontSize: 12,
+                  fontFamily: "var(--font-mono)",
+                  fontWeight: 600,
+                  transition: "all 0.2s",
+                  position: "relative",
+                  overflow: "hidden",
+                  minWidth: 86,
+                }}
+              >
+                {aiLoading && aiProgress > 0 && (
+                  <span
+                    style={{
+                      position: "absolute",
+                      bottom: 0,
+                      left: 0,
+                      height: 2,
+                      width: `${aiProgress}%`,
+                      background: t.green,
+                      transition: "width 0.3s ease",
+                      borderRadius: 1,
+                    }}
+                  />
+                )}
+                {aiLoading
+                  ? <><RefreshCw size={13} style={{ animation: "spin 1s linear infinite" }} /> AI Fill</>
+                  : <><Sparkles size={13} /> AI Fill</>
+                }
+              </button>
+            </div>
+          </div>
           <div
             style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}
           >
@@ -291,13 +441,14 @@ export function EditModal({
                     background: t.surface2,
                     border: `1px solid ${t.border}`,
                     borderRadius: 8,
-                    padding: "10px 10px",
+                    padding: "9px 10px",
                     fontSize: 12,
                     color: t.text,
                     fontFamily: "var(--font-mono)",
                     cursor: "pointer",
                     outline: "none",
                     flexShrink: 0,
+                    width: "auto",
                   }}
                 >
                   {["USD", "EUR", "GBP", "PKR", "CAD", "AUD"].map((c) => (
@@ -344,7 +495,7 @@ export function EditModal({
               options={[
                 "Streaming", "Productivity", "Cloud", "Design",
                 "Development", "Music", "Finance", "Education",
-                "Lifestyle", "Other",
+                "Lifestyle", "Communication", "Health", "Other",
               ]}
               t={t}
             />

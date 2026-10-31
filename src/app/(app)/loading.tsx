@@ -1,9 +1,4 @@
-import { Loader2 } from "lucide-react"
-
+// No top-level loading screen the dashboard handles its own skeleton loading state
 export default function AppLoading() {
-  return (
-    <div className="flex min-h-[50vh] items-center justify-center">
-      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-    </div>
-  )
+  return null;
 }

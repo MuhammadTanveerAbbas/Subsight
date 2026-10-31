@@ -27,7 +27,7 @@ export function MktFooter({ t }: { t: T }) {
               onMouseLeave={e=>(e.currentTarget.style.color=t.text3)}>{l}</a>
           ))}
         </div>
-        <p style={{ fontSize:11, color:t.text3, fontFamily:"var(--font-mono)", whiteSpace:"nowrap" }}>© 2025 Subsight · MIT</p>
+        <p style={{ fontSize:11, color:t.text3, fontFamily:"var(--font-mono)", whiteSpace:"nowrap" }}>© 2026 Subsight · MIT</p>
       </div>
     </footer>
   );

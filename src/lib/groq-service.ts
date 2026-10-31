@@ -9,22 +9,28 @@ import type { ChatCompletionMessageParam } from 'groq-sdk/resources/chat'
 import { escapeHtml, sanitizeText } from './validation'
 import { logError } from './error-logger'
 
-// Preferred model IDs are tried in order. The first model in each list is the
-// one the app intentionally uses today; the remaining entries are compatibility
-// fallbacks selected from the models Groq reports as available.
+// ── Model configuration ──────────────────────────────────────────────────────
+//
+// Primary models are tried first. Fallbacks are used if the primary is
+// unavailable. All IDs are verified against the live Groq /v1/models endpoint.
+//
+// Current live models (as of 2026):
+//   openai/gpt-oss-120b | 120B, best quality, ~500 tok/s
+//   openai/gpt-oss-20b  | 20B, fastest, ~1000 tok/s
+//   qwen/qwen3.8-27b    | 27B balanced fallback
+//   allam-2-7b          | lightweight emergency fallback
 const MODEL_PREFERENCES = {
+  // Used for AI autofill: speed matters more than depth
   fast: [
-    'llama-3.3-70b-versatile',
-    'llama-3.1-70b-versatile',
-    'llama-3.1-8b-instant',
-    'llama3-70b-8192',
-    'llama3-8b-8192',
+    'openai/gpt-oss-20b',
+    'qwen/qwen3.8-27b',
+    'allam-2-7b',
   ],
+  // Used for spending summaries: quality matters more than speed
   quality: [
-    'llama-3.3-70b-versatile',
-    'llama-3.1-70b-versatile',
-    'llama3-70b-8192',
-    'llama-3.1-8b-instant',
+    'openai/gpt-oss-120b',
+    'openai/gpt-oss-20b',
+    'qwen/qwen3.8-27b',
   ],
 } as const
 
@@ -32,10 +38,13 @@ type ModelKey = keyof typeof MODEL_PREFERENCES
 
 // Model IDs that are not usable for chat completions.
 const NON_CHAT_MODELS = new Set([
-  'text-embedding-3-large',
-  'text-embedding-3-small',
   'whisper-large-v3',
   'whisper-large-v3-turbo',
+  'openai/gpt-oss-safeguard-20b',
+  'meta-llama/llama-prompt-guard-2-22m',
+  'meta-llama/llama-prompt-guard-2-86m',
+  'text-embedding-3-large',
+  'text-embedding-3-small',
 ])
 
 const MODEL_CACHE_TTL_MS = 6 * 60 * 60 * 1000 // 6 hours
@@ -409,7 +418,7 @@ async function chatCompletion(groq: Groq, request: ChatCompletionRequest) {
     selectModel(models, preference, triedModels) ??
     preference.find((id) => !triedModels.has(id)) ??
     null
-  if (!model) throw new Error('No suitable Groq model available')
+  if (!model) throw new Error('No suitable Groq model available check GROQ_API_KEY and model list')
 
   let attempt = 0
 
@@ -451,13 +460,108 @@ async function chatCompletion(groq: Groq, request: ChatCompletionRequest) {
 
 // ── Public AI functions ───────────────────────────────────────────────────────
 
+// ── Category normalisation ───────────────────────────────────────────────────
+// The form dropdowns use a specific set of category values. This map converts
+// any AI-returned category string to the closest valid app category.
+const VALID_APP_CATEGORIES = [
+  'Streaming', 'Productivity', 'Cloud', 'Design',
+  'Development', 'Music', 'Finance', 'Education',
+  'Lifestyle', 'Communication', 'Health', 'Other',
+] as const
+
+type AppCategory = (typeof VALID_APP_CATEGORIES)[number]
+
+const CATEGORY_MAP: Record<string, AppCategory> = {
+  // Entertainment variants
+  entertainment: 'Streaming',
+  streaming:     'Streaming',
+  gaming:        'Streaming',
+  media:         'Streaming',
+  video:         'Streaming',
+  // Music
+  music:         'Music',
+  audio:         'Music',
+  podcast:       'Music',
+  // Productivity
+  productivity:  'Productivity',
+  office:        'Productivity',
+  workspace:     'Productivity',
+  business:      'Productivity',
+  saas:          'Productivity',
+  // Development
+  development:   'Development',
+  developer:     'Development',
+  devtools:      'Development',
+  'dev tools':   'Development',
+  hosting:       'Development',
+  // Design
+  design:        'Design',
+  creative:      'Design',
+  art:           'Design',
+  // Cloud
+  cloud:         'Cloud',
+  storage:       'Cloud',
+  backup:        'Cloud',
+  // Communication
+  communication: 'Communication',
+  messaging:     'Communication',
+  email:         'Communication',
+  chat:          'Communication',
+  collaboration: 'Communication',
+  // Marketing
+  marketing:     'Productivity',
+  analytics:     'Productivity',
+  seo:           'Productivity',
+  // Finance
+  finance:       'Finance',
+  accounting:    'Finance',
+  banking:       'Finance',
+  payments:      'Finance',
+  // Education
+  education:     'Education',
+  learning:      'Education',
+  course:        'Education',
+  training:      'Education',
+  // Health
+  health:        'Health',
+  fitness:       'Health',
+  wellness:      'Health',
+  medical:       'Health',
+  // Lifestyle
+  lifestyle:     'Lifestyle',
+  food:          'Lifestyle',
+  travel:        'Lifestyle',
+  shopping:      'Lifestyle',
+  home:          'Lifestyle',
+  // Security / Other
+  security:      'Other',
+  privacy:       'Other',
+  vpn:           'Other',
+  password:      'Other',
+  other:         'Other',
+}
+
+function normalizeCategory(raw: string): AppCategory {
+  const key = raw.trim().toLowerCase()
+  if (CATEGORY_MAP[key]) return CATEGORY_MAP[key]
+  // Substring search so "Entertainment & Streaming" → "Streaming"
+  for (const [k, v] of Object.entries(CATEGORY_MAP)) {
+    if (key.includes(k)) return v
+  }
+  // If the value already matches a valid app category (case-insensitive), keep it
+  const match = VALID_APP_CATEGORIES.find(
+    (c) => c.toLowerCase() === key,
+  )
+  if (match) return match
+  return 'Other'
+}
+
 /**
  * Auto-fill subscription details for a given service name.
  *
  * Strategy:
  * 1. Check the curated KNOWN_SUBSCRIPTIONS map first instant, accurate, no AI cost.
- * 2. Fall back to Groq LLM for unknown services, with a highly-specific prompt
- *    that instructs the model to use its training data for real current pricing.
+ * 2. Fall back to Groq LLM for unknown services with a precise, factual prompt.
  */
 export async function autoFillSubscription(name: string): Promise<{
   provider: string
@@ -466,51 +570,70 @@ export async function autoFillSubscription(name: string): Promise<{
   currency: string
   billingCycle: string
   autoRenew: boolean
+  description: string
 }> {
   // ── 1. Fast path: curated knowledge base ──────────────────────────────────
   const known = lookupKnownSubscription(name)
-  if (known) return known
+  if (known) {
+    return {
+      ...known,
+      description: '', // curated entries don't ship a description; AI path fills it
+    }
+  }
 
   // ── 2. Slow path: LLM with a highly-specific, factual prompt ──────────────
   const groq = getGroq()
+  const validCategories = VALID_APP_CATEGORIES.join(' | ')
   const response = await chatCompletion(groq, {
     modelKey: 'fast',
     messages: [
       {
         role: 'system',
-        content: `You are a real-time subscription pricing database.
-Your ONLY job is to return factual, current pricing for subscription services.
+        content: `You are a subscription-service information database.
+Your ONLY job is to return factual, current information for subscription services.
 
 Rules:
-- Use your knowledge of ACTUAL current pricing from the service's official website.
-- For the "amount" field, return the most widely-used individual/personal plan price in USD.
-- If the service is free at the base level, return 0.
-- If the service doesn't exist or you are uncertain, still return your best estimate.
-- Return ONLY valid JSON no markdown, no explanation, no extra text whatsoever.
+- Use real, current pricing from the service's official website.
+- For "amount", return the most popular individual/personal plan price in USD per month.
+- If the service is free, return 0 for amount.
+- If the service does not exist or you are genuinely unsure, return empty strings and 0 for amount do NOT invent data.
+- Return ONLY valid JSON no markdown, no explanation, no extra text.
 
 Required JSON shape (ALL fields mandatory):
 {
-  "provider": "Official company or brand name (string)",
-  "category": "One of: Entertainment | Productivity | Development | Design | Marketing | Finance | Health | Education | Cloud | Communication | Other",
-  "amount": <number USD monthly price, e.g. 9.99>,
+  "provider": "Official company or brand name. Empty string if unknown.",
+  "category": "Exactly one of: ${validCategories}",
+  "amount": <number: USD monthly price, e.g. 9.99. Use 0 for free or unknown.>,
   "currency": "USD",
-  "billingCycle": "monthly | annually | one-time",
-  "autoRenew": <true | false>
+  "billingCycle": "monthly | annually | quarterly | weekly | daily | one-time",
+  "autoRenew": <true | false>,
+  "description": "One concise sentence describing what this service does. Empty string if unknown."
 }
 
-Pricing accuracy tips:
-- Netflix Standard = $15.49/mo, Spotify Premium = $11.99/mo, ChatGPT Plus = $20/mo
-- GitHub Copilot = $10/mo, Vercel Pro = $20/mo, Figma Pro = $15/mo
-- Use the monthly individual plan; do not use annual or team pricing unless the service is annual-only.`,
+Category guidance:
+- Streaming / video / gaming → Streaming
+- Music / audio / podcasts → Music
+- Productivity / office / project management → Productivity
+- Code editors, CI/CD, databases, hosting, dev APIs → Development
+- Design tools, creative suites, image editors → Design
+- Cloud storage, backup, file sync → Cloud
+- Email, chat, video calls → Communication
+- Accounting, budgeting, payments → Finance
+- Courses, e-learning, tutoring → Education
+- Fitness, meditation, health tracking → Health
+- VPN, password managers, security → Other
+
+Pricing examples for accuracy:
+Netflix Standard $15.49, Spotify $11.99, ChatGPT Plus $20, GitHub Copilot $10, Figma $15`,
       },
       {
         role: 'user',
         content: `Service name: "${name}"
 
-Return the JSON object with real current pricing for this subscription.`,
+Return the JSON object with real, current information for this subscription service.`,
       },
     ],
-    maxTokens: 300,
+    maxTokens: 350,
     temperature: 0.05,
   })
 
@@ -518,16 +641,20 @@ Return the JSON object with real current pricing for this subscription.`,
   try {
     const parsed = parseAIJson(text)
     const aiBillingCycle = String(parsed.billingCycle || 'monthly').toLowerCase()
-    // Normalise "yearly" ➜ "annually" to match app's billing cycle values
+    // Normalise "yearly"/"annual" → "annually" to match app's BillingCycle enum
     const normalizedBillingCycle =
       aiBillingCycle === 'yearly' || aiBillingCycle === 'annual' ? 'annually' : aiBillingCycle
+    const validCycles = ['daily', 'weekly', 'monthly', 'quarterly', 'annually', 'one-time']
+    const finalCycle = validCycles.includes(normalizedBillingCycle) ? normalizedBillingCycle : 'monthly'
+
     return {
-      provider: escapeHtml(String(parsed.provider || '')).slice(0, 100),
-      category: escapeHtml(String(parsed.category || 'Other')).slice(0, 50),
-      amount: Math.min(Math.abs(Number(parsed.amount) || 0), 999999),
-      currency: escapeHtml(String(parsed.currency || 'USD')).slice(0, 10),
-      billingCycle: escapeHtml(normalizedBillingCycle).slice(0, 20),
-      autoRenew: Boolean(parsed.autoRenew),
+      provider:    escapeHtml(String(parsed.provider    || '')).slice(0, 100),
+      category:    normalizeCategory(String(parsed.category || 'Other')),
+      amount:      Math.min(Math.abs(Number(parsed.amount) || 0), 999999),
+      currency:    escapeHtml(String(parsed.currency    || 'USD')).slice(0, 10),
+      billingCycle: escapeHtml(finalCycle).slice(0, 20),
+      autoRenew:   Boolean(parsed.autoRenew),
+      description: sanitizeText(String(parsed.description || '')).slice(0, 300),
     }
   } catch {
     throw new Error('Failed to parse AI response')

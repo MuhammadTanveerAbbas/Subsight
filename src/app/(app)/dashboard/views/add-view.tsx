@@ -20,7 +20,7 @@ export function AddView({
 }: {
   t: T;
   onSuccess: () => void | Promise<void>;
-  toast: (m: string, tp: "success" | "error" | "info") => void;
+  toast: (m: string, tp: "success" | "error" | "info" | "warning") => void;
 }) {
   const blank = {
     name: "", category: "", amount: "", cycle: "monthly",
@@ -53,14 +53,28 @@ export function AddView({
         throw new Error(data.error || "AI autofill failed");
       }
       const data = await res.json();
+      // Map AI category to one of the form's dropdown options (already
+      // normalized server-side, but guard against any stale cached response)
+      const validCategories = [
+        "Streaming", "Productivity", "Cloud", "Design",
+        "Development", "Music", "Finance", "Education",
+        "Lifestyle", "Communication", "Health", "Other",
+      ];
+      const aiCategory = data.category || "";
+      const resolvedCategory = validCategories.includes(aiCategory) ? aiCategory : "";
+
       setForm((p) => ({
         ...p,
-        category:  data.category    || p.category,
-        amount:    data.amount      ? String(data.amount) : p.amount,
-        provider:  data.provider    || p.provider,
-        cycle:     data.billingCycle || p.cycle,
-        autoRenew: data.autoRenew   ?? p.autoRenew,
-        currency:  data.currency    || p.currency,
+        category:  resolvedCategory          || p.category,
+        amount:    data.amount != null        ? String(data.amount) : p.amount,
+        provider:  data.provider              || p.provider,
+        cycle:     data.billingCycle          || p.cycle,
+        autoRenew: data.autoRenew            ?? p.autoRenew,
+        currency:  data.currency              || p.currency,
+        // Fill notes with description only if notes are currently empty
+        notes:     (!p.notes && data.description) ? data.description : p.notes,
+        // Set today as start date if not already set
+        startDate: p.startDate || new Date().toISOString().split("T")[0] || "",
       }));
       setAiProgress(100);
       toast("AI autofill complete", "success");
@@ -104,7 +118,7 @@ export function AddView({
     background: t.surface2,
     border: `1px solid ${t.border}`,
     borderRadius: 8,
-    padding: "10px 13px",
+    padding: "9px 13px",
     fontSize: 13,
     color: t.text,
     fontFamily: "var(--font-mono)",
@@ -233,7 +247,7 @@ export function AddView({
                   value={form.currency}
                   onChange={(e) => f("currency")(e.target.value)}
                   disabled={loading}
-                  style={{ ...iStyle, width: "auto", flexShrink: 0, cursor: "pointer", paddingRight: 8 }}
+                  style={{ ...iStyle, width: "auto", flexShrink: 0, cursor: "pointer" }}
                 >
                   {CURRENCIES.map((c) => <option key={c}>{c}</option>)}
                 </select>

@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText, BarChart3, Download } from "lucide-react";
+import { FileJson, TableProperties, FileDown } from "lucide-react";
 import type { T } from "@/app/(app)/dashboard/dashboard-constants";
 import type { Sub } from "@/app/(app)/dashboard/dashboard-types";
 import {
@@ -16,56 +16,50 @@ export function ExportView({
 }: {
   t: T;
   subs: Sub[];
-  toast: (m: string, tp: "success" | "error" | "info") => void;
+  toast: (m: string, tp: "success" | "error" | "info" | "warning") => void;
 }) {
-  const exportJSON = () => {
-    try {
-      exportSubscriptionsJSON(subs);
-      toast("Exported as JSON", "success");
-    } catch {
-      toast("JSON export failed. Please try again.", "error");
-    }
-  };
-
-  const exportCSV = () => {
-    try {
-      exportSubscriptionsCSV(subs);
-      toast("Exported as CSV", "success");
-    } catch {
-      toast("CSV export failed. Please try again.", "error");
-    }
-  };
-
-  const exportPDF = () => {
-    try {
-      exportSubscriptionsPDF();
-      toast("PDF export opened check your print dialog", "info");
-    } catch {
-      toast("PDF export failed. Please try again.", "error");
-    }
-  };
-
   const options = [
     {
-      title: "JSON Export",
-      desc: "Full data with all fields and metadata. Ideal for backup or migrating to another tool.",
-      Icon: FileText,
-      action: exportJSON,
-      shortcut: "Ctrl+E",
+      title: "JSON",
+      label: "JSON Export",
+      desc: "Full structured export with all fields and metadata. Ideal for backup or importing into another tool.",
+      Icon: FileJson,
+      action: () => {
+        try {
+          exportSubscriptionsJSON(subs);
+          toast("Exported as JSON", "success");
+        } catch {
+          toast("JSON export failed. Please try again.", "error");
+        }
+      },
     },
     {
-      title: "CSV Export",
-      desc: "Spreadsheet-compatible. Open directly in Excel, Google Sheets, or Numbers.",
-      Icon: BarChart3,
-      action: exportCSV,
-      shortcut: "Ctrl+S",
+      title: "CSV",
+      label: "CSV Export",
+      desc: "Spreadsheet-compatible export with all columns. Opens directly in Excel, Google Sheets, or Numbers.",
+      Icon: TableProperties,
+      action: () => {
+        try {
+          exportSubscriptionsCSV(subs);
+          toast("Exported as CSV", "success");
+        } catch {
+          toast("CSV export failed. Please try again.", "error");
+        }
+      },
     },
     {
-      title: "PDF Export",
-      desc: "Print-ready document with a clean summary of all your subscriptions.",
-      Icon: Download,
-      action: exportPDF,
-      shortcut: "Ctrl+P",
+      title: "PDF",
+      label: "PDF Export",
+      desc: "Print-ready document with a summary table and spending overview. Use your browser's Save as PDF option.",
+      Icon: FileDown,
+      action: () => {
+        try {
+          exportSubscriptionsPDF(subs);
+          toast("PDF preview opened use Save as PDF to export.", "info");
+        } catch {
+          toast("PDF export failed. Please try again.", "error");
+        }
+      },
     },
   ];
 
@@ -85,71 +79,82 @@ export function ExportView({
           <div
             key={opt.title}
             style={{
-              background: t.surface, border: `1px solid ${t.border}`, borderRadius: 12,
-              padding: "24px 22px", display: "flex", flexDirection: "column", gap: 16,
+              background: t.surface,
+              border: `1px solid ${t.border}`,
+              borderRadius: 12,
+              padding: "24px 22px",
+              display: "flex",
+              flexDirection: "column",
+              gap: 16,
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <div style={{
-                width: 44, height: 44, borderRadius: 10,
-                background: t.greenDim, border: `1px solid ${t.greenBorder}`,
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                <opt.Icon size={18} color={t.green} strokeWidth={1.5} aria-hidden="true" />
-              </div>
-              <span style={{
-                fontSize: 10, color: t.text3, background: t.surface2,
-                border: `1px solid ${t.border}`, borderRadius: 5,
-                padding: "3px 8px", fontFamily: "var(--font-mono)",
-              }}>
-                {opt.shortcut}
-              </span>
+            <div style={{
+              width: 44, height: 44, borderRadius: 10,
+              background: t.greenDim, border: `1px solid ${t.greenBorder}`,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              flexShrink: 0,
+            }}>
+              <opt.Icon size={20} color={t.green} strokeWidth={1.5} aria-hidden="true" />
             </div>
-            <div>
+
+            <div style={{ flex: 1 }}>
               <div style={{ fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 700, color: t.text, marginBottom: 7 }}>
-                {opt.title}
+                {opt.label}
               </div>
               <div style={{ fontSize: 12.5, color: t.text2, fontFamily: "var(--font-mono)", lineHeight: 1.65 }}>
                 {opt.desc}
               </div>
             </div>
+
             <button
               onClick={opt.action}
-              aria-label={opt.title}
+              disabled={subs.length === 0}
+              aria-label={opt.label}
               style={{
-                background: t.green, color: "#000", border: "none", borderRadius: 8,
-                padding: 11, fontSize: 13, fontWeight: 700, fontFamily: "var(--font-display)",
-                cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-                gap: 7, transition: "background 0.2s",
-                boxShadow: `0 2px 8px ${t.green}44`,
+                background: subs.length === 0 ? t.surface2 : t.green,
+                color: subs.length === 0 ? t.text3 : "#000",
+                border: "none",
+                borderRadius: 8,
+                padding: "10px 0",
+                fontSize: 13,
+                fontWeight: 700,
+                fontFamily: "var(--font-display)",
+                cursor: subs.length === 0 ? "not-allowed" : "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 7,
+                transition: "background 0.2s",
+                boxShadow: subs.length === 0 ? "none" : `0 2px 8px ${t.green}44`,
               }}
-              onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = t.green2)}
-              onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = t.green)}
+              onMouseEnter={(e) => {
+                if (subs.length > 0) (e.currentTarget as HTMLElement).style.background = t.green2;
+              }}
+              onMouseLeave={(e) => {
+                if (subs.length > 0) (e.currentTarget as HTMLElement).style.background = t.green;
+              }}
             >
-              <Download size={13} aria-hidden="true" /> {opt.title.split(" ")[0]}
+              <FileDown size={13} aria-hidden="true" />
+              Export {opt.title}
             </button>
           </div>
         ))}
       </div>
 
-      <div style={{ background: t.surface, border: `1px solid ${t.border}`, borderRadius: 12, padding: "22px" }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: t.text, fontFamily: "var(--font-display)", marginBottom: 14 }}>
-          Keyboard Shortcuts
+      {subs.length === 0 && (
+        <div style={{
+          background: t.surface,
+          border: `1px solid ${t.border}`,
+          borderRadius: 12,
+          padding: "28px 24px",
+          textAlign: "center",
+          color: t.text3,
+          fontFamily: "var(--font-mono)",
+          fontSize: 13,
+        }}>
+          No subscriptions to export yet.
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {([["Ctrl + E", "Export JSON"], ["Ctrl + S", "Export CSV"], ["Ctrl + P", "Export PDF"], ["Ctrl + A", "Add New Subscription"]] as [string,string][]).map(([k, v]) => (
-            <div key={k} style={{ display: "flex", alignItems: "center", gap: 14 }}>
-              <kbd style={{
-                background: t.surface2, border: `1px solid ${t.border2}`, borderRadius: 5,
-                padding: "4px 10px", fontSize: 11, color: t.text, fontFamily: "var(--font-mono)", whiteSpace: "nowrap",
-              }}>
-                {k}
-              </kbd>
-              <span style={{ fontSize: 12, color: t.text2, fontFamily: "var(--font-mono)" }}>{v}</span>
-            </div>
-          ))}
-        </div>
-      </div>
+      )}
     </div>
   );
 }

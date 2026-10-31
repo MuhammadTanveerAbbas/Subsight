@@ -99,6 +99,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [loading, setLoading] = useState(true);
+  const initialLoadDone = React.useRef(false);
   const [upgradePromptOpen, setUpgradePromptOpen] = useState(false);
   const [upgradePromptMessage, setUpgradePromptMessage] = useState(
     "Upgrade to Pro for more features.",
@@ -134,7 +135,12 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    setLoading(true);
+    // Only show the full skeleton on the very first load.
+    // Subsequent refetches (e.g. after add/edit, or on window focus) update
+    // data silently so the UI doesn't flash back to a skeleton.
+    const isFirst = !initialLoadDone.current;
+    if (isFirst) setLoading(true);
+
     const MAX_ATTEMPTS = 3;
     let lastError: unknown = null;
 
@@ -174,13 +180,12 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
           }));
           setSubscriptions(formattedSubs);
         }
-        // Success break out of retry loop
+        initialLoadDone.current = true;
         setLoading(false);
         return;
       } catch (error) {
         lastError = error;
         if (attempt < MAX_ATTEMPTS) {
-          // Exponential backoff: 500ms, 1000ms
           await new Promise((r) => setTimeout(r, 500 * attempt));
         }
       }
@@ -188,6 +193,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
 
     // All attempts failed
     logError(lastError, { context: "fetchSubscriptions", userId: user.id });
+    initialLoadDone.current = true;
     setLoading(false);
   }, [user, authLoading]);
 

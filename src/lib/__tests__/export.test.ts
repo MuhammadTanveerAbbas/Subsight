@@ -1,12 +1,34 @@
-import { describe, it, expect } from 'vitest'
-import {
-  escapeCSVValue,
-  subscriptionsToJSON,
-  subscriptionsToCSV,
-} from '../export'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { exportSubscriptionsJSON, exportSubscriptionsCSV } from '../export'
+import type { Sub } from '@/app/(app)/dashboard/dashboard-types'
 
-const sample = [
+/* ── mock browser APIs ──────────────────────────────────────────────── */
+
+const createObjectURLMock = vi.fn(() => 'blob:mock')
+const revokeObjectURLMock = vi.fn()
+const appendChildMock = vi.fn()
+const removeChildMock = vi.fn()
+const clickMock = vi.fn()
+
+beforeEach(() => {
+  vi.clearAllMocks()
+
+  global.URL.createObjectURL = createObjectURLMock
+  global.URL.revokeObjectURL = revokeObjectURLMock
+
+  const anchor = { href: '', download: '', click: clickMock } as unknown as HTMLAnchorElement
+  vi.spyOn(document, 'createElement').mockImplementation((tag: string) =>
+    tag === 'a' ? anchor : document.createElement(tag),
+  )
+  vi.spyOn(document.body, 'appendChild').mockImplementation(appendChildMock)
+  vi.spyOn(document.body, 'removeChild').mockImplementation(removeChildMock)
+})
+
+/* ── fixtures ───────────────────────────────────────────────────────── */
+
+const subs: Sub[] = [
   {
+    id: '1',
     name: 'Netflix',
     category: 'Streaming',
     amount: 15.99,
@@ -16,37 +38,97 @@ const sample = [
     status: 'active',
     autoRenew: true,
     provider: 'Netflix Inc.',
+    notes: '',
   },
   {
+    id: '2',
     name: 'Service, "Special"',
     category: 'Other',
     amount: 9,
     currency: 'USD',
     cycle: 'yearly',
+    nextDate: '',
     status: 'inactive',
     autoRenew: false,
     provider: 'Acme\nCorp',
+    notes: 'some note',
   },
 ]
 
-describe('export utilities', () => {
-  it('escapes CSV values with commas, quotes, and newlines', () => {
-    expect(escapeCSVValue('plain')).toBe('plain')
-    expect(escapeCSVValue('a,b')).toBe('"a,b"')
-    expect(escapeCSVValue('say "hi"')).toBe('"say ""hi"""')
-    expect(escapeCSVValue('line\nbreak')).toBe('"line\nbreak"')
+/* ── JSON tests ─────────────────────────────────────────────────────── */
+
+describe('exportSubscriptionsJSON', () => {
+  it('creates a blob and triggers download', () => {
+    exportSubscriptionsJSON(subs)
+    expect(createObjectURLMock).toHaveBeenCalledOnce()
+    expect(clickMock).toHaveBeenCalledOnce()
+    expect(revokeObjectURLMock).toHaveBeenCalledOnce()
   })
 
-  it('serializes subscriptions to JSON', () => {
-    const json = subscriptionsToJSON(sample)
-    expect(JSON.parse(json)).toEqual(sample)
+  it('produces valid JSON with metadata and all subscription fields', () => {
+    let captured = ''
+    global.Blob = class {
+      constructor(parts: BlobPart[]) { captured = parts[0] as string }
+    } as unknown as typeof Blob
+
+    exportSubscriptionsJSON(subs)
+
+    const parsed = JSON.parse(captured)
+    expect(parsed).toHaveProperty('exportedAt')
+    expect(parsed.totalCount).toBe(2)
+    expect(parsed.activeCount).toBe(1)
+    expect(parsed.subscriptions).toHaveLength(2)
+
+    const first = parsed.subscriptions[0]
+    expect(first.id).toBe('1')
+    expect(first.name).toBe('Netflix')
+    expect(first.notes).toBe('')
+  })
+})
+
+/* ── CSV tests ──────────────────────────────────────────────────────── */
+
+describe('exportSubscriptionsCSV', () => {
+  it('creates a blob and triggers download', () => {
+    exportSubscriptionsCSV(subs)
+    expect(createObjectURLMock).toHaveBeenCalledOnce()
+    expect(clickMock).toHaveBeenCalledOnce()
   })
 
-  it('serializes subscriptions to CSV with BOM and headers', () => {
-    const csv = subscriptionsToCSV(sample)
-    expect(csv.startsWith('\uFEFF')).toBe(true)
-    expect(csv).toContain('Name,Category,Amount')
-    expect(csv).toContain('"Service, ""Special"""')
-    expect(csv).toContain('"Acme\nCorp"')
+  it('starts with BOM and contains expected headers', () => {
+    let captured = ''
+    global.Blob = class {
+      constructor(parts: BlobPart[]) { captured = parts[0] as string }
+    } as unknown as typeof Blob
+
+    exportSubscriptionsCSV(subs)
+
+    expect(captured.startsWith('\uFEFF')).toBe(true)
+    expect(captured).toContain('Name')
+    expect(captured).toContain('Billing Cycle')
+    expect(captured).toContain('Notes')
+  })
+
+  it('escapes cells with commas, quotes, and newlines', () => {
+    let captured = ''
+    global.Blob = class {
+      constructor(parts: BlobPart[]) { captured = parts[0] as string }
+    } as unknown as typeof Blob
+
+    exportSubscriptionsCSV(subs)
+
+    expect(captured).toContain('"Service, ""Special"""')
+    expect(captured).toContain('"Acme\nCorp"')
+  })
+
+  it('renders autoRenew as Yes/No', () => {
+    let captured = ''
+    global.Blob = class {
+      constructor(parts: BlobPart[]) { captured = parts[0] as string }
+    } as unknown as typeof Blob
+
+    exportSubscriptionsCSV(subs)
+    expect(captured).toContain('Yes')
+    expect(captured).toContain('No')
   })
 })

@@ -23,14 +23,19 @@ vi.mock('groq-sdk', async (importOriginal) => {
   return { ...actual, default: MockGroq }
 })
 
-const FAST_PREFERENCE = ['llama-3.1-8b-instant', 'llama-3.3-70b-versatile', 'llama3-8b-8192']
-const QUALITY_PREFERENCE = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'llama3-70b-8192']
+// Current live models configured in MODEL_PREFERENCES (from AGENTS.md / groq-service.ts)
+const FAST_PREFERENCE = ['openai/gpt-oss-20b', 'qwen/qwen3.8-27b', 'allam-2-7b']
+const QUALITY_PREFERENCE = ['openai/gpt-oss-120b', 'openai/gpt-oss-20b', 'qwen/qwen3.8-27b']
 const MODEL_CACHE_TTL_MS = 6 * 60 * 60 * 1000
 
+// Use a service name NOT in KNOWN_SUBSCRIPTIONS to force the AI path.
+// "CustomTestService" is not in the knowledge base, so the AI mock will be called.
+const TEST_SERVICE = 'CustomTestService'
+
 const autofillContent = JSON.stringify({
-  provider: 'Netflix Inc.',
-  category: 'Entertainment',
-  amount: 15.99,
+  provider: 'CustomTest Inc.',
+  category: 'Other',
+  amount: 9.99,
   currency: 'USD',
   billingCycle: 'monthly',
   autoRenew: true,
@@ -77,15 +82,16 @@ describe('Groq service reliability', () => {
     mockCreate.mockResolvedValue(successCreate())
     const service = await loadService()
 
-    const result = await service.autoFillSubscription('Netflix')
+    const result = await service.autoFillSubscription(TEST_SERVICE)
 
     expect(result).toEqual({
-      provider: 'Netflix Inc.',
-      category: 'Entertainment',
-      amount: 15.99,
+      provider: 'CustomTest Inc.',
+      category: 'Other',
+      amount: 9.99,
       currency: 'USD',
       billingCycle: 'monthly',
       autoRenew: true,
+      description: '',
     })
     expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ model: FAST_PREFERENCE[0] }))
   })
@@ -95,7 +101,7 @@ describe('Groq service reliability', () => {
     mockCreate.mockResolvedValue(successCreate())
     const service = await loadService()
 
-    await service.autoFillSubscription('Netflix')
+    await service.autoFillSubscription(TEST_SERVICE)
 
     expect(mockModelList).toHaveBeenCalledTimes(1)
     expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ model: FAST_PREFERENCE[0] }))
@@ -106,7 +112,7 @@ describe('Groq service reliability', () => {
     mockCreate.mockResolvedValue(successCreate())
     const service = await loadService()
 
-    await service.autoFillSubscription('Netflix')
+    await service.autoFillSubscription(TEST_SERVICE)
 
     expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ model: 'custom-chat-model' }))
   })
@@ -116,7 +122,7 @@ describe('Groq service reliability', () => {
     mockCreate.mockResolvedValue(successCreate())
     const service = await loadService()
 
-    await service.autoFillSubscription('Netflix')
+    await service.autoFillSubscription(TEST_SERVICE)
 
     expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ model: FAST_PREFERENCE[0] }))
   })
@@ -126,8 +132,8 @@ describe('Groq service reliability', () => {
     mockCreate.mockResolvedValue(successCreate())
     const service = await loadService()
 
-    await service.autoFillSubscription('Netflix')
-    await service.autoFillSubscription('Spotify')
+    await service.autoFillSubscription(TEST_SERVICE)
+    await service.autoFillSubscription(TEST_SERVICE)
 
     expect(mockModelList).toHaveBeenCalledTimes(1)
   })
@@ -138,11 +144,11 @@ describe('Groq service reliability', () => {
     mockCreate.mockResolvedValue(successCreate())
     const service = await loadService()
 
-    await service.autoFillSubscription('Netflix')
+    await service.autoFillSubscription(TEST_SERVICE)
     expect(mockModelList).toHaveBeenCalledTimes(1)
 
     vi.advanceTimersByTime(MODEL_CACHE_TTL_MS + 1)
-    await service.autoFillSubscription('Spotify')
+    await service.autoFillSubscription(TEST_SERVICE)
 
     expect(mockModelList).toHaveBeenCalledTimes(2)
   })
@@ -154,11 +160,11 @@ describe('Groq service reliability', () => {
       .mockResolvedValueOnce(successCreate())
     const service = await loadService()
 
-    const result = await service.autoFillSubscription('Netflix')
+    const result = await service.autoFillSubscription(TEST_SERVICE)
 
     expect(mockCreate.mock.calls[0]![0]).toMatchObject({ model: FAST_PREFERENCE[0] })
     expect(mockCreate.mock.calls[1]![0]).toMatchObject({ model: FAST_PREFERENCE[1] })
-    expect(result.provider).toBe('Netflix Inc.')
+    expect(result.provider).toBe('CustomTest Inc.')
     expect(mockModelList).toHaveBeenCalledTimes(2)
   })
 
@@ -167,7 +173,7 @@ describe('Groq service reliability', () => {
     mockCreate.mockRejectedValue(new NotFoundError(404, { message: 'model not found' }, 'model not found', headersStub))
     const service = await loadService()
 
-    await expect(service.autoFillSubscription('Netflix')).rejects.toThrow('Groq model unavailable')
+    await expect(service.autoFillSubscription(TEST_SERVICE)).rejects.toThrow('Groq model unavailable')
     expect(mockCreate).toHaveBeenCalledTimes(1)
   })
 
@@ -179,7 +185,7 @@ describe('Groq service reliability', () => {
       .mockResolvedValueOnce(successCreate())
     const service = await loadService()
 
-    const promise = service.autoFillSubscription('Netflix')
+    const promise = service.autoFillSubscription(TEST_SERVICE)
     await vi.advanceTimersByTimeAsync(0)
     expect(mockCreate).toHaveBeenCalledTimes(1)
 
@@ -189,7 +195,7 @@ describe('Groq service reliability', () => {
     await vi.advanceTimersByTimeAsync(1)
     expect(mockCreate).toHaveBeenCalledTimes(2)
 
-    await expect(promise).resolves.toMatchObject({ provider: 'Netflix Inc.' })
+    await expect(promise).resolves.toMatchObject({ provider: 'CustomTest Inc.' })
   })
 
   it('uses bounded exponential backoff with jitter for 429 without Retry-After', async () => {
@@ -202,14 +208,16 @@ describe('Groq service reliability', () => {
       .mockResolvedValueOnce(successCreate())
     const service = await loadService()
 
-    const promise = service.autoFillSubscription('Netflix')
+    const promise = service.autoFillSubscription(TEST_SERVICE)
     await vi.runAllTimersAsync()
-    await expect(promise).resolves.toMatchObject({ provider: 'Netflix Inc.' })
+    await expect(promise).resolves.toMatchObject({ provider: 'CustomTest Inc.' })
 
+    // backoffDelay(attempt=0) = Math.min(600 * 2^0 + Math.round(random()*300), 10000)
+    // With random()=1: 600 + 300 = 900
     const delays = setTimeoutSpy.mock.calls.map((call) => call[1] as number)
     expect(delays).toHaveLength(1)
-    expect(delays[0]!).toBeGreaterThanOrEqual(500)
-    expect(delays[0]!).toBeLessThanOrEqual(750)
+    expect(delays[0]!).toBeGreaterThanOrEqual(600) // base at attempt 0
+    expect(delays[0]!).toBeLessThanOrEqual(900)    // base + max jitter (300)
     randomSpy.mockRestore()
   })
 
@@ -222,9 +230,9 @@ describe('Groq service reliability', () => {
       .mockResolvedValueOnce(successCreate())
     const service = await loadService()
 
-    const promise = service.autoFillSubscription('Netflix')
+    const promise = service.autoFillSubscription(TEST_SERVICE)
     await vi.runAllTimersAsync()
-    await expect(promise).resolves.toMatchObject({ provider: 'Netflix Inc.' })
+    await expect(promise).resolves.toMatchObject({ provider: 'CustomTest Inc.' })
 
     const delay = setTimeoutSpy.mock.calls[0]?.[1] as number
     expect(delay).toBeGreaterThan(500)
@@ -236,12 +244,13 @@ describe('Groq service reliability', () => {
     mockCreate.mockRejectedValue(new RateLimitError(429, { message: 'rate limited' }, 'rate limited', headersStub))
     const service = await loadService()
 
-    const promise = service.autoFillSubscription('Netflix')
+    const promise = service.autoFillSubscription(TEST_SERVICE)
     promise.catch(() => {})
     await vi.runAllTimersAsync()
 
     await expect(promise).rejects.toBeInstanceOf(RateLimitError)
-    expect(mockCreate).toHaveBeenCalledTimes(3)
+    // MAX_RETRIES = 3: initial attempt + 3 retries = 4 total calls
+    expect(mockCreate).toHaveBeenCalledTimes(4)
   })
 
   it('retries transient timeouts', async () => {
@@ -252,9 +261,9 @@ describe('Groq service reliability', () => {
       .mockResolvedValueOnce(successCreate())
     const service = await loadService()
 
-    const promise = service.autoFillSubscription('Netflix')
+    const promise = service.autoFillSubscription(TEST_SERVICE)
     await vi.runAllTimersAsync()
-    await expect(promise).resolves.toMatchObject({ provider: 'Netflix Inc.' })
+    await expect(promise).resolves.toMatchObject({ provider: 'CustomTest Inc.' })
     expect(mockCreate).toHaveBeenCalledTimes(2)
   })
 
@@ -266,9 +275,9 @@ describe('Groq service reliability', () => {
       .mockResolvedValueOnce(successCreate())
     const service = await loadService()
 
-    const promise = service.autoFillSubscription('Netflix')
+    const promise = service.autoFillSubscription(TEST_SERVICE)
     await vi.runAllTimersAsync()
-    await expect(promise).resolves.toMatchObject({ provider: 'Netflix Inc.' })
+    await expect(promise).resolves.toMatchObject({ provider: 'CustomTest Inc.' })
     expect(mockCreate).toHaveBeenCalledTimes(2)
   })
 
@@ -277,7 +286,7 @@ describe('Groq service reliability', () => {
     mockCreate.mockRejectedValue(new BadRequestError(400, { message: 'invalid request' }, 'invalid request', headersStub))
     const service = await loadService()
 
-    await expect(service.autoFillSubscription('Netflix')).rejects.toBeInstanceOf(APIError)
+    await expect(service.autoFillSubscription(TEST_SERVICE)).rejects.toBeInstanceOf(APIError)
     expect(mockCreate).toHaveBeenCalledTimes(1)
   })
 
@@ -287,7 +296,7 @@ describe('Groq service reliability', () => {
     mockCreate.mockRejectedValue(new RateLimitError(429, { message: 'rate limited' }, 'rate limited', headersStub))
     const service = await loadService()
 
-    const promise = service.autoFillSubscription('Netflix')
+    const promise = service.autoFillSubscription(TEST_SERVICE)
     promise.catch(() => {})
     await vi.runAllTimersAsync()
 
@@ -300,7 +309,7 @@ describe('Groq service reliability', () => {
     delete process.env.GROQ_API_KEY
     const service = await loadService()
 
-    await expect(service.autoFillSubscription('Netflix')).rejects.toThrow('GROQ_API_KEY is not set')
+    await expect(service.autoFillSubscription(TEST_SERVICE)).rejects.toThrow('GROQ_API_KEY is not set')
     expect(mockCreate).not.toHaveBeenCalled()
     expect(mockModelList).not.toHaveBeenCalled()
   })
@@ -316,5 +325,18 @@ describe('Groq service reliability', () => {
 
     expect(summary).toBe('A useful summary.')
     expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ model: QUALITY_PREFERENCE[0] }))
+  })
+
+  it('returns from knowledge base without calling AI for known services', async () => {
+    // Netflix is in KNOWN_SUBSCRIPTIONS, The service should return immediately
+    // without making any Groq API calls.
+    const service = await loadService()
+
+    const result = await service.autoFillSubscription('Netflix')
+
+    expect(result.provider).toBe('Netflix')
+    expect(result.category).toBe('Entertainment')
+    expect(mockCreate).not.toHaveBeenCalled()
+    expect(mockModelList).not.toHaveBeenCalled()
   })
 }, 30_000)

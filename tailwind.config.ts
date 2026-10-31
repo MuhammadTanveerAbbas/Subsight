@@ -81,25 +81,41 @@ export default {
       },
       keyframes: {
         'accordion-down': {
-          from: {
-            height: '0',
-          },
-          to: {
-            height: 'var(--radix-accordion-content-height)',
-          },
+          from: { height: '0' },
+          to:   { height: 'var(--radix-accordion-content-height)' },
         },
         'accordion-up': {
+          from: { height: 'var(--radix-accordion-content-height)' },
+          to:   { height: '0' },
+        },
+        // Toast slide-in from the right (bottom-right stack)
+        'toast-in': {
           from: {
-            height: 'var(--radix-accordion-content-height)',
+            opacity: '0',
+            transform: 'translateX(calc(100% + 1.25rem)) scale(0.96)',
           },
           to: {
-            height: '0',
+            opacity: '1',
+            transform: 'translateX(0) scale(1)',
+          },
+        },
+        // Toast slide-out to the right
+        'toast-out': {
+          from: {
+            opacity: '1',
+            transform: 'translateX(0) scale(1)',
+          },
+          to: {
+            opacity: '0',
+            transform: 'translateX(calc(100% + 1.25rem)) scale(0.96)',
           },
         },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
-        'accordion-up': 'accordion-up 0.2s ease-out',
+        'accordion-up':   'accordion-up 0.2s ease-out',
+        'toast-in':  'toast-in  0.28s cubic-bezier(0.22,1,0.36,1) forwards',
+        'toast-out': 'toast-out 0.22s cubic-bezier(0.55,0,1,0.45) forwards',
       },
     },
   },

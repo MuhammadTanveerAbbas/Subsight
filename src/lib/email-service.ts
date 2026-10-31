@@ -1,22 +1,104 @@
 import nodemailer from 'nodemailer'
 
-function getTransporter() {
+// ─── Configuration validation ─────────────────────────────────────────────────
+interface SmtpConfig {
+  host: string
+  port: number
+  secure: boolean
+  user: string
+  pass: string
+  from: string
+}
+
+function getSmtpConfig(): SmtpConfig {
   const host = process.env.SMTP_HOST
   const user = process.env.SMTP_USER
   const pass = process.env.SMTP_PASS
-  if (!host || !user || !pass) {
-    throw new Error('SMTP environment variables (SMTP_HOST, SMTP_USER, SMTP_PASS) are not configured')
+
+  if (!host) throw new Error('SMTP environment variables incomplete: SMTP_HOST is not configured')
+  if (!user) throw new Error('SMTP environment variables incomplete: SMTP_USER is not configured')
+  if (!pass) throw new Error('SMTP environment variables incomplete: SMTP_PASS is not configured')
+
+  const port = parseInt(process.env.SMTP_PORT || '587', 10)
+  if (isNaN(port) || port < 1 || port > 65535) {
+    throw new Error(`SMTP_PORT is invalid: "${process.env.SMTP_PORT}". Must be a number between 1 and 65535.`)
   }
-  const port = parseInt(process.env.SMTP_PORT || '587')
+
+  // SMTP_SECURE can be set explicitly; otherwise infer from port:
+  // port 465 → TLS (implicit), port 587 → STARTTLS (explicit), everything else → STARTTLS
+  const secureEnv = process.env.SMTP_SECURE
+  let secure: boolean
+  if (secureEnv !== undefined) {
+    secure = secureEnv === 'true' || secureEnv === '1'
+  } else {
+    secure = port === 465
+  }
+
+  // FROM address: fall back to SMTP_USER if SMTP_FROM is not set
+  const from = process.env.SMTP_FROM || user
+
+  return { host, port, secure, user, pass, from }
+}
+
+function buildTransporter(cfg: SmtpConfig) {
   return nodemailer.createTransport({
-    host,
-    port,
-    secure: port === 465,
-    requireTLS: port !== 465, // enforce STARTTLS on port 587
-    auth: { user, pass },
+    host: cfg.host,
+    port: cfg.port,
+    secure: cfg.secure,
+    // requireTLS forces STARTTLS on non-secure ports (587, 25)
+    requireTLS: !cfg.secure,
+    auth: { user: cfg.user, pass: cfg.pass },
+    // Connection and socket timeouts
+    connectionTimeout: 10_000,
+    socketTimeout: 20_000,
   })
 }
 
+// ─── SMTP connection test (used by settings UI) ───────────────────────────────
+export async function testSmtpConnection(): Promise<{ ok: boolean; message: string }> {
+  try {
+    const cfg = getSmtpConfig()
+    const transporter = buildTransporter(cfg)
+    await transporter.verify()
+    return {
+      ok: true,
+      message: `Connected to ${cfg.host}:${cfg.port} as ${cfg.user}`,
+    }
+  } catch (err) {
+    const raw = err instanceof Error ? err.message : String(err)
+    // Surface actionable diagnostics without exposing credentials
+    const message = diagnoseSmtpError(raw)
+    return { ok: false, message }
+  }
+}
+
+function diagnoseSmtpError(raw: string): string {
+  const lower = raw.toLowerCase()
+  if (lower.includes('invalid login') || lower.includes('authentication failed') || lower.includes('535')) {
+    return 'Authentication failed. Check your SMTP_USER and SMTP_PASS. For Gmail, use an App Password (not your account password).'
+  }
+  if (lower.includes('econnrefused')) {
+    return 'Connection refused. Check that SMTP_HOST and SMTP_PORT are correct and the server is reachable.'
+  }
+  if (lower.includes('etimedout') || lower.includes('esockettimedout')) {
+    return 'Connection timed out. The SMTP host may be unreachable or blocked by a firewall.'
+  }
+  if (lower.includes('enotfound')) {
+    return 'Host not found. Check that SMTP_HOST is a valid hostname.'
+  }
+  if (lower.includes('self signed certificate') || lower.includes('certificate')) {
+    return 'TLS certificate error. Try setting SMTP_SECURE=false or SMTP_PORT=587 for STARTTLS.'
+  }
+  if (lower.includes('starttls') || lower.includes('must issue a starttls')) {
+    return 'The server requires STARTTLS. Set SMTP_PORT=587 and ensure SMTP_SECURE is not set to "true".'
+  }
+  if (lower.includes('missing') || lower.includes('not configured')) {
+    return raw // Configuration errors are already descriptive
+  }
+  return `SMTP error: ${raw}`
+}
+
+// ─── Emoji and colour helpers ──────────────────────────────────────────────────
 function getEmojiByCategoryOrName(category: string, name: string): string {
   const categoryEmojis: Record<string, string> = {
     entertainment: '🎬',
@@ -103,7 +185,7 @@ function getColorByCategory(category: string): string {
     finance: '#06b6d4',
   }
 
-  return colors[category.toLowerCase()] || '#1a1a1a'
+  return colors[category.toLowerCase()] || '#22c55e'
 }
 
 function escapeHtml(str: string): string {
@@ -114,11 +196,12 @@ function escapeHtml(str: string): string {
     .replace(/"/g, '&quot;')
 }
 
-function isValidEmail(email: string): boolean {
+export function isValidEmail(email: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   return emailRegex.test(email)
 }
 
+// ─── Renewal reminder ──────────────────────────────────────────────────────────
 export async function sendRenewalReminder({
   to,
   subscriptionName,
@@ -195,26 +278,26 @@ export async function sendRenewalReminder({
           <div style="background: ${accentColor}11; border-radius: 8px; padding: 16px; margin-bottom: 24px; border: 1px solid ${accentColor}33;">
             <p style="margin: 0; color: #1a1a1a; font-size: 14px;">
               ${isUrgent
-                ? `<strong>⚠️ Action needed:</strong> Your ${safeSubName} subscription will renew tomorrow. Make sure you have sufficient funds or cancel if you no longer need it.`
-                : `Your ${safeSubName} subscription will renew on ${safeRenewalDate}. Review your subscription to ensure it's still needed.`
+                ? `<strong>⚠️ Action needed:</strong> Your ${safeSubName} subscription renews tomorrow. Make sure you have sufficient funds or cancel if you no longer need it.`
+                : `Your ${safeSubName} subscription will renew on ${safeRenewalDate}. Review your subscription to ensure it is still needed.`
               }
             </p>
           </div>
 
           <!-- CTA Button -->
           <div style="text-align: center; margin-bottom: 24px;">
-            <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard"
+            <a href="${process.env.NEXT_PUBLIC_APP_URL ?? 'https://subsight-tracker.vercel.app'}/dashboard"
                style="background: ${accentColor}; color: white; padding: 14px 32px;
                       border-radius: 8px; text-decoration: none; font-weight: 600;
-                      display: inline-block; font-size: 16px; transition: opacity 0.2s;">
-              Manage Subscription ➜
+                      display: inline-block; font-size: 16px;">
+              Manage Subscription →
             </a>
           </div>
 
-          <!-- Footer -->
+          <!-- Footer note -->
           <div style="border-top: 1px solid #e5e7eb; padding-top: 16px; text-align: center;">
             <p style="color: #9ca3af; font-size: 12px; margin: 0;">
-              You're receiving this reminder because you enabled notifications for ${safeSubName}.
+              You are receiving this reminder because you enabled renewal notifications for ${safeSubName}.
             </p>
           </div>
         </div>
@@ -222,7 +305,7 @@ export async function sendRenewalReminder({
         <!-- Subsight Branding -->
         <div style="text-align: center; padding: 16px;">
           <p style="color: #9ca3af; font-size: 12px; margin: 0;">
-            <strong>Subsight</strong> • Subscription Tracker
+            <strong>Subsight</strong> · Subscription Tracker
           </p>
         </div>
       </div>
@@ -231,15 +314,18 @@ export async function sendRenewalReminder({
   `
 
   try {
-    await getTransporter().sendMail({
-      from: `"Subsight" <${process.env.SMTP_FROM}>`,
+    const cfg = getSmtpConfig()
+    const transporter = buildTransporter(cfg)
+    await transporter.sendMail({
+      from: `"Subsight" <${cfg.from}>`,
       to,
       subject,
       html,
     })
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown SMTP error'
-    console.error(`[Email] Failed to send to ${to}:`, errorMessage)
+    // Log without exposing credentials
+    console.error(`[Email] Failed to send renewal reminder to ${to}: ${diagnoseSmtpError(errorMessage)}`)
     throw error
   }
 }

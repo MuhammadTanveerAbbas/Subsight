@@ -163,6 +163,102 @@
   scrollbar-width: thin;
   scrollbar-color: var(--border2, #2a2a2a) transparent;
 }
+
+/* ── Consistent native <select> styling ──────────────────────────────────── */
+/* SVG chevron encoded as a CSS variable so it reacts to theme changes       */
+:root {
+  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23585858' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
+}
+[data-theme="light"] {
+  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23888880' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
+}
+
+select {
+  /* Reset browser defaults */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+
+  /* Custom chevron arrow */
+  background-image: var(--select-arrow);
+  background-repeat: no-repeat;
+  background-position: right 11px center;
+  background-size: 10px 6px;
+
+  /* Layout & spacing */
+  display: block;
+  width: 100%;
+  padding: 9px 32px 9px 12px;
+
+  /* Typography */
+  font-size: 13px;
+  font-family: var(--font-mono, 'Courier New', monospace);
+  color: var(--text, #f0f0f0);
+  line-height: 1.4;
+
+  /* Appearance */
+  background-color: var(--surface2, #181818);
+  border: 1px solid var(--border, #1f1f1f);
+  border-radius: 8px;
+  cursor: pointer;
+
+  /* Transition */
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+
+  /* Remove inner outline in Firefox */
+  outline: none;
+}
+
+select:hover:not(:disabled) {
+  border-color: var(--border2, #2a2a2a);
+}
+
+select:focus-visible {
+  outline: none;
+  border-color: var(--green-border, rgba(34,197,94,0.22));
+  box-shadow: 0 0 0 3px var(--green-dim, rgba(34,197,94,0.08));
+}
+
+select:focus:not(:focus-visible) {
+  outline: none;
+}
+
+select:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Option elements inherit base colors from the browser but we nudge the bg */
+select option {
+  background-color: var(--surface2, #181818);
+  color: var(--text, #f0f0f0);
+  font-family: var(--font-mono, 'Courier New', monospace);
+  font-size: 13px;
+}
+
+/* ── Dropdown panel animation keyframes ──────────────────────────────────── */
+@keyframes dropdownSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes dropdownSlideUp {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+}
+/* ──────────────────────────────────────────────────────────────────────────── */
 /* Safari backdrop filter support */
 .blur-backdrop {
   backdrop-filter: blur(14px);
