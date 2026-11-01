@@ -122,21 +122,6 @@ const Toast = React.forwardRef<
       className={cn(toastVariants({ variant: v }), className)}
       {...props}
     >
-      {/* Accent left bar */}
-      <span
-        aria-hidden
-        style={{
-          position: "absolute",
-          left: 0,
-          top: 4,
-          bottom: 4,
-          width: 3,
-          borderRadius: "0 3px 3px 0",
-          background: meta.color,
-          opacity: 0.85,
-        }}
-      />
-
       {/* Icon */}
       <span
         aria-hidden

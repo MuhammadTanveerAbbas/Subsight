@@ -124,12 +124,12 @@ export function SettingsView({
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 18, maxWidth: 680 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 18, maxWidth: 680, margin: "0 auto", width: "100%" }}>
       <div>
-        <h2 style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 800, color: t.text, letterSpacing: -0.5 }}>
+        <h2 style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 800, color: t.text, letterSpacing: -0.5, textAlign: "center" }}>
           Settings
         </h2>
-        <p style={{ fontSize: 11.5, color: t.text3, fontFamily: "var(--font-mono)", marginTop: 3, lineHeight: 1.5 }}>
+        <p style={{ fontSize: 11.5, color: t.text3, fontFamily: "var(--font-mono)", marginTop: 3, lineHeight: 1.5, textAlign: "center" }}>
           Manage categories, currency, and notification preferences
         </p>
       </div>

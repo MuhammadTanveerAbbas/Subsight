@@ -297,4 +297,10 @@ select option {
     from { opacity: 0; transform: translateY(18px); }
     to { opacity: 1; transform: translateY(0); }
   }
+  @media (max-width: 768px) {
+    .ai-stat-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  }
+  @media (max-width: 480px) {
+    .ai-stat-grid { grid-template-columns: 1fr !important; }
+  }
 }

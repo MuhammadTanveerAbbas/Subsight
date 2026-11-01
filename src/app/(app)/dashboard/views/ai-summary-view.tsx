@@ -147,7 +147,9 @@ export function AISummaryView({ t, subs }: { t: T; subs: Sub[] }) {
       </div>
 
       {/* Stat cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(185px,1fr))", gap: 13 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 13 }}
+        className="ai-stat-grid"
+      >
         {statCards.map((card) => (
           <div
             key={card.label}
