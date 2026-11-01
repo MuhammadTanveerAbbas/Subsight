@@ -19,6 +19,7 @@ export function ProfileView({
   const { user, updateProfile, deleteAccount } = useAuth();
   const [form, setForm]           = useState({ name: "", avatar: "" });
   const [email, setEmail]         = useState("");
+  const [loading, setLoading]     = useState(true);
   const [saving, setSaving]       = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmText, setConfirmText] = useState("");
@@ -26,7 +27,7 @@ export function ProfileView({
 
   /* ── Load current profile data ──────────── */
   useEffect(() => {
-    if (!user) return;
+    if (!user) { setLoading(false); return; }
     setEmail(user.email ?? "");
     const supabase = createClient();
     supabase
@@ -38,6 +39,7 @@ export function ProfileView({
         if (data) {
           setForm({ name: data.full_name || "", avatar: data.avatar_url || "" });
         }
+        setLoading(false);
       });
   }, [user]);
 
@@ -70,14 +72,26 @@ export function ProfileView({
     letterSpacing: "0.08em", textTransform: "uppercase", display: "block", marginBottom: 5, lineHeight: 1.5,
   };
 
+  if (loading) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: 14, maxWidth: 640, margin: "0 auto", width: "100%" }}>
+        {[1,2,3,4].map(i => (
+          <div key={i} style={{ backgroundColor: t.surface, border: `1px solid ${t.border}`, borderRadius: 12, padding: 22, height: 100,
+            backgroundImage: `linear-gradient(90deg,${t.surface2} 25%,${t.surface3} 50%,${t.surface2} 75%)`,
+            backgroundSize: "200% 100%", animation: "shimmer 1.4s infinite linear" }} />
+        ))}
+      </div>
+    );
+  }
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 18, maxWidth: 640 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 18, maxWidth: 640, margin: "0 auto", width: "100%" }}>
       {/* Title */}
       <div>
-        <h2 style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 800, color: t.text, letterSpacing: -0.5 }}>
+        <h2 style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 800, color: t.text, letterSpacing: -0.5, textAlign: "center" }}>
           Profile
         </h2>
-        <p style={{ fontSize: 11.5, color: t.text3, fontFamily: "var(--font-mono)", marginTop: 3, lineHeight: 1.5 }}>
+        <p style={{ fontSize: 11.5, color: t.text3, fontFamily: "var(--font-mono)", marginTop: 3, lineHeight: 1.5, textAlign: "center" }}>
           Manage your account information and security settings
         </p>
       </div>

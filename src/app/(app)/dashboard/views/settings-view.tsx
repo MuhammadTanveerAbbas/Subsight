@@ -113,7 +113,7 @@ export function SettingsView({
 
   if (loadingPrefs) {
     return (
-      <div style={{ display: "flex", flexDirection: "column", gap: 14, maxWidth: 680 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 14, maxWidth: 680, margin: "0 auto", width: "100%" }}>
         {[1,2,3].map(i => (
           <div key={i} style={{ backgroundColor: t.surface, border: `1px solid ${t.border}`, borderRadius: 12, padding: 22, height: 100,
             backgroundImage: `linear-gradient(90deg,${t.surface2} 25%,${t.surface3} 50%,${t.surface2} 75%)`,
