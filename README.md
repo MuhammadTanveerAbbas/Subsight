@@ -1,6 +1,23 @@
-# Subsight
+<div align="center">
 
-> Open-source subscription tracker with AI-powered insights free forever.
+  <img src="./public/icon.svg" alt="Subsight Logo" width="80" height="80" />
+  
+   # Subsight
+  **Open-source subscription tracker with AI-powered insights free forever.**
+
+  [![Live Demo](https://img.shields.io/badge/Live-Demo-brightgreen?style=for-the-badge)](https://subsight-tracker.vercel.app/)
+  [![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://typescriptlang.org)
+  [![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org)
+  [![Tailwind CSS](https://img.shields.io/badge/Tailwind-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
+  [![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com)
+  [![Groq](https://img.shields.io/badge/Groq-AI-orange?style=for-the-badge)](https://groq.com)
+
+</div>
+
+---
+
+## Overview
 
 Subsight gives you real-time visibility into every recurring charge. Self-hosted, privacy-first, and MIT licensed. Every feature is free for all users no paid tiers exist today.
 
@@ -138,20 +155,21 @@ All five variables must be set for renewal email reminders to work.
 
 ## SMTP Configuration
 
-Renewal reminders are sent by a daily cron job (`/api/reminders/send`). The job reads SMTP settings from environment variables on the server credentials are **never** stored in the database or sent to the client.
+Renewal reminders are sent by a daily cron job (`/api/reminders/send`). The job reads SMTP settings from environment variables on the server. Credentials are **never** stored in the database or sent to the client.
 
 ### Gmail setup
 
 1. Enable 2-Step Verification on your Google account.
 2. Go to **Google Account → Security → App Passwords** and create one.
 3. Set:
-   ```
-   SMTP_HOST=smtp.gmail.com
-   SMTP_PORT=587
-   SMTP_USER=your@gmail.com
-   SMTP_PASS=xxxx xxxx xxxx xxxx   # App Password
-   SMTP_FROM=your@gmail.com
-   ```
+
+```env
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your@gmail.com
+SMTP_PASS=xxxx xxxx xxxx xxxx
+SMTP_FROM=your@gmail.com
+```
 
 ### Other providers
 
@@ -173,6 +191,7 @@ Go to **Settings → Email (SMTP)** and click **Test SMTP Connection**. This cal
 The AI model list is managed in `src/lib/groq-service.ts` under `MODEL_PREFERENCES`. Models are verified against the live Groq API at startup (cached for 6 hours). If the preferred model is unavailable, the service falls back automatically.
 
 **Active models (verified 2026):**
+
 - `openai/gpt-oss-120b` highest quality
 - `openai/gpt-oss-20b` fastest
 - `qwen/qwen3.8-27b`
@@ -186,7 +205,7 @@ Rate limit (429) responses from Groq are forwarded to the client with a `Retry-A
 
 ## Project Structure
 
-```
+```text
 src/
 ├── app/
 │   ├── (app)/dashboard/       # Dashboard SPA
@@ -287,6 +306,16 @@ MIT. See [LICENSE](LICENSE).
 
 ---
 
-## Author
 
-**Muhammad Tanveer Abbas**: [Portfolio](https://muhammadtanveerabbas.vercel.app) | [GitHub](https://github.com/MuhammadTanveerAbbas)
+## 👨‍💻 Built by Muhammad Tanveer Abbas
+
+<div>
+
+**Muhammad Tanveer Abbas**
+Technical Product Partner for B2B SaaS & Internals Tools
+
+[![Twitter](https://img.shields.io/badge/Twitter-@m_tanveerabbas-1DA1F2?style=for-the-badge&logo=twitter)](https://x.com/m_tanveerabbas)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0077B5?style=for-the-badge&logo=linkedin)](https://linkedin.com/in/muhammadtanveerabbas)
+[![GitHub](https://img.shields.io/badge/GitHub-Follow-181717?style=for-the-badge&logo=github)](https://github.com/MuhammadTanveerAbbas)
+
+If this project helped you, please consider giving it a ⭐
