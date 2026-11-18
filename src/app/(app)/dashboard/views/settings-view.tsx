@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Globe, Tag, Plus, X, Bell, Save, RefreshCw, ToggleRight, ToggleLeft, Mail, CheckCircle2, XCircle } from "lucide-react";
+import { Globe, Tag, Plus, X, Bell, Save, RefreshCw, ToggleRight, ToggleLeft, Mail, CheckCircle2, XCircle, Wallet, ArrowUpRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/contexts/auth-context";
 import type { T } from "@/app/(app)/dashboard/dashboard-constants";
@@ -9,9 +9,11 @@ import type { T } from "@/app/(app)/dashboard/dashboard-constants";
 export function SettingsView({
   t,
   toast,
+  onNav,
 }: {
   t: T;
   toast: (m: string, tp: "success" | "error" | "info" | "warning") => void;
+  onNav?: (id: string, tab?: string) => void;
 }) {
   const { user } = useAuth();
   const [currency, setCurrency] = useState("USD");
@@ -256,6 +258,32 @@ export function SettingsView({
             </button>
           </div>
         ))}
+      </div>
+
+      {/* Vault settings */}
+      <div style={{ background: t.surface, border: `1px solid ${t.border}`, borderRadius: 12, padding: 22 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+          <Wallet size={14} color={t.green} aria-hidden="true" />
+          <span style={{ fontSize: 14, fontWeight: 700, color: t.text, fontFamily: "var(--font-display)" }}>
+            Vault &amp; Personal Expenses
+          </span>
+        </div>
+        <p style={{ fontSize: 12, color: t.text3, fontFamily: "var(--font-mono)", marginBottom: 14, lineHeight: 1.5 }}>
+          Your vault has its own monthly budget, default currency and private expense records, kept separate from subscriptions.
+        </p>
+        <button
+          onClick={() => onNav?.("vault", "settings")}
+          style={{
+            background: t.surface2, color: t.text, border: `1px solid ${t.border2}`, borderRadius: 8,
+            padding: "10px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer",
+            fontFamily: "var(--font-display)", display: "flex", alignItems: "center", gap: 8,
+            transition: "all 0.2s",
+          }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = t.green; (e.currentTarget as HTMLElement).style.color = t.green; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = t.border2; (e.currentTarget as HTMLElement).style.color = t.text; }}
+        >
+          Configure vault <ArrowUpRight size={13} aria-hidden="true" />
+        </button>
       </div>
 
       {/* SMTP Connection Test */}

@@ -98,3 +98,23 @@ export interface ProcessedWebhookEvent {
   id: string
   processed_at: string
 }
+
+export interface VaultItem {
+  id: string
+  user_id: string
+  name: string
+  category: string
+  amount: number
+  currency: string
+  purchase_date: string
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface VaultSettings {
+  user_id: string
+  monthly_budget: number
+  currency: string
+  updated_at: string
+}

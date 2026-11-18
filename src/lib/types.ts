@@ -166,3 +166,42 @@ export interface CurrencyRate {
 }
 
 export type SubscriptionFormData = Omit<Subscription, "id">;
+
+/* ── Vault (personal expense tracker) ─────────────────────────────────── */
+
+export const VAULT_CATEGORIES = [
+  "Housing", "Food", "Transport", "Shopping", "Health", "Entertainment",
+  "Travel", "Education", "Utilities", "Other",
+] as const;
+export type VaultCategory = (typeof VAULT_CATEGORIES)[number];
+
+export const VAULT_CATEGORY_COLORS: Record<string, string> = {
+  Housing: "#3b82f6",
+  Food: "#f59e0b",
+  Transport: "#06b6d4",
+  Shopping: "#a78bfa",
+  Health: "#ef4444",
+  Entertainment: "#ec4899",
+  Travel: "#f97316",
+  Education: "#22c55e",
+  Utilities: "#64748b",
+  Other: "#6b7280",
+};
+
+export interface VaultItem {
+  id: string;
+  name: string;
+  category: string;
+  amount: number;
+  currency: string;
+  purchaseDate: string;
+  notes: string;
+  createdAt: string;
+}
+
+export interface VaultSettings {
+  monthlyBudget: number;
+  currency: string;
+}
+
+export type VaultTab = "items" | "analytics" | "settings";

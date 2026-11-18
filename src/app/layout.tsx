@@ -93,7 +93,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={cn("dark", inter.variable, jetbrainsMono.variable)}
+      className={cn(inter.variable, jetbrainsMono.variable)}
       data-scroll-behavior="smooth"
     >
       <head>

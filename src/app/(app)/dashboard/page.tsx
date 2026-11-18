@@ -7,36 +7,33 @@ import { useToast } from "@/hooks/use-toast";
 import { applyTokens } from "@/lib/design-tokens";
 import {
   Sun, Moon, Menu, Plus,
-  LayoutDashboard, CreditCard, BarChart3, Sparkles, Download,
-  Settings, User, Receipt, MoreHorizontal, ChevronRight,
+  LayoutDashboard, CreditCard, Sparkles, Download,
+  Settings, User, Receipt, MoreHorizontal, ChevronRight, Wallet,
 } from "lucide-react";
 import {
-  DARK, LIGHT, NAV_MAIN, NAV_BOTTOM,
+  DARK, LIGHT, NAV_GROUPS, NAV_BOTTOM, NAV_ALL,
   type TK, type Sub, type SubStatus,
 } from "./dashboard-constants";
 
-const VALID_TABS = new Set([
-  ...NAV_MAIN.map((n) => n.id),
-  ...NAV_BOTTOM.map((n) => n.id),
-]);
+const VALID_TABS = new Set(NAV_ALL.map((n) => n.id));
 
 import { OverviewView }  from "./views/overview-view";
 import { SubsView }      from "./views/subs-view";
-import { AnalyticsView } from "./views/analytics-view";
 import { AISummaryView } from "./views/ai-summary-view";
 import { AddView }       from "./views/add-view";
 import { ExportView }    from "./views/export-view";
 import { SettingsView }  from "./views/settings-view";
 import { ProfileView }   from "./views/profile-view";
+import { VaultView }     from "./views/vault-view";
 import BillingPage       from "./billing/page";
 
 /* ── Icon map used by sidebar links ───────────────────────────────────── */
 const ICON_MAP: Record<string, React.ElementType> = {
   overview:      LayoutDashboard,
   subscriptions: CreditCard,
-  analytics:     BarChart3,
   "ai-summary":  Sparkles,
   add:           Plus,
+  vault:         Wallet,
   export:        Download,
   billing:       Receipt,
   settings:      Settings,
@@ -149,6 +146,7 @@ export default function Dashboard() {
   const { toast: shadcnToast } = useToast();
   const [themeKey, setThemeKey] = useState<TK>("dark");
   const [active, setActive] = useState("overview");
+  const [vaultTab, setVaultTab] = useState<"items" | "analytics" | "settings">("items");
   const [collapsed, setCollapsed] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [subs, setSubs] = useState<Sub[]>([]);
@@ -192,7 +190,10 @@ export default function Dashboard() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tab = params.get("tab");
-    if (tab && VALID_TABS.has(tab)) setActive(tab);
+    if (tab) {
+      const resolved = tab === "analytics" ? "overview" : tab;
+      if (VALID_TABS.has(resolved)) setActive(resolved);
+    }
     if (params.get("upgraded") === "true") showToast("All features are now unlocked enjoy!", "success");
     if (tab || params.get("upgraded") === "true") window.history.replaceState({}, "", "/dashboard");
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -218,8 +219,11 @@ export default function Dashboard() {
     [shadcnToast],
   );
 
-  const navTo = useCallback((id: string) => {
+  const navTo = useCallback((id: string, tab?: string) => {
     setActive(id);
+    if (id === "vault") {
+      setVaultTab(tab === "analytics" || tab === "settings" ? tab : "items");
+    }
     setMoreOpen(false);
   }, []);
 
@@ -357,11 +361,11 @@ export default function Dashboard() {
     switch (active) {
       case "overview":      return <OverviewView t={t} subs={subs} onNav={navTo} />;
       case "subscriptions": return <SubsView t={t} subs={subs} setSubs={setSubs} onAdd={() => navTo("add")} toast={showToast} />;
-      case "analytics":     return <AnalyticsView t={t} subs={subs} />;
       case "ai-summary":    return <AISummaryView t={t} subs={subs} />;
       case "add":           return <AddView t={t} onSuccess={async () => { await refetchSubscriptions(); navTo("subscriptions"); }} toast={showToast} />;
-      case "export":        return <ExportView t={t} subs={subs} toast={showToast} />;
-      case "settings":      return <SettingsView t={t} toast={showToast} />;
+      case "vault":         return <VaultView t={t} toast={showToast} initialTab={vaultTab} />;
+      case "export":        return <ExportView t={t} subs={subs} toast={showToast} onNav={navTo} />;
+      case "settings":      return <SettingsView t={t} toast={showToast} onNav={navTo} />;
       case "billing":       return <BillingPage />;
       case "profile":       return <ProfileView t={t} toast={showToast} />;
       default:              return <OverviewView t={t} subs={subs} onNav={navTo} />;
@@ -369,9 +373,7 @@ export default function Dashboard() {
   };
 
   const activeMonthly = subs.filter((s) => s.status === "active").reduce((a, s) => a + s.amount, 0);
-  const activeLabel = NAV_MAIN.find((n) => n.id === active)?.label
-    || NAV_BOTTOM.find((n) => n.id === active)?.label
-    || "Dashboard";
+  const activeLabel = NAV_ALL.find((n) => n.id === active)?.label || "Dashboard";
 
   /* ── Sidebar inner content (desktop only) ─────────────────────────── */
   const SidebarContent = () => (
@@ -415,15 +417,22 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* Main nav */}
+      {/* Main nav, split into labeled categories */}
       <nav style={{ flex: 1, padding: "10px 0", overflowY: "auto", overflowX: "hidden" }} role="navigation" aria-label="Main navigation">
-        {!collapsed && (
-          <div style={{ fontSize: 9.5, fontWeight: 600, color: t.text3, fontFamily: "var(--font-mono)", letterSpacing: "0.1em", textTransform: "uppercase", padding: "6px 16px 8px" }}>
-            Menu
+        {NAV_GROUPS.map((group, gi) => (
+          <div key={group.label}>
+            {gi > 0 && (
+              <div style={{ height: 1, background: t.border, margin: "10px 12px 8px" }} />
+            )}
+            {!collapsed && (
+              <div style={{ fontSize: 9.5, fontWeight: 600, color: t.text3, fontFamily: "var(--font-mono)", letterSpacing: "0.1em", textTransform: "uppercase", padding: "6px 16px 8px" }}>
+                {group.label}
+              </div>
+            )}
+            {group.items.map((item) => (
+              <SidebarLink key={item.id} section="main" {...item} />
+            ))}
           </div>
-        )}
-        {NAV_MAIN.map((item) => (
-          <SidebarLink key={item.id} section="main" {...item} />
         ))}
       </nav>
 
@@ -480,7 +489,7 @@ export default function Dashboard() {
     { id: "overview",      label: "Home",   Icon: LayoutDashboard },
     { id: "subscriptions", label: "Subs",   Icon: CreditCard },
     { id: "add",           label: "Add",    Icon: Plus },
-    { id: "analytics",     label: "Stats",  Icon: BarChart3 },
+    { id: "vault",         label: "Vault",  Icon: Wallet },
     { id: "more",          label: "More",   Icon: MoreHorizontal },
   ] as const;
 

@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Sparkles, ToggleLeft, Download, Search, Shield,
   ArrowRight, Check, ChevronDown, ChevronUp,
   TrendingUp, Zap, Sun, Moon, Bell, CreditCard,
-  BarChart3, ArrowUpRight, Lock, Globe, RefreshCw, GitBranch,
+  BarChart3, ArrowUpRight, Lock, Globe, RefreshCw, GitBranch, Wallet, Target, ListTree, UserPlus,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -63,13 +63,13 @@ function Label({ text, t }: { text:string; t:Theme }) {
 
 // ─── Ticker ───────────────────────────────────────────────────────────────────
 function Ticker({ t }: { t:Theme }) {
-  const items = ["Real-time Analytics","AI-Powered Insights","Subscription Tracking","Simulation Mode","Export PDF · CSV · JSON","Supabase Auth","Open Source MIT","Smart Renewal Alerts","Category Breakdown","Zero Hidden Fees","Multi-Currency Support","Spending Goals","Custom Categories","Dark & Light Theme"];
+  const items = ["Real-time Analytics","AI-Powered Insights","Subscription Tracking","Private Expense Vault","Vault Budget & Analytics","Simulation Mode","Export PDF · CSV · JSON","Supabase Auth","Open Source MIT","Smart Renewal Alerts","Category Breakdown","Multi-Currency Support","Spending Goals","Custom Categories","Dark & Light Theme","Grouped Navigation"];
   return (
     <div style={{ overflow:"hidden", borderTop:`1px solid ${t.border}`, borderBottom:`1px solid ${t.border}`, background:t.surface, padding:"11px 0" }}>
-      <div style={{ display:"flex", animation:"ticker 40s linear infinite", whiteSpace:"nowrap" }}>
+      <div className="ticker-track" style={{ display:"flex", animation:"ticker 40s linear infinite", whiteSpace:"nowrap" }}>
         {[...items,...items,...items].map((item,i) => (
           <span key={i} style={{ fontSize:10, color:t.text3, padding:"0 26px", letterSpacing:"0.1em", textTransform:"uppercase", fontFamily:"var(--font-mono)", display:"inline-flex", alignItems:"center", gap:8 }}>
-            <span style={{ color:t.green, fontSize:7 }}>◆</span> {item}
+            <span style={{ width:5, height:5, borderRadius:1, background:t.green, display:"inline-block" }} /> {item}
           </span>
         ))}
       </div>
@@ -144,7 +144,7 @@ function DashPreview({ t }: { t:Theme }) {
     { name:"Figma",    cat:"Design",      amt:"$15.00", warn:false, due:"5d" },
   ];
   return (
-    <div style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:16, overflow:"hidden", width:"100%", maxWidth:840, boxShadow:`0 48px 120px ${t.shadow}, 0 0 0 1px ${t.greenBorder}`, minWidth:0 }}>
+    <div style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:16, overflow:"hidden", width:"100%", maxWidth:840, minWidth:0 }}>
       {/* Chrome bar */}
       <div style={{ background:t.surface2, borderBottom:`1px solid ${t.border}`, padding:"10px 18px", display:"flex", alignItems:"center", gap:7 }}>
         {["#ff5f57","#ffbd2e","#28ca42"].map((c,i) => <span key={i} style={{ width:9, height:9, borderRadius:"50%", background:c, display:"block" }} />)}
@@ -186,6 +186,44 @@ function DashPreview({ t }: { t:Theme }) {
   );
 }
 
+// ─── Vault preview ────────────────────────────────────────────────────────────
+function VaultPreview({ t }: { t:Theme }) {
+  const rows = [
+    { name:"Groceries", category:"Food", amount:"$64.20", color:"#f59e0b" },
+    { name:"Coffee beans", category:"Food", amount:"$18.00", color:"#f59e0b" },
+    { name:"Laptop stand", category:"Shopping", amount:"$42.50", color:"#a78bfa" },
+  ];
+  return (
+    <div style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:16, padding:24, width:"100%", maxWidth:480 }}>
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:6 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:9 }}>
+          <Wallet size={17} color={t.green} />
+          <span style={{ fontFamily:"var(--font-display)", fontSize:15, fontWeight:700, color:t.text }}>Vault</span>
+        </div>
+        <span style={{ fontSize:10, color:t.text3, fontFamily:"var(--font-mono)" }}>Private to your account</span>
+      </div>
+      <div style={{ marginTop:24 }}>
+        <div style={{ display:"flex", justifyContent:"space-between", fontSize:10.5, color:t.text3, fontFamily:"var(--font-mono)", marginBottom:8 }}>
+          <span>Monthly budget used</span><span style={{ color:t.green }}>62%</span>
+        </div>
+        <div style={{ height:6, borderRadius:3, background:t.surface3, overflow:"hidden" }}>
+          <div style={{ width:"62%", height:"100%", background:t.green, borderRadius:3 }} />
+        </div>
+      </div>
+      <div style={{ marginTop:24, borderTop:`1px solid ${t.border}` }}>
+        {rows.map((row) => (
+          <div key={row.name} style={{ display:"flex", alignItems:"center", gap:10, padding:"13px 0", borderBottom:`1px solid ${t.border}` }}>
+            <span style={{ width:8, height:8, borderRadius:2, background:row.color, flexShrink:0 }} />
+            <span style={{ flex:1, fontSize:12.5, color:t.text, fontFamily:"var(--font-display)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{row.name}</span>
+            <span style={{ fontSize:11, color:t.text3, fontFamily:"var(--font-mono)" }}>{row.category}</span>
+            <span style={{ fontSize:12.5, color:t.text, fontFamily:"var(--font-mono)", whiteSpace:"nowrap" }}>{row.amount}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── Feature card ─────────────────────────────────────────────────────────────
 function FeatCard({ Icon, title, desc, tag, t }: { Icon:React.ElementType; title:string; desc:string; tag?:string; t:Theme }) {
   const [hov, setHov] = useState(false);
@@ -214,7 +252,7 @@ function WhyCard({ icon: Icon, title, desc, t }: { icon: React.ElementType; titl
   const [hov, setHov] = useState(false);
   return (
     <div onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
-      style={{ background: hov ? t.surface2 : t.surface, border:`1px solid ${hov ? t.greenBorder : t.border}`, borderRadius:14, padding:"28px 24px", transition:"all 0.22s", transform: hov ? "translateY(-3px)" : "translateY(0)", boxShadow: hov ? `0 16px 48px ${t.greenGlow}` : "none" }}>
+      style={{ background: hov ? t.surface2 : t.surface, border:`1px solid ${hov ? t.greenBorder : t.border}`, borderRadius:14, padding:"28px 24px", transition:"all 0.22s", transform: hov ? "translateY(-3px)" : "translateY(0)" }}>
       <div style={{ width:38, height:38, borderRadius:10, background:t.greenDim, border:`1px solid ${t.greenBorder}`, display:"flex", alignItems:"center", justifyContent:"center", marginBottom:18 }}>
         <Icon size={16} color={t.green} strokeWidth={1.5} />
       </div>
@@ -224,49 +262,12 @@ function WhyCard({ icon: Icon, title, desc, t }: { icon: React.ElementType; titl
   );
 }
 
-// ─── Price card ───────────────────────────────────────────────────────────────
-function PriceCard({ plan, price, sub, desc, features, highlight, t, cta, href }: { plan:string; price:string; sub:string; desc:string; features:string[]; highlight?:boolean; t:Theme; cta:string; href:string }) {
-  const [hov, setHov] = useState(false);
-  return (
-    <div onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
-      className="price-card"
-      style={{ background:highlight?t.surface2:t.surface, border:`1px solid ${highlight?t.greenBorder:t.border}`, borderRadius:16, padding:"40px 32px", position:"relative", flex:1, minWidth:0, display:"flex", flexDirection:"column", transition:"transform 0.22s, box-shadow 0.22s", transform:hov?"translateY(-5px)":"translateY(0px)", boxShadow:hov?`0 36px 80px ${t.shadow}, 0 0 0 1px ${t.greenBorder}`:highlight?`0 0 0 1px ${t.greenBorder}, 0 24px 64px ${t.greenGlow}`:"none" }}>
-      {highlight && (
-        <span style={{ position:"absolute", top:-14, left:"50%", transform:"translateX(-50%)", background:t.green, color:"#000", fontSize:9.5, fontWeight:700, padding:"5px 18px", borderRadius:999, fontFamily:"var(--font-mono)", letterSpacing:"0.1em", whiteSpace:"nowrap", boxShadow:`0 4px 16px ${t.greenGlow}` }}>RECOMMENDED</span>
-      )}
-      <div style={{ marginBottom:24 }}>
-        <span style={{ fontFamily:"var(--font-mono)", fontSize:10, color:highlight?t.green:t.text3, letterSpacing:"0.18em", textTransform:"uppercase", display:"block", marginBottom:8 }}>{plan}</span>
-        <p style={{ fontSize:12.5, color:t.text3, fontFamily:"var(--font-mono)", lineHeight:1.6 }}>{desc}</p>
-      </div>
-      <div style={{ display:"flex", alignItems:"baseline", gap:8, marginBottom:8, paddingBottom:24, borderBottom:`1px solid ${t.border}` }}>
-        <span style={{ fontFamily:"var(--font-display)", fontSize:52, fontWeight:800, color:t.text, lineHeight:1, letterSpacing:-2 }}>{price}</span>
-        <span style={{ fontSize:12, color:t.text3, fontFamily:"var(--font-mono)" }}>{sub}</span>
-      </div>
-      <ul style={{ listStyle:"none", display:"flex", flexDirection:"column", gap:12, marginBottom:32, flex:1, paddingTop:20 }}>
-        {features.map((f,i) => (
-          <li key={i} style={{ fontSize:13, color:t.text2, display:"flex", alignItems:"flex-start", gap:10, fontFamily:"var(--font-mono)" }}>
-            <span style={{ width:18, height:18, borderRadius:"50%", background:t.greenDim, border:`1px solid ${t.greenBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1 }}>
-              <Check size={10} color={t.green} />
-            </span>
-            {f}
-          </li>
-        ))}
-      </ul>
-      <Link href={href} target={href.startsWith("http")?"_blank":"_self"} rel={href.startsWith("http")?"noopener":""} style={{ display:"flex", width:"100%", padding:"14px", borderRadius:10, fontSize:13, fontFamily:"var(--font-mono)", fontWeight:600, textAlign:"center", textDecoration:"none", background:highlight?t.green:"transparent", color:highlight?"#000":t.text, border:highlight?"none":`1px solid ${t.border2}`, justifyContent:"center", alignItems:"center", gap:7, transition:"all 0.2s" }}
-        onMouseEnter={e=>{ const el=e.currentTarget as HTMLElement; if(highlight){el.style.background=t.green2;}else{el.style.borderColor=t.green;el.style.color=t.green;} }}
-        onMouseLeave={e=>{ const el=e.currentTarget as HTMLElement; if(highlight){el.style.background=t.green;}else{el.style.borderColor=t.border2;el.style.color=t.text;} }}>
-        {cta} <ArrowRight size={12} />
-      </Link>
-    </div>
-  );
-}
-
 // ─── FAQ item ─────────────────────────────────────────────────────────────────
 function FAQItem({ q, a, t, idx }: { q:string; a:string; t:Theme; idx:number }) {
   const [open, setOpen] = useState(false);
   return (
     <div onClick={()=>setOpen(!open)}
-      style={{ border:`1px solid ${open ? t.greenBorder : t.border}`, borderRadius:12, overflow:"hidden", cursor:"pointer", background:open ? t.surface2 : t.surface, transition:"border-color 0.25s, background 0.25s", boxShadow: open ? `0 0 0 1px ${t.greenBorder}, 0 8px 32px ${t.greenGlow}` : "none" }}>
+      style={{ border:`1px solid ${open ? t.greenBorder : t.border}`, borderRadius:12, overflow:"hidden", cursor:"pointer", background:open ? t.surface2 : t.surface, transition:"border-color 0.25s, background 0.25s" }}>
       <div style={{ display:"flex", alignItems:"flex-start", gap:14, padding:"20px 22px" }}>
         <span style={{ fontSize:10, color:t.green, fontFamily:"var(--font-mono)", fontWeight:700, letterSpacing:"0.08em", flexShrink:0, marginTop:3, opacity:0.7 }}>{String(idx+1).padStart(2,"0")}</span>
         <span style={{ fontSize:14, fontWeight:600, color:t.text, fontFamily:"var(--font-display)", lineHeight:1.45, flex:1 }}>{q}</span>
@@ -283,12 +284,12 @@ function FAQItem({ q, a, t, idx }: { q:string; a:string; t:Theme; idx:number }) 
 
 // ─── MAIN ─────────────────────────────────────────────────────────────────────
 export default function LandingPage() {
-  const [themeKey, setThemeKey] = useState<ThemeKey>("dark");
+  const [themeKey, setThemeKey] = useState<ThemeKey>("light");
   const [scrolled, setScrolled] = useState(false);
   const t = themeKey === "dark" ? DARK : LIGHT;
 
   useEffect(() => {
-    const stored = (localStorage.getItem("subsight-theme") || "dark") as ThemeKey;
+    const stored = (localStorage.getItem("subsight-theme") || "light") as ThemeKey;
     setThemeKey(stored);
   }, []);
 
@@ -318,17 +319,20 @@ export default function LandingPage() {
         @keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-33.333%)}}
         @keyframes heroIn{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
         @keyframes fadeSlideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+         @media(prefers-reduced-motion:reduce){
+           .ticker-track{animation:none!important}
+         }
         a{color:inherit;text-decoration:none}
         ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#2a2a2a;border-radius:3px}
         *{scrollbar-width:thin;scrollbar-color:#2a2a2a transparent}
         .nav-desktop{display:flex!important}
         @media(max-width:900px){.feat-grid{grid-template-columns:repeat(2,1fr)!important}}
+         @media(max-width:820px){.steps-grid{grid-template-columns:1fr!important}.vault-spotlight{grid-template-columns:1fr!important;gap:32px!important}}
         @media(max-width:768px){
           .nav-desktop{display:none!important}
           .nav-wrap{display:flex!important;justify-content:space-between!important;align-items:center!important;padding:0 16px!important;grid-template-columns:unset!important}
           .stats-grid{grid-template-columns:repeat(2,1fr)!important}
-          .price-row{grid-template-columns:1fr!important}
-          .cta-inner{flex-direction:column!important;align-items:stretch!important;text-align:center!important}
+                    .cta-inner{flex-direction:column!important;align-items:stretch!important;text-align:center!important}
           .cta-btns{justify-content:center!important}
           .footer-grid{grid-template-columns:1fr 1fr!important;gap:32px!important}
           .section-pad{padding:80px 20px!important}
@@ -336,8 +340,7 @@ export default function LandingPage() {
           .dash-chart-row{flex-direction:column!important}
           .cta-box{padding:48px 24px!important}
           .dash-preview-kpi{flex-wrap:wrap!important;gap:16px!important}
-          .price-card{min-width:0!important;padding:28px 20px!important}
-          .footer-brand{grid-column:1/-1!important}
+                    .footer-brand{grid-column:1/-1!important}
           .ana-2col{grid-template-columns:1fr!important}
           .add-grid{grid-template-columns:1fr!important}
           .chart-2col{grid-template-columns:1fr!important}
@@ -362,18 +365,24 @@ export default function LandingPage() {
 
         {/* Logo */}
         <Link href="/" style={{ display:"flex", alignItems:"center", gap:10, textDecoration:"none", flexShrink:0 }}>
-          <Image src="/icon.svg" alt="Subsight" width={32} height={32} style={{ borderRadius:9, flexShrink:0, boxShadow:`0 0 16px ${t.greenGlow}`, display:"block" }} />
+          <Image src="/icon.svg" alt="Subsight" width={32} height={32} style={{ borderRadius:9, flexShrink:0, display:"block" }} />
           <span style={{ fontFamily:"var(--font-display)", fontSize:18, fontWeight:800, color:t.text, letterSpacing:-0.6 }}>Subsight</span>
         </Link>
 
         {/* Center nav links */}
         <div className="nav-desktop" style={{ display:"flex", alignItems:"center", gap:6 }}>
-          {["Features","Compare","Pricing","FAQ"].map(l => (
-            <a key={l} href={`#${l.toLowerCase()}`}
-              style={{ fontSize:13, color:t.text2, fontFamily:"var(--font-display)", fontWeight:500, padding:"7px 16px", borderRadius:8, transition:"all 0.2s", whiteSpace:"nowrap", textDecoration:"none" }}
+          {[
+            { id:"features", label:"Features" },
+            { id:"how-it-works", label:"How it works" },
+            { id:"vault", label:"Vault" },
+            { id:"compare", label:"Compare" },
+            { id:"faq", label:"FAQ" },
+          ].map(link => (
+            <a key={link.id} href={`#${link.id}`}
+              style={{ fontSize:13, color:t.text2, fontFamily:"var(--font-display)", fontWeight:500, padding:"7px 16px", borderRadius:8, transition:"color 0.2s, background 0.2s", whiteSpace:"nowrap", textDecoration:"none" }}
               onMouseEnter={e=>{ (e.currentTarget as HTMLElement).style.color=t.text; (e.currentTarget as HTMLElement).style.background=t.surface2; }}
               onMouseLeave={e=>{ (e.currentTarget as HTMLElement).style.color=t.text2; (e.currentTarget as HTMLElement).style.background="transparent"; }}
-            >{l}</a>
+            >{link.label}</a>
           ))}
         </div>
 
@@ -386,9 +395,9 @@ export default function LandingPage() {
             {themeKey==="dark" ? <Sun size={14} color={t.text2} /> : <Moon size={14} color={t.text2} />}
           </button>
           <Link href="/sign-up"
-            style={{ background:t.green, color:"#000", borderRadius:10, padding:"9px 20px", fontSize:13, fontWeight:700, fontFamily:"var(--font-display)", display:"flex", alignItems:"center", gap:6, textDecoration:"none", transition:"all 0.2s", boxShadow:`0 0 20px ${t.greenGlow}`, whiteSpace:"nowrap" }}
-            onMouseEnter={e=>{ (e.currentTarget as HTMLElement).style.background=t.green2; (e.currentTarget as HTMLElement).style.transform="translateY(-1px)"; (e.currentTarget as HTMLElement).style.boxShadow=`0 4px 24px ${t.greenGlow}`; }}
-            onMouseLeave={e=>{ (e.currentTarget as HTMLElement).style.background=t.green; (e.currentTarget as HTMLElement).style.transform="translateY(0)"; (e.currentTarget as HTMLElement).style.boxShadow=`0 0 20px ${t.greenGlow}`; }}>
+            style={{ background:t.green, color:"#000", borderRadius:10, padding:"9px 20px", fontSize:13, fontWeight:700, fontFamily:"var(--font-display)", display:"flex", alignItems:"center", gap:6, textDecoration:"none", transition:"all 0.2s", whiteSpace:"nowrap" }}
+            onMouseEnter={e=>{ (e.currentTarget as HTMLElement).style.background=t.green2; (e.currentTarget as HTMLElement).style.transform="translateY(-1px)"; }}
+            onMouseLeave={e=>{ (e.currentTarget as HTMLElement).style.background=t.green; (e.currentTarget as HTMLElement).style.transform="translateY(0)"; }}>
             Get Started <ArrowRight size={12} />
           </Link>
 
@@ -406,8 +415,6 @@ export default function LandingPage() {
             <rect width="100%" height="100%" fill="url(#dots)" />
           </svg>
         </div>
-        <div style={{ position:"absolute", top:"-15%", left:"50%", transform:"translateX(-50%)", width:800, height:800, background:`radial-gradient(circle, ${t.greenGlow} 0%, transparent 62%)`, pointerEvents:"none", zIndex:0 }} />
-
         {/* Unified hero */}
         <div style={{ display:"flex", flexDirection:"column", alignItems:"center", position:"relative", zIndex:1, width:"100%" }}>
 
@@ -426,12 +433,12 @@ export default function LandingPage() {
 
           {/* Headline */}
           <h1 style={{ animation:"heroIn 0.65s ease 0.08s both", fontFamily:"var(--font-display)", fontSize:"clamp(32px,5.5vw,64px)", fontWeight:800, lineHeight:1.05, letterSpacing:"-2px", color:t.text, textAlign:"center", maxWidth:720 }}>
-            Stop bleeding money on{" "}<span style={{ color:t.green }}>forgotten subscriptions</span>
+            Every subscription. Every personal expense.<br /><span style={{ color:t.green }}>One clear view.</span>
           </h1>
 
           {/* Subheading */}
           <p style={{ animation:"heroIn 0.65s ease 0.16s both", marginTop:22, fontSize:"clamp(13px,1.2vw,15px)", color:t.text2, maxWidth:440, lineHeight:1.7, fontFamily:"var(--font-mono)", textAlign:"center" }}>
-            Real-time command center for every recurring payment. AI insights, analytics, zero surprises.
+            Subsight tracks recurring charges and keeps personal spending in a private vault. Budgets, analytics and renewal reminders included.
           </p>
 
           {/* CTA buttons */}
@@ -439,22 +446,22 @@ export default function LandingPage() {
             <Link href="/sign-up" style={btnPrimary}
               onMouseEnter={e=>{ (e.currentTarget as HTMLElement).style.background=t.green2; (e.currentTarget as HTMLElement).style.transform="translateY(-2px)"; }}
               onMouseLeave={e=>{ (e.currentTarget as HTMLElement).style.background=t.green; (e.currentTarget as HTMLElement).style.transform="translateY(0px)"; }}>
-              Track My Subscriptions <ArrowRight size={14} />
+              <UserPlus size={15} /> Create free account
             </Link>
-            <a href="https://subsight-tracker.vercel.app/" target="_blank" rel="noopener" style={btnGhost}
+            <a href="#features" style={btnGhost}
               onMouseEnter={e=>{ (e.currentTarget as HTMLElement).style.borderColor=t.green; (e.currentTarget as HTMLElement).style.color=t.green; }}
               onMouseLeave={e=>{ (e.currentTarget as HTMLElement).style.borderColor=t.border2; (e.currentTarget as HTMLElement).style.color=t.text; }}>
-              <ArrowUpRight size={14} /> Live Demo
+              <LayoutDashboard size={15} /> Explore Features
             </a>
           </div>
 
           {/* Stats grid */}
           <div className="stats-grid" style={{ animation:"heroIn 0.65s ease 0.34s both", display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:1, marginTop:64, background:t.border, border:`1px solid ${t.border}`, borderRadius:14, overflow:"hidden", maxWidth:760, width:"100%" }}>
             {[
-              { n:100, p:"",  s:"%",     l:"Open Source" },
-              { n:5,   p:"",  s:" min",  l:"To Setup" },
-              { n:24,  p:"",  s:"/7",    l:"Renewal Alerts" },
-              { n:3,   p:"",  s:"x",      l:"Export Formats" },
+              { n:100, p:"", s:"%",  l:"Open Source" },
+              { n:3,   p:"", s:"",   l:"Export Formats" },
+              { n:4,   p:"", s:"",   l:"Reminder Windows" },
+              { n:12,  p:"", s:" mo", l:"Spending Trend" },
             ].map((item,i) => (
               <div key={i} style={{ background:t.surface, padding:"28px 18px", textAlign:"center" }}>
                 <div style={{ fontFamily:"var(--font-display)", fontSize:"clamp(24px,3.5vw,38px)", fontWeight:800, color:t.text, lineHeight:1, letterSpacing:-1 }}>
@@ -485,7 +492,10 @@ export default function LandingPage() {
               { Icon:ToggleLeft,      title:"Simulation Mode",       desc:"Toggle subscriptions on or off to model budget changes before making any real decisions." },
               { Icon:Download,        title:"Multi-Format Export",   desc:"One shortcut exports your full list to JSON, CSV, or PDF. Your data, your format, forever." },
               { Icon:Search,          title:"Smart Search & Filter", desc:"Find any subscription instantly by name, category, status, or renewal date." },
-              { Icon:Shield,          title:"Full Data Ownership",   desc:"Runs on your own Supabase instance. Your data never leaves your control. MIT licensed." },
+              { Icon:Shield,          title:"Full Data Ownership",   desc:"Runs on your own Supabase instance. Your data stays under your control. MIT licensed." },
+              { Icon:Wallet,          title:"Private Expense Vault", desc:"Log personal purchases and possessions in a space that stays separate from your subscriptions." },
+              { Icon:Target,          title:"Vault Budget & Analytics", desc:"Set a monthly budget, then see category breakdowns and six-month trends for personal spending." },
+              { Icon:ListTree,        title:"Grouped Navigation",       desc:"Overview, Manage and Account groups keep every tool one click away without crowding the sidebar." },
             ].map(f => <FeatCard key={f.title} t={t} {...f} />)}
           </div>
           <Reveal delay={100}>
@@ -503,7 +513,6 @@ export default function LandingPage() {
 
       {/* ═══ DASHBOARD PREVIEW ═════════════════════════════════════════════════ */}
       <section className="section-pad" style={{ padding:"0 24px 96px", display:"flex", justifyContent:"center", position:"relative", overflow:"hidden" }}>
-        <div style={{ position:"absolute", top:"20%", left:"50%", transform:"translateX(-50%)", width:700, height:500, background:`radial-gradient(ellipse, ${t.greenGlow} 0%, transparent 65%)`, pointerEvents:"none", zIndex:0 }} />
         <Reveal y={40}><div style={{ width:"100%", maxWidth:840, overflowX:"auto" }}><DashPreview t={t} /></div></Reveal>
       </section>
 
@@ -549,54 +558,73 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ═══ PRICING ═══════════════════════════════════════════════════════════ */}
-      <section id="pricing" className="section-pad" style={{ padding:"100px 24px", background:t.surface }}>
-        <div style={{ maxWidth:900, margin:"0 auto" }}>
+      {/* ═══ HOW IT WORKS ══════════════════════════════════════════════════════ */}
+      <section id="how-it-works" className="section-pad" style={{ padding:"100px 24px", background:t.surface }}>
+        <div style={{ maxWidth:1080, margin:"0 auto" }}>
           <Reveal>
-            <div style={{ textAlign:"center", marginBottom:48 }}>
-              <Label text="Pricing" t={t} />
-              <h2 style={{ fontFamily:"var(--font-display)", fontSize:"clamp(32px,5vw,56px)", fontWeight:800, letterSpacing:-2, color:t.text, lineHeight:1.05 }}>Free forever.<br /><span style={{ color:t.green }}>No credit card.</span></h2>
-              <p style={{ fontSize:14, color:t.text2, maxWidth:480, margin:"16px auto 0", lineHeight:1.78, fontFamily:"var(--font-mono)" }}>Every feature is available to all users at no cost. Paid plans are coming in the future.</p>
-            </div>
+            <Label text="How it works" t={t} />
+            <h2 style={{ fontFamily:"var(--font-display)", fontSize:"clamp(28px,4vw,44px)", fontWeight:800, letterSpacing:-1.2, color:t.text, lineHeight:1.1, maxWidth:520 }}>
+              Three steps to a clear picture
+            </h2>
+            <p style={{ fontSize:14, color:t.text2, maxWidth:460, marginTop:14, lineHeight:1.7, fontFamily:"var(--font-mono)" }}>
+              Add what you pay for, then see it in one place. Personal spending stays in its own space.
+            </p>
           </Reveal>
-          <div className="price-row" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:24, alignItems:"stretch" }}>
-            <Reveal delay={0}>
-              <PriceCard t={t} highlight plan="Free" price="$0" sub="/month" desc="All features included. No credit card required, no hidden limits." cta="Get Started Free" href="/sign-up" features={["Unlimited subscriptions","Full analytics dashboard","AI-powered spending insights","AI auto-fill for subscription details","Simulation mode (toggle to preview budget)","Export to JSON, CSV, and PDF","Renewal email reminders","Custom categories","Multi-currency support","Dark and light theme"]} />
-            </Reveal>
-            <Reveal delay={80}>
-              {/* Coming Soon card no pricing, no CTA link */}
-              <div className="price-card" style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:16, padding:"40px 32px", position:"relative", flex:1, minWidth:0, display:"flex", flexDirection:"column", opacity:0.7 }}>
-                <span style={{ position:"absolute", top:-14, left:"50%", transform:"translateX(-50%)", background:t.surface3, color:t.text2, fontSize:9.5, fontWeight:700, padding:"5px 18px", borderRadius:999, fontFamily:"var(--font-mono)", letterSpacing:"0.1em", whiteSpace:"nowrap", border:`1px solid ${t.border2}` }}>COMING SOON</span>
-                <div style={{ marginBottom:24 }}>
-                  <span style={{ fontFamily:"var(--font-mono)", fontSize:10, color:t.text3, letterSpacing:"0.18em", textTransform:"uppercase", display:"block", marginBottom:8 }}>Paid Plan</span>
-                  <p style={{ fontSize:12.5, color:t.text3, fontFamily:"var(--font-mono)", lineHeight:1.6 }}>Paid plans are not yet available. We are working on premium features for teams and power users.</p>
+          <div className="steps-grid" style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:16, marginTop:44 }}>
+            {[
+              { n:"01", title:"Add what you pay for", desc:"Enter each subscription with its amount, cycle and renewal date. AI auto-fill can complete the details from a service name." },
+              { n:"02", title:"See the full picture", desc:"One dashboard shows monthly spend, annual cost, category share and what renews soon." },
+              { n:"03", title:"Keep personal costs separate", desc:"Log purchases in the Vault. It has its own budget and analytics, so they never mix with subscriptions." },
+            ].map((step) => (
+              <Reveal key={step.n}>
+                <div style={{ background:t.bg, border:`1px solid ${t.border}`, borderRadius:12, padding:"28px 24px", height:"100%" }}>
+                  <div style={{ fontSize:11, color:t.green, fontFamily:"var(--font-mono)", letterSpacing:"0.08em", marginBottom:20 }}>{step.n}</div>
+                  <h3 style={{ fontFamily:"var(--font-display)", fontSize:17, fontWeight:700, color:t.text, marginBottom:10, letterSpacing:-0.3 }}>{step.title}</h3>
+                  <p style={{ fontSize:12.5, color:t.text2, lineHeight:1.7, fontFamily:"var(--font-mono)" }}>{step.desc}</p>
                 </div>
-                <div style={{ display:"flex", alignItems:"baseline", gap:8, marginBottom:8, paddingBottom:24, borderBottom:`1px solid ${t.border}` }}>
-                  <span style={{ fontFamily:"var(--font-display)", fontSize:36, fontWeight:800, color:t.text3, lineHeight:1, letterSpacing:-1 }}>TBA</span>
-                </div>
-                <ul style={{ listStyle:"none", display:"flex", flexDirection:"column", gap:12, marginBottom:32, flex:1, paddingTop:20 }}>
-                  {["Team collaboration","Advanced spending goals","Priority support","Additional export formats","API access"].map((f,i) => (
-                    <li key={i} style={{ fontSize:13, color:t.text3, display:"flex", alignItems:"flex-start", gap:10, fontFamily:"var(--font-mono)" }}>
-                      <span style={{ width:18, height:18, borderRadius:"50%", background:t.surface2, border:`1px solid ${t.border}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1 }}>
-                        <Check size={10} color={t.text3} />
-                      </span>
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-                <div style={{ display:"flex", width:"100%", padding:"14px", borderRadius:10, fontSize:13, fontFamily:"var(--font-mono)", fontWeight:600, textAlign:"center", background:"transparent", color:t.text3, border:`1px solid ${t.border}`, justifyContent:"center", alignItems:"center", gap:7 }}>
-                  Notify me when available
-                </div>
-              </div>
-            </Reveal>
+              </Reveal>
+            ))}
           </div>
+        </div>
+      </section>
+
+      {/* ═══ VAULT ═════════════════════════════════════════════════════════════ */}
+      <section id="vault" className="section-pad" style={{ padding:"100px 24px" }}>
+        <div className="vault-spotlight" style={{ maxWidth:1080, margin:"0 auto", display:"grid", gridTemplateColumns:"1fr 1fr", gap:48, alignItems:"center" }}>
+          <Reveal>
+            <Label text="Vault" t={t} />
+            <h2 style={{ fontFamily:"var(--font-display)", fontSize:"clamp(28px,4vw,44px)", fontWeight:800, letterSpacing:-1.2, color:t.text, lineHeight:1.1, maxWidth:460 }}>
+              Your personal spending, kept private
+            </h2>
+            <p style={{ fontSize:14, color:t.text2, maxWidth:440, marginTop:16, lineHeight:1.75, fontFamily:"var(--font-mono)" }}>
+              The Vault is a separate tracker for purchases and possessions you want to remember. It uses its own budget, currency and charts.
+            </p>
+            <div style={{ display:"flex", flexDirection:"column", gap:12, marginTop:28 }}>
+              {[
+                "A monthly budget and currency of your choice",
+                "Category breakdown and six-month trends",
+                "Records visible only to your account",
+              ].map((line) => (
+                <div key={line} style={{ display:"flex", alignItems:"flex-start", gap:10 }}>
+                  <span style={{ width:20, height:20, borderRadius:6, background:t.greenDim, border:`1px solid ${t.greenBorder}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                    <Check size={11} color={t.green} />
+                  </span>
+                  <span style={{ fontSize:13, color:t.text2, fontFamily:"var(--font-mono)", lineHeight:1.6 }}>{line}</span>
+                </div>
+              ))}
+            </div>
+            <Link href="/sign-up" style={{ ...btnPrimary, marginTop:32 }}
+              onMouseEnter={e=>{ (e.currentTarget as HTMLElement).style.background=t.green2; }}
+              onMouseLeave={e=>{ (e.currentTarget as HTMLElement).style.background=t.green; }}>
+              Create free account <ArrowRight size={14} />
+            </Link>
+          </Reveal>
+          <Reveal delay={100}><VaultPreview t={t} /></Reveal>
         </div>
       </section>
 
       {/* ═══ FAQ ════════════════════════════════════════════════════════════════ */}
       <section id="faq" className="section-pad" style={{ padding:"100px 24px", background:t.bg, position:"relative", overflow:"hidden" }}>
-        {/* Ambient glow */}
-        <div style={{ position:"absolute", top:"10%", left:"50%", transform:"translateX(-50%)", width:600, height:400, background:`radial-gradient(ellipse, ${t.greenGlow} 0%, transparent 65%)`, pointerEvents:"none", zIndex:0 }} />
         <div style={{ maxWidth:860, margin:"0 auto", position:"relative", zIndex:1 }}>
           {/* Centered header */}
           <Reveal>
@@ -622,6 +650,7 @@ export default function LandingPage() {
               ["Do I need a Groq API key?","Only for AI auto-fill and AI spending summaries. Every other feature (dashboard, analytics, simulation, export, renewal alerts, settings) works without a Groq key. You can add one at any time in Settings."],
               ["Where is my data stored?","In your own Supabase PostgreSQL database. Subsight never has direct access to your data. You own it completely and can export or delete it at any time."],
               ["Can it detect subscriptions from my bank?","Not currently. Subsight is manual and AI-assisted. You enter subscriptions yourself; the AI auto-fill fills in details like price and category once you type a service name."],
+              ["Can I track personal expenses too?","Yes. The Vault is a private area for personal purchases and possessions. It has its own monthly budget, currency and analytics, and its records stay separate from your subscriptions."],
               ["What export formats are supported?","JSON, CSV, and PDF. All three formats are available to all users for free."],
               ["Is there a mobile app?","Not yet web only, but the interface is fully responsive and works well on mobile browsers. A native app may come in the future."],
               ["Can I self-host on my own server?","Absolutely. Clone the GitHub repo, set up a Supabase project, add your environment variables, and deploy anywhere Next.js runs: Vercel, Railway, fly.io, or any VPS."],
@@ -656,7 +685,7 @@ export default function LandingPage() {
                   style={{ fontSize:12, color:t.text2, fontFamily:"var(--font-mono)", border:`1px solid ${t.border}`, borderRadius:8, padding:"8px 18px", background:"transparent", transition:"all 0.2s" }}
                   onMouseEnter={e=>{ (e.currentTarget as HTMLElement).style.borderColor=t.border2; (e.currentTarget as HTMLElement).style.color=t.text; }}
                   onMouseLeave={e=>{ (e.currentTarget as HTMLElement).style.borderColor=t.border; (e.currentTarget as HTMLElement).style.color=t.text2; }}>
-                  Try it free ➜
+                  Try it free <ArrowRight size={12} />
                 </Link>
               </div>
             </div>
@@ -669,8 +698,6 @@ export default function LandingPage() {
         <div style={{ maxWidth:1080, margin:"0 auto" }}>
           <Reveal>
             <div className="cta-box" style={{ background:t.surface, border:`1px solid ${t.greenBorder}`, borderRadius:18, padding:"80px 64px", position:"relative", overflow:"hidden" }}>
-              <div style={{ position:"absolute", right:-80, top:-80, width:480, height:480, background:`radial-gradient(circle, ${t.greenGlow} 0%, transparent 65%)`, pointerEvents:"none" }} />
-              <div style={{ position:"absolute", left:-60, bottom:-60, width:300, height:300, background:`radial-gradient(circle, ${t.greenGlow} 0%, transparent 65%)`, pointerEvents:"none" }} />
               <div className="cta-inner" style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:48, flexWrap:"wrap", position:"relative", zIndex:1 }}>
                 <div>
                   <Label text="Get started now" t={t} />
@@ -699,7 +726,7 @@ export default function LandingPage() {
               <p style={{ fontSize:13, color:t.text3, fontFamily:"var(--font-mono)", lineHeight:1.7, maxWidth:320 }}>A real-time subscription tracker with AI insights. Open source. Free forever.</p>
             </div>
             {[
-              { title:"Product",    links:[["Features","#features"],["Pricing","#pricing"],["Compare","#compare"],["Dashboard","/dashboard"]] },
+              { title:"Product",    links:[["Features","#features"],["How it works","#how-it-works"],["Vault","#vault"],["Compare","#compare"],["Dashboard","/dashboard"]] },
               { title:"Resources",  links:[["GitHub","https://github.com/MuhammadTanveerAbbas/Subsight-Tracker"],["Live Demo","https://subsight-tracker.vercel.app/"],["Author","https://muhammadtanveerabbas.vercel.app/"]] },
               { title:"Legal",      links:[["Privacy Policy","/privacy"],["Terms of Service","/terms"]] },
             ].map(col => (

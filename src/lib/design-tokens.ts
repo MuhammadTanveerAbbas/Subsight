@@ -9,7 +9,7 @@ export const DARK_TOKENS: Record<string, string> = {
   '--border2':       '#2a2a2a',
   '--text':          '#f0f0f0',
   '--text2':         '#a0a0a0',
-  '--text3':         '#585858',
+  '--text3':         '#858585',
   '--green':         '#22c55e',
   '--green2':        '#16a34a',
   '--green-dim':     'rgba(34,197,94,0.08)',
@@ -36,7 +36,7 @@ export const LIGHT_TOKENS: Record<string, string> = {
   '--border2':       '#d0d0ca',
   '--text':          '#111111',
   '--text2':         '#545450',
-  '--text3':         '#888880',
+  '--text3':         '#6b6b64',
   '--green':         '#16a34a',
   '--green2':        '#15803d',
   '--green-dim':     'rgba(22,163,74,0.08)',
@@ -54,16 +54,20 @@ export const LIGHT_TOKENS: Record<string, string> = {
   '--grid':          'rgba(0,0,0,0.04)',
 };
 
+export const DEFAULT_THEME: ThemeKey = 'light';
+
 export function applyTokens(theme: ThemeKey): void {
   const tokens = theme === 'dark' ? DARK_TOKENS : LIGHT_TOKENS;
   const root = document.documentElement;
   Object.entries(tokens).forEach(([k, v]) => root.style.setProperty(k, v));
   root.setAttribute('data-theme', theme);
+  root.classList.toggle('dark', theme === 'dark');
 }
 
 export function getStoredTheme(): ThemeKey {
-  if (typeof window === 'undefined') return 'dark';
-  return (localStorage.getItem('subsight-theme') as ThemeKey) || 'dark';
+  if (typeof window === 'undefined') return DEFAULT_THEME;
+  const stored = localStorage.getItem('subsight-theme');
+  return stored === 'dark' || stored === 'light' ? stored : DEFAULT_THEME;
 }
 
 export function storeTheme(theme: ThemeKey): void {

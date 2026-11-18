@@ -1,7 +1,21 @@
+/**
+ * Export helpers for Subsight.
+ *
+ * Formats:
+ * - JSON: structured backup of subscriptions and, when supplied, vault items.
+ * - CSV: spreadsheet-ready rows with a UTF-8 BOM for Excel compatibility.
+ * - PDF: generated with the MIT-licensed jsPDF + jspdf-autotable packages.
+ *   Both packages are loaded on demand so the dashboard bundle stays small.
+ *
+ * All exports run in the browser. No data is sent to a server.
+ */
+
 import type { Sub } from "@/app/(app)/dashboard/dashboard-types";
+import type { VaultItem } from "@/lib/types";
 
-/* ── helpers ──────────────────────────────────────────────────────────── */
+/* ── shared helpers ────────────────────────────────────────────────────── */
 
+/** Create a browser download from text and release the object URL afterwards. */
 function downloadBlob(content: string, filename: string, mimeType: string): void {
   const blob = new Blob([content], { type: mimeType });
   const url = URL.createObjectURL(blob);
@@ -14,19 +28,42 @@ function downloadBlob(content: string, filename: string, mimeType: string): void
   URL.revokeObjectURL(url);
 }
 
+/** Sortable file name suffix, for example 2026-11-18T09-30-12. */
 function timestamp(): string {
   return new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
 }
 
+/** Quote a value only when the CSV grammar requires it. */
 function csvCell(v: string | number | boolean | null | undefined): string {
   const s = v == null ? "" : String(v);
   return /[,"\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
-/* ── JSON ─────────────────────────────────────────────────────────────── */
+function csv(headers: string[], rows: (string | number | boolean | null | undefined)[][]): string {
+  return "\uFEFF" + [headers.map(csvCell).join(","), ...rows.map((r) => r.map(csvCell).join(","))].join("\r\n");
+}
 
-export function exportSubscriptionsJSON(subs: Sub[]): void {
+/** Normalize a billing cycle to an approximate monthly amount for summaries. */
+function monthlyAmount(s: Sub): number {
+  switch (s.cycle.toLowerCase()) {
+    case "yearly":
+    case "annually": return s.amount / 12;
+    case "weekly": return s.amount * 4.33;
+    case "quarterly": return s.amount / 3;
+    case "daily": return s.amount * 30;
+    default: return s.amount;
+  }
+}
+
+/* ── JSON ──────────────────────────────────────────────────────────────── */
+
+/**
+ * Download a structured backup. Vault data is included when provided so a
+ * single file can restore both trackers.
+ */
+export function exportSubscriptionsJSON(subs: Sub[], vault: VaultItem[] = []): void {
   const payload = {
+    schemaVersion: 1,
     exportedAt: new Date().toISOString(),
     totalCount: subs.length,
     activeCount: subs.filter((s) => s.status === "active").length,
@@ -43,7 +80,20 @@ export function exportSubscriptionsJSON(subs: Sub[]): void {
       provider: s.provider,
       notes: s.notes,
     })),
+    vault: {
+      count: vault.length,
+      items: vault.map((i) => ({
+        id: i.id,
+        name: i.name,
+        category: i.category,
+        amount: i.amount,
+        currency: i.currency,
+        purchaseDate: i.purchaseDate,
+        notes: i.notes,
+      })),
+    },
   };
+
   downloadBlob(
     JSON.stringify(payload, null, 2),
     `subsight-export-${timestamp()}.json`,
@@ -53,127 +103,145 @@ export function exportSubscriptionsJSON(subs: Sub[]): void {
 
 /* ── CSV ──────────────────────────────────────────────────────────────── */
 
-const CSV_HEADERS = [
+const SUB_HEADERS = [
   "Name", "Category", "Amount", "Currency", "Billing Cycle",
   "Next Renewal", "Status", "Auto Renew", "Provider", "Notes",
 ];
 
+/** Download subscriptions as a UTF-8 CSV with quoted values where needed. */
 export function exportSubscriptionsCSV(subs: Sub[]): void {
-  const rows = subs.map((s) =>
-    [
-      s.name, s.category, s.amount, s.currency, s.cycle,
-      s.nextDate, s.status, s.autoRenew ? "Yes" : "No", s.provider, s.notes,
-    ].map(csvCell).join(","),
-  );
-  const csv = "\uFEFF" + [CSV_HEADERS.map(csvCell).join(","), ...rows].join("\r\n");
+  const rows = subs.map((s) => [
+    s.name, s.category, s.amount, s.currency, s.cycle,
+    s.nextDate, s.status, s.autoRenew ? "Yes" : "No", s.provider, s.notes,
+  ]);
   downloadBlob(
-    csv,
-    `subsight-export-${timestamp()}.csv`,
+    csv(SUB_HEADERS, rows),
+    `subsight-subscriptions-${timestamp()}.csv`,
+    "text/csv;charset=utf-8",
+  );
+}
+
+const VAULT_HEADERS = ["Item", "Category", "Amount", "Currency", "Date", "Notes"];
+
+/** Download vault items as a separate CSV so the two trackers stay distinct. */
+export function exportVaultCSV(items: VaultItem[]): void {
+  const rows = items.map((i) => [
+    i.name, i.category, i.amount, i.currency, i.purchaseDate, i.notes,
+  ]);
+  downloadBlob(
+    csv(VAULT_HEADERS, rows),
+    `subsight-vault-${timestamp()}.csv`,
     "text/csv;charset=utf-8",
   );
 }
 
 /* ── PDF ──────────────────────────────────────────────────────────────── */
 
-export function exportSubscriptionsPDF(subs: Sub[]): void {
-  const activeSubs  = subs.filter((s) => s.status === "active");
-  const totalMonthly = activeSubs.reduce((acc, s) => {
-    const amt = s.cycle === "yearly" ? s.amount / 12
-              : s.cycle === "weekly" ? s.amount * 4.33
-              : s.amount;
-    return acc + amt;
-  }, 0);
+/**
+ * Download a real PDF file. jsPDF and jspdf-autotable are imported on demand.
+ * If vault items are provided they appear on their own page.
+ */
+export async function exportSubscriptionsPDF(
+  subs: Sub[],
+  vault: VaultItem[] = [],
+): Promise<void> {
+  const [{ jsPDF }, { autoTable }] = await Promise.all([
+    import("jspdf"),
+    import("jspdf-autotable"),
+  ]);
 
-  const statusColor: Record<string, string> = {
-    active: "#22c55e",
-    inactive: "#6b7280",
-    warning: "#f59e0b",
-    renewal_passed: "#ef4444",
-  };
+  const doc = new jsPDF({ unit: "pt", format: "a4" });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const left = 40;
+  const generated = new Date().toLocaleDateString("en-US", {
+    year: "numeric", month: "long", day: "numeric",
+  });
+
+  const active = subs.filter((s) => s.status === "active");
+  const monthly = active.reduce((sum, s) => sum + monthlyAmount(s), 0);
+  const currency = subs[0]?.currency || "USD";
+
+  doc.setTextColor(17, 17, 17);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(18);
+  doc.text("Subsight", left, 48);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  doc.setTextColor(110, 110, 110);
+  doc.text(`Subscription export  ·  Generated ${generated}`, left, 64);
+
+  doc.setFontSize(10);
+  doc.setTextColor(30, 30, 30);
+  doc.text(
+    `${subs.length} subscriptions  ·  ${active.length} active  ·  ${currency} ${monthly.toFixed(2)} estimated / month`,
+    left, 88,
+  );
 
   const rows = subs
     .slice()
     .sort((a, b) => a.name.localeCompare(b.name))
-    .map((s) => `
-      <tr>
-        <td>${esc(s.name)}</td>
-        <td>${esc(s.category)}</td>
-        <td style="text-align:right">${esc(s.currency)} ${s.amount.toFixed(2)}</td>
-        <td>${esc(s.cycle)}</td>
-        <td>${esc(s.nextDate || "—")}</td>
-        <td><span class="badge" style="background:${statusColor[s.status] ?? "#6b7280"}22;color:${statusColor[s.status] ?? "#6b7280"};border:1px solid ${statusColor[s.status] ?? "#6b7280"}44">${esc(s.status)}</span></td>
-        <td>${s.autoRenew ? "Yes" : "No"}</td>
-        <td>${esc(s.provider || "—")}</td>
-      </tr>
-    `).join("");
+    .map((s) => [
+      s.name,
+      s.category || "-",
+      `${s.currency} ${s.amount.toFixed(2)}`,
+      s.cycle,
+      s.nextDate || "-",
+      s.status.replace("_", " "),
+    ]);
 
-  const html = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Subsight | Subscription Export</title>
-  <style>
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;font-size:12px;color:#111;background:#fff;padding:36px 40px}
-    h1{font-size:22px;font-weight:800;letter-spacing:-0.5px;margin-bottom:2px}
-    .sub{font-size:11px;color:#555;margin-bottom:24px}
-    .summary{display:flex;gap:24px;margin-bottom:28px;flex-wrap:wrap}
-    .card{border:1px solid #e5e7eb;border-radius:8px;padding:14px 18px;min-width:140px}
-    .card-label{font-size:10px;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
-    .card-value{font-size:18px;font-weight:700}
-    table{width:100%;border-collapse:collapse;font-size:11px}
-    th{background:#f3f4f6;text-align:left;padding:8px 10px;font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:#374151;border-bottom:2px solid #e5e7eb}
-    td{padding:8px 10px;border-bottom:1px solid #f3f4f6;vertical-align:middle}
-    tr:last-child td{border-bottom:none}
-    tr:nth-child(even) td{background:#fafafa}
-    .badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;text-transform:capitalize}
-    .footer{margin-top:24px;font-size:10px;color:#9ca3af;border-top:1px solid #f3f4f6;padding-top:12px}
-    @media print{body{padding:20px 24px}@page{margin:12mm}}
-  </style>
-</head>
-<body>
-  <h1>Subsight</h1>
-  <div class="sub">Subscription Export &nbsp;·&nbsp; Generated ${new Date().toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"})}</div>
+  autoTable(doc, {
+    startY: 104,
+    head: [["Name", "Category", "Amount", "Cycle", "Next renewal", "Status"]],
+    body: rows,
+    theme: "grid",
+    styles: { fontSize: 8, cellPadding: 5, overflow: "linebreak" },
+    headStyles: { fillColor: [243, 244, 246], textColor: [31, 41, 55], fontStyle: "bold" },
+    alternateRowStyles: { fillColor: [250, 250, 250] },
+    columnStyles: { 2: { halign: "right" } },
+    margin: { left, right: left },
+  });
 
-  <div class="summary">
-    <div class="card"><div class="card-label">Total</div><div class="card-value">${subs.length}</div></div>
-    <div class="card"><div class="card-label">Active</div><div class="card-value" style="color:#22c55e">${activeSubs.length}</div></div>
-    <div class="card"><div class="card-label">Est. Monthly</div><div class="card-value">$${totalMonthly.toFixed(2)}</div></div>
-    <div class="card"><div class="card-label">Est. Annual</div><div class="card-value">$${(totalMonthly * 12).toFixed(2)}</div></div>
-  </div>
+  if (vault.length > 0) {
+    doc.addPage();
+    doc.setTextColor(17, 17, 17);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.text("Personal vault", left, 48);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(110, 110, 110);
+    doc.text(`${vault.length} private items  ·  Not included in the subscription total`, left, 64);
 
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th><th>Category</th><th style="text-align:right">Amount</th>
-        <th>Cycle</th><th>Next Renewal</th><th>Status</th><th>Auto Renew</th><th>Provider</th>
-      </tr>
-    </thead>
-    <tbody>${rows}</tbody>
-  </table>
+    const vaultRows = vault
+      .slice()
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((i) => [
+        i.name, i.category, `${i.currency} ${i.amount.toFixed(2)}`,
+        i.purchaseDate, i.notes || "-",
+      ]);
 
-  <div class="footer">Exported from Subsight &nbsp;·&nbsp; ${subs.length} subscription${subs.length !== 1 ? "s" : ""} &nbsp;·&nbsp; ${new Date().toISOString()}</div>
-
-  <script>window.onload=()=>{window.print()}<\/script>
-</body>
-</html>`;
-
-  const win = window.open("", "_blank", "width=900,height=700");
-  if (!win) {
-    // Fallback: download as HTML if popup is blocked
-    downloadBlob(html, `subsight-export-${timestamp()}.html`, "text/html;charset=utf-8");
-    return;
+    autoTable(doc, {
+      startY: 80,
+      head: [["Item", "Category", "Amount", "Date", "Notes"]],
+      body: vaultRows,
+      theme: "grid",
+      styles: { fontSize: 8, cellPadding: 5, overflow: "linebreak" },
+      headStyles: { fillColor: [243, 244, 246], textColor: [31, 41, 55], fontStyle: "bold" },
+      alternateRowStyles: { fillColor: [250, 250, 250] },
+      columnStyles: { 2: { halign: "right" } },
+      margin: { left, right: left },
+    });
   }
-  win.document.write(html);
-  win.document.close();
-}
 
-/* ── internal ─────────────────────────────────────────────────────────── */
+  const pages = doc.getNumberOfPages();
+  for (let i = 1; i <= pages; i++) {
+    doc.setPage(i);
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text("Exported from Subsight", left, pageHeight - 20);
+    doc.text(`${i} / ${pages}`, pageWidth - left, pageHeight - 20, { align: "right" });
+  }
 
-function esc(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+  doc.save(`subsight-export-${timestamp()}.pdf`);
 }

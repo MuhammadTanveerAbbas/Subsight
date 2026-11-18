@@ -7,35 +7,8 @@
   --font-mono: var(--font-jetbrains-mono), 'Courier New', monospace;
 }
 
-/* Custom design tokens single source of truth */
+/* Custom design tokens. White is the default, dark is an explicit override. */
 :root {
-  --bg: #080808;
-  --surface: #111111;
-  --surface2: #181818;
-  --surface3: #1e1e1e;
-  --border: #1f1f1f;
-  --border2: #2a2a2a;
-  --text: #f0f0f0;
-  --text2: #a0a0a0;
-  --text3: #585858;
-  --green: #22c55e;
-  --green2: #16a34a;
-  --green-dim: rgba(34,197,94,0.08);
-  --green-border: rgba(34,197,94,0.22);
-  --green-glow: rgba(34,197,94,0.14);
-  --red: #ef4444;
-  --red-dim: rgba(239,68,68,0.10);
-  --amber: #f59e0b;
-  --amber-dim: rgba(245,158,11,0.10);
-  --blue: #3b82f6;
-  --blue-dim: rgba(59,130,246,0.10);
-  --sidebar-bg: #0c0c0c;
-  --nav-bg: rgba(8,8,8,0.92);
-  --shadow: rgba(0,0,0,0.70);
-  --grid: rgba(255,255,255,0.025);
-}
-
-[data-theme="light"] {
   --bg: #f8f8f6;
   --surface: #ffffff;
   --surface2: #f2f2ef;
@@ -44,7 +17,7 @@
   --border2: #d0d0ca;
   --text: #111111;
   --text2: #545450;
-  --text3: #888880;
+  --text3: #6b6b64;
   --green: #16a34a;
   --green2: #15803d;
   --green-dim: rgba(22,163,74,0.08);
@@ -62,33 +35,60 @@
   --grid: rgba(0,0,0,0.04);
 }
 
+[data-theme="dark"] {
+  --bg: #080808;
+  --surface: #111111;
+  --surface2: #181818;
+  --surface3: #1e1e1e;
+  --border: #1f1f1f;
+  --border2: #2a2a2a;
+  --text: #f0f0f0;
+  --text2: #a0a0a0;
+  --text3: #858585;
+  --green: #22c55e;
+  --green2: #16a34a;
+  --green-dim: rgba(34,197,94,0.08);
+  --green-border: rgba(34,197,94,0.22);
+  --green-glow: rgba(34,197,94,0.14);
+  --red: #ef4444;
+  --red-dim: rgba(239,68,68,0.10);
+  --amber: #f59e0b;
+  --amber-dim: rgba(245,158,11,0.10);
+  --blue: #3b82f6;
+  --blue-dim: rgba(59,130,246,0.10);
+  --sidebar-bg: #0c0c0c;
+  --nav-bg: rgba(8,8,8,0.92);
+  --shadow: rgba(0,0,0,0.70);
+  --grid: rgba(255,255,255,0.025);
+}
+
 @layer base {
   :root {
-    --background: 0 0% 0%;
-    --foreground: 0 0% 100%;
-    --card: 0 0% 8%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 6%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 142 76% 36%;
+    --background: 60 33% 97%;
+    --foreground: 0 0% 7%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 10%;
+    --primary: 142 72% 37%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 12%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 60%;
-    --accent: 142 76% 36%;
+    --secondary: 60 12% 94%;
+    --secondary-foreground: 0 0% 20%;
+    --muted: 60 12% 94%;
+    --muted-foreground: 0 0% 35%;
+    --accent: 142 72% 37%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 20%;
-    --input: 0 0% 20%;
-    --ring: 0 0% 30%;
+    --destructive: 0 72% 45%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 60 10% 89%;
+    --input: 60 10% 89%;
+    --ring: 142 50% 45%;
     --radius: 0.5rem;
-    --chart-1: 142 76% 36%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+    --chart-1: 142 72% 37%;
+    --chart-2: 173 58% 35%;
+    --chart-3: 197 45% 32%;
+    --chart-4: 43 85% 45%;
+    --chart-5: 27 90% 55%;
   }
 
   .dark {
@@ -167,10 +167,10 @@
 /* ── Consistent native <select> styling ──────────────────────────────────── */
 /* SVG chevron encoded as a CSS variable so it reacts to theme changes       */
 :root {
-  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23585858' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
+  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b6b64' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
 }
-[data-theme="light"] {
-  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23888880' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
+[data-theme="dark"] {
+  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23858585' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
 }
 
 select {

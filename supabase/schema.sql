@@ -1,6 +1,6 @@
 -- ============================================================
 -- Subsight Full Database Schema
--- Last updated: 2026-09-23
+-- Last updated: 2026-11-18
 -- ============================================================
 -- Run this file only on a fresh database.
 -- ============================================================
@@ -12,6 +12,8 @@ DROP TABLE IF EXISTS ai_summaries CASCADE;
 DROP TABLE IF EXISTS spending_goals CASCADE;
 DROP TABLE IF EXISTS categories CASCADE;
 DROP TABLE IF EXISTS processed_webhook_events CASCADE;
+DROP TABLE IF EXISTS vault_items CASCADE;
+DROP TABLE IF EXISTS vault_settings CASCADE;
 DROP TABLE IF EXISTS subscriptions CASCADE;
 DROP TABLE IF EXISTS profiles CASCADE;
 
@@ -127,6 +129,32 @@ CREATE TABLE IF NOT EXISTS notification_settings (
 );
 
 -- ============================================================
+-- vault_settings (personal expense tracker preferences)
+-- ============================================================
+CREATE TABLE vault_settings (
+  user_id         UUID          PRIMARY KEY REFERENCES profiles(id) ON DELETE CASCADE,
+  monthly_budget  NUMERIC(10,2) DEFAULT 0,
+  currency        TEXT          DEFAULT 'USD',
+  updated_at      TIMESTAMPTZ   DEFAULT NOW() NOT NULL
+);
+
+-- ============================================================
+-- vault_items (personal expenses / personal stuff)
+-- ============================================================
+CREATE TABLE vault_items (
+  id              UUID          PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id         UUID          NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  name            TEXT          NOT NULL,
+  category        TEXT          NOT NULL DEFAULT 'Other',
+  amount          NUMERIC(10,2) NOT NULL CHECK (amount >= 0),
+  currency        TEXT          DEFAULT 'USD',
+  purchase_date   DATE          DEFAULT CURRENT_DATE,
+  notes           TEXT,
+  created_at      TIMESTAMPTZ   DEFAULT NOW() NOT NULL,
+  updated_at      TIMESTAMPTZ   DEFAULT NOW() NOT NULL
+);
+
+-- ============================================================
 -- processed_webhook_events
 -- ============================================================
 CREATE TABLE processed_webhook_events (
@@ -144,6 +172,8 @@ ALTER TABLE spending_goals           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ai_summaries             ENABLE ROW LEVEL SECURITY;
 ALTER TABLE export_logs              ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notification_settings    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vault_settings           ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vault_items              ENABLE ROW LEVEL SECURITY;
 ALTER TABLE processed_webhook_events ENABLE ROW LEVEL SECURITY;
 
 -- profiles policies
@@ -173,6 +203,10 @@ CREATE POLICY "Users access own export logs"   ON export_logs           FOR ALL 
 
 -- notification_settings policy
 CREATE POLICY "Users manage own notifications" ON notification_settings  FOR ALL USING (auth.uid() = user_id);
+
+-- vault policies (each user can only see and change their own records)
+CREATE POLICY "Users manage own vault items"    ON vault_items    FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Users manage own vault settings" ON vault_settings FOR ALL USING (auth.uid() = user_id);
 
 -- processed_webhook_events:
 -- Service role bypasses RLS entirely. JWT roles are revoked at the table level.
@@ -213,6 +247,14 @@ CREATE TRIGGER handle_notification_settings_updated_at
   BEFORE UPDATE ON notification_settings
   FOR EACH ROW EXECUTE FUNCTION handle_updated_at();
 
+CREATE TRIGGER handle_vault_items_updated_at
+  BEFORE UPDATE ON vault_items
+  FOR EACH ROW EXECUTE FUNCTION handle_updated_at();
+
+CREATE TRIGGER handle_vault_settings_updated_at
+  BEFORE UPDATE ON vault_settings
+  FOR EACH ROW EXECUTE FUNCTION handle_updated_at();
+
 -- Normalize billing_cycle to lowercase (defensive catches capitalized input)
 -- SECURITY INVOKER: runs as the calling user, no elevated privileges needed.
 CREATE OR REPLACE FUNCTION normalize_billing_cycle()
@@ -239,6 +281,9 @@ CREATE INDEX idx_subscriptions_active_status ON subscriptions(active_status);
 CREATE INDEX idx_subscriptions_category      ON subscriptions(category);
 CREATE INDEX idx_subscriptions_renewal_date  ON subscriptions(next_renewal_date);
 CREATE INDEX idx_ai_summaries_user_expires   ON ai_summaries(user_id, expires_at DESC);
+CREATE INDEX idx_vault_items_user_id         ON vault_items(user_id);
+CREATE INDEX idx_vault_items_category        ON vault_items(user_id, category);
+CREATE INDEX idx_vault_items_purchase_date   ON vault_items(user_id, purchase_date DESC);
 
 -- ============================================================
 -- Auto-create profile on new user signup

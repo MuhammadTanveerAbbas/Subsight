@@ -1,24 +1,35 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { AlertCircle } from "lucide-react"
+import { AlertCircle, ArrowRight } from "lucide-react";
+import {
+  AuthCard,
+  AuthShell,
+  PrimaryButton,
+  StatusView,
+} from "@/components/auth/auth-ui";
 
 export default function AuthError({
   reset,
 }: {
-  error: Error & { digest?: string }
-  reset: () => void
+  error: Error & { digest?: string };
+  reset: () => void;
 }) {
   return (
-    <div className="flex min-h-[50vh] items-center justify-center p-4">
-      <div className="text-center space-y-4 max-w-md">
-        <AlertCircle className="h-16 w-16 text-destructive mx-auto" />
-        <h1 className="text-2xl font-bold">Something went wrong</h1>
-        <p className="text-muted-foreground">
-          An unexpected error occurred. Please try again.
-        </p>
-        <Button onClick={() => reset()}>Try again</Button>
-      </div>
-    </div>
-  )
+    <AuthShell>
+      <AuthCard>
+        <StatusView
+          icon={AlertCircle}
+          title="Something went wrong"
+          description="An unexpected error occurred. Try again to continue."
+          tone="error"
+        >
+          <div className="mt-6">
+            <PrimaryButton onClick={reset}>
+              Try again <ArrowRight size={15} />
+            </PrimaryButton>
+          </div>
+        </StatusView>
+      </AuthCard>
+    </AuthShell>
+  );
 }

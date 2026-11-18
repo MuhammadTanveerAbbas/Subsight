@@ -7,6 +7,7 @@ import {
   ReactNode,
 } from "react";
 import {
+  DEFAULT_THEME,
   ThemeKey,
   applyTokens,
   getStoredTheme,
@@ -20,13 +21,13 @@ interface ThemeContextValue {
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
-  theme: "dark",
+  theme: DEFAULT_THEME,
   toggleTheme: () => {},
   setTheme: () => {},
 });
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<ThemeKey>("dark");
+  const [theme, setThemeState] = useState<ThemeKey>(DEFAULT_THEME);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
