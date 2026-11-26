@@ -16,8 +16,6 @@ const PAGE_CSS = `
   :root{--font-display:var(--font-inter),system-ui,sans-serif;--font-mono:var(--font-jetbrains-mono),'Courier New',monospace}
   @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
   a{color:inherit;text-decoration:none}
-  ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#2a2a2a;border-radius:3px}
-  *{scrollbar-width:thin;scrollbar-color:#2a2a2a transparent}
   @media(max-width:900px){
     .features-grid{grid-template-columns:repeat(2,1fr)!important}
   }

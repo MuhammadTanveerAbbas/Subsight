@@ -68,7 +68,7 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: "/Subsight.png", type: "image/png", sizes: "any" },
-      { url: "/favicon.ico", sizes: "any" },
+      { url: "/Subsight.png", sizes: "any" },
     ],
     shortcut: "/Subsight.png",
     apple: "/Subsight.png",
@@ -96,8 +96,10 @@ export default function RootLayout({
     <html
       lang="en"
       className={cn(inter.variable, jetbrainsMono.variable)}
+      suppressHydrationWarning
     >
       <head>
+        <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem('subsight-theme');var d=t==='dark';document.documentElement.setAttribute('data-theme',d?'dark':'light');document.documentElement.classList.toggle('dark',d)}catch(e){document.documentElement.setAttribute('data-theme','light')}` }} />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#22c55e" />
       </head>

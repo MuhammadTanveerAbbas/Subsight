@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import {
-  LayoutDashboard, Sparkles, ToggleLeft, Download, Search, Shield,
-  ArrowRight, Check, ChevronDown, ChevronUp,
+  LayoutDashboard, Sparkles, ToggleLeft, Download, Search, Shield, Menu, X, HelpCircle,
+  ArrowRight, Check, ChevronDown, ChevronUp, ChevronRight,
   TrendingUp, Zap, Sun, Moon, Bell, CreditCard,
   BarChart3, ArrowUpRight, Lock, Globe, RefreshCw, GitBranch, Wallet, Target, ListTree, UserPlus,
   FileJson, FileSpreadsheet, FileText, Cloud, Play,
@@ -170,6 +170,54 @@ function ScaledDashPreview({ t }: { t:Theme }) {
   );
 }
 
+// ─── Compact dashboard preview for small screens ─────────────────────────────
+function MobileDashPreview({ t }: { t:Theme }) {
+  const kpis = [
+    { l:"Monthly spend", v:"$388.18" },
+    { l:"Active subs",   v:"14" },
+    { l:"Annual total",  v:"$4,658" },
+    { l:"Due soon",      v:"AWS" },
+  ];
+  const bars = [29,31,27,34,42,38,31,46,39,35,43,38];
+  const max = Math.max(...bars);
+  const rows = [
+    { n:"Netflix", a:"$15.99" },
+    { n:"AWS",     a:"$43.20" },
+    { n:"Notion",  a:"$16.00" },
+  ];
+  return (
+    <div style={{ width:"100%", maxWidth:420, margin:"24px auto 0", display:"flex", flexDirection:"column", gap:10 }}>
+      <div style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:10, padding:"10px 12px", display:"flex", alignItems:"center", gap:8 }}>
+        <span style={{ width:7, height:7, borderRadius:"50%", background:t.green, flexShrink:0 }} />
+        <span style={{ fontSize:12, color:t.text, fontFamily:"var(--font-display)" }}>Dashboard</span>
+        <span style={{ marginLeft:"auto", fontSize:10, color:t.text3, fontFamily:"var(--font-mono)" }}>Overview</span>
+      </div>
+      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
+        {kpis.map(k => (
+          <div key={k.l} style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:10, padding:"11px 12px", minWidth:0 }}>
+            <div style={{ fontSize:11, color:t.text3, fontFamily:"var(--font-display)" }}>{k.l}</div>
+            <div style={{ fontSize:18, fontWeight:500, color:t.text, fontFamily:"var(--font-display)", marginTop:6, fontVariantNumeric:"tabular-nums", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{k.v}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:10, padding:12 }}>
+        <div style={{ fontSize:11, color:t.text2, fontFamily:"var(--font-display)", marginBottom:10 }}>Monthly spending</div>
+        <div style={{ display:"flex", alignItems:"flex-end", gap:3, height:64 }}>
+          {bars.map((v,i) => <div key={i} style={{ flex:1, height:`${(v/max)*100}%`, background:i===bars.length-1?t.green:t.border2, borderRadius:"2px 2px 0 0" }} />)}
+        </div>
+      </div>
+      <div style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:10, overflow:"hidden" }}>
+        {rows.map((r,i) => (
+          <div key={r.n} style={{ display:"flex", alignItems:"center", gap:8, padding:"10px 12px", borderTop:i?`1px solid ${t.border}`:"none" }}>
+            <span style={{ flex:1, fontSize:12, color:t.text, fontFamily:"var(--font-display)" }}>{r.n}</span>
+            <span style={{ fontSize:12, color:t.text, fontFamily:"var(--font-mono)" }}>{r.a}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── Dashboard Preview ────────────────────────────────────────────────────────
 function DashPreview({ t }: { t:Theme }) {
   const rows = [
@@ -331,18 +379,25 @@ export default function LandingPage() {
   const [themeKey, setThemeKey] = useState<ThemeKey>("light");
   const [scrolled, setScrolled] = useState(false);
   const [pastHero, setPastHero] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [themeReady, setThemeReady] = useState(false);
   const t = themeKey === "dark" ? DARK : LIGHT;
 
   useEffect(() => {
-    const stored = (localStorage.getItem("subsight-theme") || "light") as ThemeKey;
-    setThemeKey(stored);
+    const stored = localStorage.getItem("subsight-theme");
+    const initial: ThemeKey = stored === "dark" ? "dark" : "light";
+    setThemeKey(initial);
+    document.documentElement.setAttribute("data-theme", initial);
+    document.documentElement.classList.toggle("dark", initial === "dark");
+    setThemeReady(true);
   }, []);
 
   useEffect(() => {
+    if (!themeReady) return;
     localStorage.setItem("subsight-theme", themeKey);
     document.documentElement.setAttribute("data-theme", themeKey);
     document.documentElement.classList.toggle("dark", themeKey === "dark");
-  }, [themeKey]);
+  }, [themeKey, themeReady]);
 
   useEffect(() => {
     const h = () => { setScrolled(window.scrollY > 40); setPastHero(window.scrollY > window.innerHeight * 0.7); };
@@ -363,18 +418,25 @@ export default function LandingPage() {
         :root{--font-display:var(--font-inter),system-ui,sans-serif;--font-mono:var(--font-jetbrains-mono),'Courier New',monospace}
         a{color:inherit;text-decoration:none}
         .nav-wrap .brand-mark{filter:none!important}
-        ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#2a2a2a;border-radius:3px}
-        *{scrollbar-width:thin;scrollbar-color:#2a2a2a transparent}
+
         .nav-desktop{display:flex!important}
+        .nav-menu-btn{display:none}
+        .hero-preview-mobile{display:none}
         @media(max-width:900px){.feat-grid{grid-template-columns:repeat(3,1fr)!important}.hero-grid{grid-template-columns:1fr!important;gap:32px!important}.story-grid{grid-template-columns:1fr!important;gap:32px!important}.story-reverse{flex-direction:column!important}}
          @media(max-width:820px){.steps-grid{grid-template-columns:1fr!important}.vault-spotlight{grid-template-columns:1fr!important;gap:32px!important}}
         @media(max-width:768px){
           .nav-desktop{display:none!important}
+          .nav-menu-btn{display:flex!important}
+          .nav-cta{display:none!important}
+          .feat-grid{grid-template-columns:repeat(2,1fr)!important}
+          .hero-brand{display:none!important}
           .nav-wrap{display:flex!important;justify-content:space-between!important;align-items:center!important;padding:0 16px!important;grid-template-columns:unset!important}
           .stats-grid{grid-template-columns:repeat(2,1fr)!important}
                     .cta-inner{flex-direction:column!important;align-items:stretch!important;text-align:center!important}
           .cta-btns{justify-content:center!important}
-          .footer-grid{grid-template-columns:1fr 1fr!important;gap:32px!important}
+          .footer-main{padding:56px 20px 28px!important}
+          .footer-grid{grid-template-columns:1fr 1fr!important;gap:28px 20px!important;margin-bottom:32px!important}
+          .footer-col{border-top:1px solid var(--border);padding-top:16px}
           .section-pad{padding:80px 20px!important}
           .hero-section{padding:100px 20px 72px!important;min-height:unset!important}
           .dash-chart-row{flex-direction:column!important}
@@ -386,17 +448,23 @@ export default function LandingPage() {
           .chart-2col{grid-template-columns:1fr!important}
         }
         @media(max-width:540px){
-          .feat-grid{grid-template-columns:repeat(3,1fr)!important}
-          .footer-grid{grid-template-columns:1fr 1fr!important}
-          .footer-bottom{flex-direction:column!important;text-align:center!important;gap:12px!important}
-          .footer-bottom-links{flex-wrap:wrap!important;justify-content:center!important;gap:12px!important}
+          .feat-grid{grid-template-columns:1fr!important}
+          .export-grid{grid-template-columns:1fr!important}
+          .nav-wrap{padding:0 12px!important}
+          .hero-preview-desktop{display:none!important}
+          .hero-preview-mobile{display:block!important}
+          .footer-grid{grid-template-columns:1fr 1fr!important;gap:24px 16px!important}
+          .footer-brand p{max-width:none!important}
+          .footer-bottom{flex-direction:column!important;text-align:center!important;gap:14px!important}
+          .footer-bottom-links{display:grid!important;grid-template-columns:1fr 1fr!important;justify-items:center!important;gap:10px!important}
           .hero-section{padding:88px 16px 56px!important}
           .cta-btns{flex-direction:column!important;align-items:stretch!important}
           .cta-btns a,.cta-btns button{justify-content:center!important}
           .add-inner-grid{grid-template-columns:1fr!important}
         }
         @media(max-width:400px){
-          .footer-grid{grid-template-columns:1fr!important}
+          .footer-grid{gap:20px 12px!important}
+          .footer-col a{font-size:12px!important}
         }
       `}</style>
 
@@ -432,7 +500,11 @@ export default function LandingPage() {
             onMouseLeave={e=>{ (e.currentTarget as HTMLElement).style.background=t.surface2; }}>
             {themeKey==="dark" ? <Sun size={16} strokeWidth={1.5} color={t.text2} /> : <Moon size={16} strokeWidth={1.5} color={t.text2} />}
           </button>
-          <Link href="/sign-up"
+          <button className="nav-menu-btn" onClick={()=>setMenuOpen(o=>!o)} aria-label="Toggle navigation menu" aria-expanded={menuOpen}
+            style={{ width:38, height:38, border:`1px solid ${t.border}`, borderRadius:10, background:t.surface, display:"none", alignItems:"center", justifyContent:"center", cursor:"pointer", transition: "background-color 0.15s ease, border-color 0.15s ease", flexShrink:0 }}>
+            {menuOpen ? <X size={16} strokeWidth={1.5} color={t.text2} /> : <Menu size={16} strokeWidth={1.5} color={t.text2} />}
+          </button>
+          <Link href="/sign-up" className="nav-cta"
             style={{ background:t.green, color:"#000", borderRadius:8, padding:"8px 16px", fontSize:13, fontWeight: 500, fontFamily:"var(--font-display)", display:"flex", alignItems:"center", gap:8, textDecoration:"none", transition: "background-color 0.15s ease", whiteSpace:"nowrap" }}
             onMouseEnter={e=>{ (e.currentTarget as HTMLElement).style.background=t.green2; }}
             onMouseLeave={e=>{ (e.currentTarget as HTMLElement).style.background=t.green; }}>
@@ -440,6 +512,29 @@ export default function LandingPage() {
           </Link>
 
         </div>
+        {menuOpen && (
+          <div className="nav-mini-menu" style={{ position:"absolute", top:"calc(100% + 8px)", right:12, width:"min(232px, calc(100vw - 24px))", border:`1px solid ${t.border}`, borderRadius:12, background:t.bg, padding:8, display:"flex", flexDirection:"column", gap:2, boxShadow:"0 1px 2px rgba(0,0,0,0.08)" }}>
+            {[
+              { id:"features", label:"Features", Icon:LayoutDashboard },
+              { id:"compare", label:"Compare", Icon:BarChart3 },
+              { id:"faq", label:"FAQ", Icon:HelpCircle },
+            ].map(({ id, label, Icon }) => (
+              <a key={id} href={`#${id}`} onClick={()=>setMenuOpen(false)}
+                style={{ display:"flex", alignItems:"center", gap:10, fontSize:13, color:t.text, fontFamily:"var(--font-display)", fontWeight:500, padding:"9px 11px", borderRadius:8, background:"transparent" }}
+                onMouseEnter={e=>{ (e.currentTarget as HTMLElement).style.background=t.surface2; }}
+                onMouseLeave={e=>{ (e.currentTarget as HTMLElement).style.background="transparent"; }}>
+                <Icon size={15} strokeWidth={1.5} color={t.text3} aria-hidden="true" />
+                <span style={{ flex:1 }}>{label}</span>
+                <ChevronRight size={14} strokeWidth={1.5} color={t.text3} aria-hidden="true" />
+              </a>
+            ))}
+            <div style={{ height:1, background:t.border, margin:"6px 4px" }} />
+            <Link href="/sign-up" onClick={()=>setMenuOpen(false)}
+              style={{ background:t.green, color:"#000", borderRadius:8, padding:"10px 12px", fontSize:12.5, fontWeight:500, fontFamily:"var(--font-display)", display:"flex", alignItems:"center", justifyContent:"space-between", textDecoration:"none" }}>
+              Get started <ArrowRight size={15} strokeWidth={1.5} />
+            </Link>
+          </div>
+        )}
       </nav>
 
 
@@ -467,7 +562,7 @@ export default function LandingPage() {
           { Icon: SiStripe,  right: "3%", top: "54%" },
           { Icon: SiYoutube, right: "11%", top: "20%" },
         ].map(({ Icon, left, right, top }, i) => (
-          <div key={i} style={{ position:"absolute", left, right, top, width:42, height:42, borderRadius:"50%", border:`1px solid ${t.border2}`, background:t.surface, display:"flex", alignItems:"center", justifyContent:"center", zIndex:0, opacity:0.75, transition:"opacity 0.2s ease, border-color 0.2s ease, background-color 0.2s ease" }}
+          <div key={i} className="hero-brand" style={{ position:"absolute", left, right, top, width:42, height:42, borderRadius:"50%", border:`1px solid ${t.border2}`, background:t.surface, display:"flex", alignItems:"center", justifyContent:"center", zIndex:0, opacity:0.75, transition:"opacity 0.2s ease, border-color 0.2s ease, background-color 0.2s ease" }}
             onMouseEnter={e=>{ (e.currentTarget as HTMLElement).style.opacity="1"; (e.currentTarget as HTMLElement).style.borderColor=t.border2; (e.currentTarget as HTMLElement).style.background=t.surface2; }}
             onMouseLeave={e=>{ (e.currentTarget as HTMLElement).style.opacity="0.75"; (e.currentTarget as HTMLElement).style.borderColor=t.border2; (e.currentTarget as HTMLElement).style.background=t.surface; }}>
             <Icon size={17} color={t.text2} />
@@ -499,7 +594,7 @@ export default function LandingPage() {
                 <span style={{ display:"inline-flex", alignItems:"center", gap:8 }}><Shield size={16} strokeWidth={1.5} /> No card required</span>
               </div>
             </div>
-            <div style={{ width:"100%", maxWidth:960, margin:"24px auto 0", position:"relative" }}>
+            <div className="hero-preview-desktop" style={{ width:"100%", maxWidth:960, margin:"24px auto 0", position:"relative" }}>
               <Safari
                 url="app.subsight.dev/dashboard"
                 frameColor={themeKey === "dark" ? "#2a2a2a" : "#e5e5e5"}
@@ -511,6 +606,7 @@ export default function LandingPage() {
                 <ScaledDashPreview t={t} />
               </div>
             </div>
+            <div className="hero-preview-mobile"><MobileDashPreview t={t} /></div>
           </div>
 
         </div>
@@ -696,7 +792,7 @@ export default function LandingPage() {
           <p style={{ fontSize:14, color:t.text2, marginTop:12, lineHeight:1.6, maxWidth:520, fontFamily:"var(--font-display)" }}>
             Download subscriptions and vault items as JSON, CSV, PDF or ICS. Filter by category and renewal date, or import a Wallos JSON backup with a preview first.
           </p>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(2,1fr)", gap:12, marginTop:32 }}>
+          <div className="export-grid" style={{ display:"grid", gridTemplateColumns:"repeat(2,1fr)", gap:12, marginTop:32 }}>
             {[
               { Icon: FileJson, title: "JSON", desc: "Full backup of both ledgers", meta:".json" },
               { Icon: FileSpreadsheet, title: "CSV", desc: "Spreadsheets for subscriptions and vault", meta:".csv" },
@@ -843,7 +939,7 @@ export default function LandingPage() {
       </section>
 
       {/* ═══ FOOTER ═════════════════════════════════════════════════════════════ */}
-      <footer style={{ borderTop:`1px solid ${t.border}`, padding:"64px 24px 32px", background:t.surface }}>
+      <footer className="footer-main" style={{ borderTop:`1px solid ${t.border}`, padding:"64px 24px 32px", background:t.surface }}>
         <div style={{ maxWidth:1080, margin:"0 auto" }}>
           <div className="footer-grid" style={{ display:"grid", gridTemplateColumns:"2fr 1fr 1fr 1fr", gap:40, marginBottom:48 }}>
             <div className="footer-brand">
@@ -869,7 +965,7 @@ export default function LandingPage() {
               { title:"Resources",  Icon:Globe,           links:[["GitHub","https://github.com/MuhammadTanveerAbbas/Subsight-Tracker"],["Live Demo","https://subsight-tracker.vercel.app/"],["Author","https://muhammadtanveerabbas.vercel.app/"]] },
               { title:"Legal",      Icon:Shield,          links:[["Privacy Policy","/privacy"],["Terms of Service","/terms"]] },
             ].map(col => (
-              <div key={col.title}>
+              <div key={col.title} className="footer-col">
                 <div style={{ fontSize:11, fontWeight:500, color:t.text, letterSpacing:0, fontFamily:"var(--font-mono)", marginBottom:16, display:"flex", alignItems:"center", gap:8 }}>
                   <col.Icon size={14} strokeWidth={1.5} color={t.greenInk} />
                   {col.title}

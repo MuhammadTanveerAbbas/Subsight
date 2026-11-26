@@ -170,26 +170,30 @@ export function SettingsView({
         <p style={{ fontSize: 12, color: t.text3, fontFamily: "var(--font-mono)", marginBottom: 14, lineHeight: 1.5 }}>
           Create your own subscription categories alongside the defaults
         </p>
-        <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
+        <style>{`@media(max-width:480px){.cat-add-row{flex-direction:column!important}.cat-add-row button{width:100%!important;justify-content:center!important}}`}</style>
+        <div className="cat-add-row" style={{ display: "flex", gap: 10, marginBottom: 14 }}>
           <input
             value={catInput}
             onChange={(e) => setCatInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && addCat()}
             placeholder="Category name…"
             aria-label="New category name"
-            style={{ ...sel, flex: 1 }}
+            style={{ ...sel, flex: 1, minWidth: 0, minHeight: 38 }}
           />
           <button
             onClick={addCat}
             aria-label="Add category"
             style={{
               background: t.green, color: "#000", border: "none", borderRadius: 8,
-              padding: "10px 16px", fontSize: 13, fontWeight: 500,
-              cursor: "pointer", fontFamily: "var(--font-display)",
-              display: "flex", alignItems: "center", gap: 6,
+              minHeight: 38, padding: "0 13px 0 7px", fontSize: 13, fontWeight: 500,
+              cursor: "pointer", fontFamily: "var(--font-display)", lineHeight: 1,
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
             }}
           >
-            <Plus size={13} aria-hidden="true" /> Add
+            <span style={{ display: "flex", width: 22, height: 22, borderRadius: 5, background: "rgba(0,0,0,0.12)", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <Plus size={14} strokeWidth={1.7} aria-hidden="true" />
+            </span>
+            Add
           </button>
         </div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>

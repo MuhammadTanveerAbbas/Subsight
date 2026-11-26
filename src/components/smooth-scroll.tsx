@@ -10,6 +10,7 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
         lerp: 0.09,
         smoothWheel: true,
         wheelMultiplier: 1,
+        allowNestedScroll: true,
         anchors: { offset: -68 },
       }}
     >

@@ -149,7 +149,8 @@ export default function Dashboard() {
   const { user, loading: authLoading } = useAuth();
   const { subscriptions, loading: subsLoading, refetchSubscriptions } = useSubscriptions();
   const { toast: shadcnToast } = useToast();
-  const [themeKey, setThemeKey] = useState<TK>("dark");
+  const [themeKey, setThemeKey] = useState<TK>("light");
+  const [themeReady, setThemeReady] = useState(false);
   const [active, setActive] = useState("overview");
   const [vaultTab, setVaultTab] = useState<"items" | "analytics" | "settings">("items");
   const [collapsed, setCollapsed] = useState(false);
@@ -161,16 +162,21 @@ export default function Dashboard() {
 
   const loading = authLoading || subsLoading;
 
-  /* ── Theme: read from localStorage then apply tokens ──────────────── */
+  /* ── Theme: read the stored value before applying tokens, so the
+        skeleton paints in the right theme on the first frame ─────────── */
   useEffect(() => {
-    const stored = (localStorage.getItem("subsight-theme") || "dark") as TK;
-    setThemeKey(stored);
+    const stored = localStorage.getItem("subsight-theme");
+    const initial: TK = stored === "dark" ? "dark" : "light";
+    setThemeKey(initial);
+    applyTokens(initial);
+    setThemeReady(true);
   }, []);
 
   useEffect(() => {
+    if (!themeReady) return;
     localStorage.setItem("subsight-theme", themeKey);
     applyTokens(themeKey);
-  }, [themeKey]);
+  }, [themeKey, themeReady]);
 
   /* ── Map Supabase subscriptions ➜ local Sub shape ─────────────────── */
   useEffect(() => {
@@ -255,7 +261,7 @@ export default function Dashboard() {
     const isHovered = hoveredNav === id;
 
     return (
-      <div style={{ position: "relative" }}>
+      <div style={{ position: "relative", padding: "2px 8px" }}>
         <button
           onClick={() => navTo(id)}
           onMouseEnter={() => {
@@ -270,21 +276,20 @@ export default function Dashboard() {
           title={collapsed ? label : undefined}
           style={{
             width: "100%",
+            minHeight: 40,
             display: "flex",
             alignItems: "center",
             gap: 12,
-            padding: collapsed ? "8px 0" : "8px 12px",
+            padding: collapsed ? "0 8px" : "0 12px",
             justifyContent: collapsed ? "center" : "flex-start",
-            background: isActive 
-              ? `linear-gradient(90deg, ${t.greenDim}, transparent)` 
-              : "transparent",
+            background: isActive ? t.greenDim : "transparent",
+            border: `1px solid ${isActive ? t.greenBorder : "transparent"}`,
             cursor: "pointer",
             color: isActive ? t.greenInk : isHovered ? t.text : t.text2,
-            transition: "background-color 0.15s ease, color 0.15s ease",
+            transition: "background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease",
             borderRadius: 8,
-            marginRight: collapsed ? 0 : 8,
-            position: "relative",
             outline: "none",
+            textAlign: "left",
           }}
         >
           <span
@@ -292,19 +297,25 @@ export default function Dashboard() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              width: 20,
-              height: 20,
+              width: 24,
+              height: 24,
+              borderRadius: 6,
+              background: isActive ? t.greenDim : t.surface2,
+              border: `1px solid ${isActive ? t.greenBorder : "transparent"}`,
               flexShrink: 0,
             }}
           >
-            <Icon size={16} strokeWidth={1.5} />
+            <Icon size={17} strokeWidth={1.5} aria-hidden="true" />
           </span>
           {!collapsed && (
             <span
               style={{
-                fontSize: 14,
+                fontSize: 13,
                 fontWeight: isActive ? 500 : 400,
                 whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                minWidth: 0,
                 fontFamily: "var(--font-display)",
               }}
             >
@@ -383,7 +394,7 @@ export default function Dashboard() {
     fontWeight: 500,
     color: t.text3,
     fontFamily: "var(--font-display)",
-    padding: "12px 12px 4px",
+    padding: "12px 20px 6px",
   };
 
   const SidebarContent = () => (
@@ -423,11 +434,11 @@ export default function Dashboard() {
         )}
       </div>
 
-      <nav style={{ flex: 1, padding: "8px 0", overflowY: "auto", overflowX: "hidden" }} role="navigation" aria-label="Main navigation">
+      <nav data-lenis-prevent style={{ flex: 1, padding: "8px 0", overflowY: "auto", overflowX: "hidden" }} role="navigation" aria-label="Main navigation">
         {NAV_GROUPS.map((group, gi) => (
           <div key={group.label}>
             {gi > 0 && (
-              <div style={{ height: 1, background: t.border, margin: "12px 12px 4px" }} />
+              <div style={{ height: 1, background: t.border, margin: "12px 20px 4px" }} />
             )}
             {!collapsed && <div style={groupLabel}>{group.label}</div>}
             {group.items.map((item) => (
@@ -450,12 +461,12 @@ export default function Dashboard() {
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           style={{
             width: "100%",
-            minHeight: 36,
+            minHeight: 40,
             display: "flex",
             alignItems: "center",
             justifyContent: collapsed ? "center" : "flex-start",
             gap: 12,
-            padding: collapsed ? "8px 0" : "8px 12px",
+            padding: collapsed ? "0 8px" : "0 12px",
             background: "transparent",
             border: `1px solid ${t.border}`,
             borderRadius: 8,
@@ -476,8 +487,8 @@ export default function Dashboard() {
             el.style.background = "transparent";
           }}
         >
-          <span style={{ display: "flex", width: 20, height: 20, alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <Menu size={16} strokeWidth={1.5} />
+          <span style={{ display: "flex", width: 24, height: 24, borderRadius: 6, background: t.surface2, alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <Menu size={17} strokeWidth={1.5} aria-hidden="true" />
           </span>
           {!collapsed && (
             <span style={{ fontSize: 13, fontFamily: "var(--font-display)", fontWeight: 400, whiteSpace: "nowrap" }}>
@@ -505,7 +516,6 @@ export default function Dashboard() {
     { id: "calendar",   label: "Calendar",   Icon: CalendarDays },
     { id: "ai-summary", label: "AI summary", Icon: Sparkles },
     { id: "export",     label: "Export",     Icon: Download },
-    { id: "billing",    label: "Billing",    Icon: Receipt },
     { id: "settings",   label: "Settings",   Icon: Settings },
     { id: "profile",    label: "Profile",    Icon: User },
   ] as const;
@@ -533,10 +543,6 @@ export default function Dashboard() {
         @keyframes fadeIn{from{opacity:0}to{opacity:1}}
         @keyframes dropdownSlideDown{from{opacity:0;transform:translateY(-6px) scale(0.98)}to{opacity:1;transform:translateY(0) scale(1)}}
         a{color:inherit;text-decoration:none}
-        ::-webkit-scrollbar{width:4px;height:4px}
-        ::-webkit-scrollbar-track{background:transparent}
-        ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
-        *{scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
         input,select,textarea{color-scheme:${themeKey};font-family:var(--font-mono),'Courier New',monospace}
         button:focus-visible{outline:2px solid var(--green);outline-offset:2px}
         a:focus-visible{outline:2px solid var(--green);outline-offset:2px}
@@ -785,17 +791,20 @@ export default function Dashboard() {
               onClick={() => navTo("add")}
               aria-label="Add new subscription"
               style={{
-                background: t.green, color: "#000", border: "none", borderRadius: 8,
-                padding: "8px 16px", fontSize: 13, fontWeight: 500,
-                fontFamily: "var(--font-display)", cursor: "pointer",
-                display: "flex", alignItems: "center", gap: 8,
+                background: t.green, color: "#000", border: "none", borderRadius: 9,
+                minHeight: 36, padding: "0 13px 0 7px", fontSize: 13, fontWeight: 500,
+                fontFamily: "var(--font-display)", cursor: "pointer", lineHeight: 1,
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                 flexShrink: 0, whiteSpace: "nowrap",
                 transition: "background-color 0.15s ease",
               }}
               onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = t.green2; }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = t.green; }}
             >
-              <Plus size={16} strokeWidth={1.5} /> Add
+              <span style={{ display: "flex", width: 22, height: 22, borderRadius: 5, background: "rgba(0,0,0,0.12)", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Plus size={15} strokeWidth={1.7} />
+              </span>
+              Add
             </button>
           </div>
         </header>

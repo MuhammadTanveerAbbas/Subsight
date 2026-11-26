@@ -8,7 +8,7 @@ export type { TK, SubStatus, Sub } from "./dashboard-types";
 
 import {
   LayoutDashboard, CreditCard, Sparkles, Download,
-  Settings, User, Plus, Receipt, Wallet, ChartNoAxesCombined, CalendarDays,
+  Settings, User, Plus, Wallet, ChartNoAxesCombined, CalendarDays,
 } from "lucide-react";
 
 export interface NavItem {
@@ -51,7 +51,6 @@ export const NAV_GROUPS: NavGroup[] = [
 ];
 
 export const NAV_BOTTOM: NavItem[] = [
-  { id: "billing",  label: "Billing",  Icon: Receipt },
   { id: "settings", label: "Settings", Icon: Settings },
   { id: "profile",  label: "Profile",  Icon: User },
 ];
@@ -62,5 +61,5 @@ export const NAV_ALL: NavItem[] = [
 ];
 
 export const MOBILE_MORE_IDS = [
-  "plan", "calendar", "ai-summary", "export", "billing", "settings", "profile",
+  "plan", "calendar", "ai-summary", "export", "settings", "profile",
 ] as const;

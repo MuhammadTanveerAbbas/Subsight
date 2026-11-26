@@ -16,7 +16,7 @@ export function ProfileView({
   t: T;
   toast: (m: string, tp: "success" | "error" | "info" | "warning") => void;
 }) {
-  const { user, updateProfile, deleteAccount } = useAuth();
+  const { user, profile, updateProfile, deleteAccount } = useAuth();
   const [form, setForm]           = useState({ name: "", avatar: "" });
   const [email, setEmail]         = useState("");
   const [loading, setLoading]     = useState(true);
@@ -97,7 +97,8 @@ export function ProfileView({
       </div>
 
       {/* Profile settings */}
-      <div style={{ background: t.surface, border: `1px solid ${t.border}`, borderRadius: 12, padding: 26 }}>
+      <style>{`@media(max-width:480px){.profile-card{padding:18px!important}}`}</style>
+      <div className="profile-card" style={{ background: t.surface, border: `1px solid ${t.border}`, borderRadius: 12, padding: 26 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
           <User size={14} color={t.greenInk} aria-hidden="true" />
           <span style={{ fontSize: 14, fontWeight: 500, color: t.text, fontFamily: "var(--font-display)" }}>
@@ -114,15 +115,15 @@ export function ProfileView({
             {form.avatar
               ? <img src={form.avatar} alt="Your avatar" style={{ width: 56, height: 56, objectFit: "cover" }} />
               : <span style={{ fontSize: 20, fontWeight: 500, color: t.greenInk, fontFamily: "var(--font-display)" }}>
-                  {(form.name || email || "U").charAt(0).toUpperCase()}
+                  {(form.name || profile?.full_name || user?.name || email || "U").charAt(0).toUpperCase()}
                 </span>
             }
           </div>
-          <div>
-            <div style={{ fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 500, color: t.text }}>
-              {form.name || "User"}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 500, color: t.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {form.name || profile?.full_name || user?.name || (email ? email.split("@")[0] : "User")}
             </div>
-            <div style={{ fontSize: 12, color: t.text3, fontFamily: "var(--font-mono)", marginTop: 2 }}>
+            <div title={email} style={{ fontSize: 12, color: t.text3, fontFamily: "var(--font-mono)", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {email}
             </div>
           </div>
