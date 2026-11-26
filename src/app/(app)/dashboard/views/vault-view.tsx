@@ -5,10 +5,7 @@ import {
   Wallet, Plus, Pencil, Trash2, Search, TrendingUp, Receipt,
   Target, Layers, Save, RefreshCw, ShieldCheck, LockKeyhole,
 } from "lucide-react";
-import {
-  ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar,
-  XAxis, YAxis, CartesianGrid, Tooltip,
-} from "recharts";
+import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from "recharts";
 import type { T } from "@/app/(app)/dashboard/dashboard-constants";
 import {
   VAULT_CATEGORIES, VAULT_CATEGORY_COLORS,
@@ -18,7 +15,7 @@ import {
   fetchVault, createVaultItem, updateVaultItem, deleteVaultItem, saveVaultSettings,
 } from "@/lib/vault-api";
 
-const TR = "all 0.2s cubic-bezier(0.4,0,0.2,1)";
+const TR = "background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease";
 const TABS: { id: VaultTab; label: string; Icon: React.ElementType }[] = [
   { id: "items",     label: "Items",     Icon: Wallet },
   { id: "analytics", label: "Analytics", Icon: TrendingUp },
@@ -231,16 +228,16 @@ export function VaultView({
         {/* Header */}
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
           <div>
-            <h2 style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 800, color: t.text, letterSpacing: -0.5 }}>
+            <h2 style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 500, color: t.text, letterSpacing: 0 }}>
               Vault
             </h2>
             <p style={{ fontSize: 11.5, color: t.text3, fontFamily: "var(--font-mono)", marginTop: 3, lineHeight: 1.5 }}>
               Your private tracker for personal expenses and everything you own
             </p>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "7px 12px", borderRadius: 8, background: t.greenDim, border: `1px solid ${t.greenBorder}` }}>
-            <LockKeyhole size={12} color={t.green} />
-            <span style={{ fontSize: 10.5, color: t.green, fontFamily: "var(--font-mono)" }}>Private to your account</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: t.text3, fontFamily: "var(--font-display)" }}>
+            <LockKeyhole size={16} strokeWidth={1.5} />
+            <span>Private to your account</span>
           </div>
         </div>
 
@@ -256,13 +253,13 @@ export function VaultView({
                   display: "flex", alignItems: "center", gap: 7,
                   padding: "10px 16px", background: "transparent", border: "none",
                   borderBottom: active ? `2px solid ${t.green}` : "2px solid transparent",
-                  color: active ? t.green : t.text3, cursor: "pointer",
-                  fontSize: 12.5, fontWeight: active ? 700 : 500,
+                  color: active ? t.greenInk : t.text3, cursor: "pointer",
+                  fontSize: 13, fontWeight: 500,
                   fontFamily: "var(--font-display)", transition: TR,
                   marginBottom: -1,
                 }}
               >
-                <Icon size={14} /> {label}
+                <Icon size={16} strokeWidth={1.5} /> {label}
               </button>
             );
           })}
@@ -270,7 +267,7 @@ export function VaultView({
 
         {loading ? (
           <div style={{ display: "flex", alignItems: "center", gap: 9, color: t.text3, fontFamily: "var(--font-mono)", fontSize: 12, padding: 30 }}>
-            <RefreshCw size={14} style={{ animation: "spin 1s linear infinite" }} /> Loading your vault…
+            <RefreshCw size={16} strokeWidth={1.5} style={{ animation: "spin 1s linear infinite" }} /> Loading your vault
           </div>
         ) : (
           <>
@@ -279,7 +276,7 @@ export function VaultView({
               <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
                 <div style={card}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-                    <h3 style={{ fontSize: 14, fontWeight: 700, color: t.text, fontFamily: "var(--font-display)" }}>
+                    <h3 style={{ fontSize: 14, fontWeight: 500, color: t.text, fontFamily: "var(--font-display)" }}>
                       {editingId ? "Edit item" : "Add to vault"}
                     </h3>
                     {editingId && (
@@ -290,31 +287,31 @@ export function VaultView({
                   </div>
                   <div className="vault-form-grid" style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr", gap: 12 }}>
                     <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                      <span style={{ fontSize: 10, color: t.text3, fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Name</span>
+                      <span style={{ fontSize: 12, color: t.text3, fontFamily: "var(--font-mono)", letterSpacing: 0 }}>Name</span>
                       <input style={inputStyle} value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Laptop, rent, groceries" />
                     </label>
                     <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                      <span style={{ fontSize: 10, color: t.text3, fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Category</span>
+                      <span style={{ fontSize: 12, color: t.text3, fontFamily: "var(--font-mono)", letterSpacing: 0 }}>Category</span>
                       <select style={inputStyle} value={category} onChange={(e) => setCategory(e.target.value)}>
                         {VAULT_CATEGORIES.map((c) => <option key={c}>{c}</option>)}
                       </select>
                     </label>
                     <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                      <span style={{ fontSize: 10, color: t.text3, fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Amount</span>
+                      <span style={{ fontSize: 12, color: t.text3, fontFamily: "var(--font-mono)", letterSpacing: 0 }}>Amount</span>
                       <input style={inputStyle} type="number" min="0" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" />
                     </label>
                     <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                      <span style={{ fontSize: 10, color: t.text3, fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Currency</span>
+                      <span style={{ fontSize: 12, color: t.text3, fontFamily: "var(--font-mono)", letterSpacing: 0 }}>Currency</span>
                       <select style={inputStyle} value={currency} onChange={(e) => setCurrency(e.target.value as Currency)}>
                         {["USD", "EUR", "GBP", "PKR", "CAD", "AUD", "JPY", "CHF", "INR", "SGD", "AED"].map((c) => <option key={c}>{c}</option>)}
                       </select>
                     </label>
                     <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                      <span style={{ fontSize: 10, color: t.text3, fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Date</span>
+                      <span style={{ fontSize: 12, color: t.text3, fontFamily: "var(--font-mono)", letterSpacing: 0 }}>Date</span>
                       <input style={inputStyle} type="date" value={purchaseDate} onChange={(e) => setPurchaseDate(e.target.value)} />
                     </label>
                     <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                      <span style={{ fontSize: 10, color: t.text3, fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Notes (optional)</span>
+                      <span style={{ fontSize: 12, color: t.text3, fontFamily: "var(--font-mono)", letterSpacing: 0 }}>Notes (optional)</span>
                       <input style={inputStyle} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Where, why, serial number…" />
                     </label>
                   </div>
@@ -323,26 +320,26 @@ export function VaultView({
                     disabled={busy}
                     style={{
                       marginTop: 14, background: t.green, color: "#000", border: "none", borderRadius: 8,
-                      padding: "10px 18px", fontSize: 13, fontWeight: 700, fontFamily: "var(--font-display)",
+                      padding: "10px 18px", fontSize: 13, fontWeight: 500, fontFamily: "var(--font-display)",
                       cursor: busy ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 7,
                       opacity: busy ? 0.7 : 1,
                     }}
                   >
-                    <Plus size={14} /> {editingId ? "Save changes" : "Add item"}
+                    <Plus size={16} strokeWidth={1.5} /> {editingId ? "Save changes" : "Add item"}
                   </button>
                 </div>
 
                 <div style={card}>
                   <div className="vault-filters" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <Receipt size={14} color={t.green} />
-                      <span style={{ fontSize: 14, fontWeight: 700, color: t.text, fontFamily: "var(--font-display)" }}>
+                      <Receipt size={16} strokeWidth={1.5} color={t.text3} />
+                      <span style={{ fontSize: 14, fontWeight: 500, color: t.text, fontFamily: "var(--font-display)" }}>
                         Your items <span style={{ color: t.text3, fontWeight: 400 }}>({filtered.length})</span>
                       </span>
                     </div>
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                       <div style={{ position: "relative", minWidth: 170 }}>
-                        <Search size={13} color={t.text3} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)" }} />
+                        <Search size={16} strokeWidth={1.5} color={t.text3} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)" }} />
                         <input
                           style={{ ...inputStyle, paddingLeft: 30 }}
                           value={search} onChange={(e) => setSearch(e.target.value)}
@@ -380,22 +377,22 @@ export function VaultView({
                           >
                             <span style={{ width: 8, height: 8, borderRadius: 3, background: color, flexShrink: 0 }} />
                             <div style={{ flex: 1, minWidth: 0 }}>
-                              <div style={{ fontSize: 13, fontWeight: 600, color: t.text, fontFamily: "var(--font-display)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                              <div style={{ fontSize: 13, fontWeight: 500, color: t.text, fontFamily: "var(--font-display)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                                 {item.name}
                               </div>
-                              <div style={{ fontSize: 10.5, color: t.text3, fontFamily: "var(--font-mono)", marginTop: 3 }}>
+                              <div style={{ fontSize: 12, color: t.text3, fontFamily: "var(--font-mono)", marginTop: 3 }}>
                                 {item.category} · {item.purchaseDate}
                                 {item.notes ? ` · ${item.notes}` : ""}
                               </div>
                             </div>
-                            <div style={{ fontSize: 13, fontWeight: 700, color: t.text, fontFamily: "var(--font-mono)", whiteSpace: "nowrap" }}>
+                            <div style={{ fontSize: 13, fontWeight: 500, color: t.text, fontFamily: "var(--font-mono)", whiteSpace: "nowrap" }}>
                               {money(item.amount, item.currency)}
                             </div>
                             <button onClick={() => startEdit(item)} aria-label={`Edit ${item.name}`} style={{ background: "none", border: "none", color: t.text3, cursor: "pointer", padding: 5, display: "flex" }}>
-                              <Pencil size={13} />
+                              <Pencil size={16} strokeWidth={1.5} />
                             </button>
                             <button onClick={() => removeItem(item)} disabled={busy} aria-label={`Delete ${item.name}`} style={{ background: "none", border: "none", color: t.text3, cursor: "pointer", padding: 5, display: "flex" }}>
-                              <Trash2 size={13} />
+                              <Trash2 size={16} strokeWidth={1.5} />
                             </button>
                           </div>
                         );
@@ -419,12 +416,12 @@ export function VaultView({
                     <div key={s.label} style={{ ...card, padding: "18px 18px 16px" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
                         <span style={{ width: 26, height: 26, borderRadius: 7, background: t.surface2, border: `1px solid ${t.border}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                          <s.Icon size={13} color={t.text3} />
+                          <s.Icon size={16} strokeWidth={1.5} color={t.text3} />
                         </span>
-                        <span style={{ fontSize: 10, color: t.text3, fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.08em" }}>{s.label}</span>
+                        <span style={{ fontSize: 12, color: t.text3, fontFamily: "var(--font-mono)", letterSpacing: 0 }}>{s.label}</span>
                       </div>
-                      <div style={{ fontSize: 19, fontWeight: 800, color: t.text, fontFamily: "var(--font-display)", letterSpacing: -0.5 }}>{s.value}</div>
-                      <div style={{ fontSize: 10.5, color: t.text3, fontFamily: "var(--font-mono)", marginTop: 4 }}>{s.note}</div>
+                      <div style={{ fontSize: 19, fontWeight: 500, color: t.text, fontFamily: "var(--font-display)", letterSpacing: 0 }}>{s.value}</div>
+                      <div style={{ fontSize: 12, color: t.text3, fontFamily: "var(--font-mono)", marginTop: 4 }}>{s.note}</div>
                     </div>
                   ))}
                 </div>
@@ -436,59 +433,62 @@ export function VaultView({
                       <span style={{ fontSize: 12, color: budgetPct >= 100 ? t.red : t.green, fontFamily: "var(--font-mono)" }}>{budgetPct.toFixed(0)}%</span>
                     </div>
                     <div style={{ height: 8, borderRadius: 4, background: t.surface3, overflow: "hidden" }}>
-                      <div style={{ height: "100%", width: `${budgetPct}%`, background: budgetPct >= 100 ? t.red : t.green, borderRadius: 4, transition: "width 0.4s" }} />
+                      <div style={{ height: "100%", width: `${budgetPct}%`, background: budgetPct >= 100 ? t.red : t.green, borderRadius: 4,  }} />
                     </div>
                   </div>
                 )}
 
-                <div className="vault-charts" style={{ display: "grid", gridTemplateColumns: "1fr 1.3fr", gap: 14 }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                   <div style={card}>
-                    <h3 style={{ fontSize: 13, fontWeight: 700, color: t.text, fontFamily: "var(--font-display)", marginBottom: 4 }}>Spending by category</h3>
-                    <p style={{ fontSize: 10.5, color: t.text3, fontFamily: "var(--font-mono)", marginBottom: 8 }}>Where your money goes</p>
+                    <h3 style={{ fontSize: 13, fontWeight: 500, color: t.text, fontFamily: "var(--font-display)", marginBottom: 4 }}>Spending by category</h3>
+                    <p style={{ fontSize: 12, color: t.text3, fontFamily: "var(--font-display)", marginBottom: 8 }}>Where your money goes</p>
                     {analytics.catData.length ? (
                       <>
-                        <div style={{ height: 210 }}>
+                        <div style={{ height: 220 }}>
                           <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
                               <Pie data={analytics.catData} dataKey="value" nameKey="name" innerRadius={52} outerRadius={82} paddingAngle={2} stroke="none">
                                 {analytics.catData.map((entry) => <Cell key={entry.name} fill={entry.color} />)}
                               </Pie>
-                              <Tooltip contentStyle={{ background: t.surface2, border: `1px solid ${t.border2}`, borderRadius: 8, fontSize: 11 }} />
+                              <Tooltip contentStyle={{ background: t.surface2, border: `1px solid ${t.border}`, borderRadius: 8, fontSize: 12, color: t.text }} />
                             </PieChart>
                           </ResponsiveContainer>
                         </div>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "7px 14px", marginTop: 6 }}>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px 16px", marginTop: 8 }}>
                           {analytics.catData.map((c) => (
-                            <span key={c.name} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10.5, color: t.text2, fontFamily: "var(--font-mono)" }}>
+                            <span key={c.name} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: t.text2, fontFamily: "var(--font-display)" }}>
                               <span style={{ width: 7, height: 7, borderRadius: 2, background: c.color }} />{c.name}
                             </span>
                           ))}
                         </div>
                       </>
                     ) : (
-                      <div style={{ padding: "50px 0", textAlign: "center", fontSize: 11, color: t.text3, fontFamily: "var(--font-mono)" }}>Add items to see a breakdown</div>
+                      <div style={{ padding: "48px 0", textAlign: "center", fontSize: 12, color: t.text3 }}>Add a vault item to see the breakdown</div>
                     )}
                   </div>
 
                   <div style={card}>
-                    <h3 style={{ fontSize: 13, fontWeight: 700, color: t.text, fontFamily: "var(--font-display)", marginBottom: 4 }}>Last 6 months</h3>
-                    <p style={{ fontSize: 10.5, color: t.text3, fontFamily: "var(--font-mono)", marginBottom: 8 }}>Recorded spend per month ({settings.currency})</p>
-                    <div style={{ height: 210 }}>
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={analytics.months} margin={{ top: 4, right: 4, bottom: 0, left: -18 }}>
-                          <CartesianGrid strokeDasharray="3 3" stroke={t.border} vertical={false} />
-                          <XAxis dataKey="label" tick={{ fill: t.text3, fontSize: 10 }} axisLine={false} tickLine={false} />
-                          <YAxis tick={{ fill: t.text3, fontSize: 10 }} axisLine={false} tickLine={false} />
-                          <Tooltip contentStyle={{ background: t.surface2, border: `1px solid ${t.border2}`, borderRadius: 8, fontSize: 11 }} cursor={{ fill: t.surface2 }} />
-                          <Bar dataKey="value" fill={t.green} radius={[4, 4, 0, 0]} maxBarSize={38} />
-                        </BarChart>
-                      </ResponsiveContainer>
+                    <h3 style={{ fontSize: 13, fontWeight: 500, color: t.text, fontFamily: "var(--font-display)", marginBottom: 4 }}>Last 6 months</h3>
+                    <p style={{ fontSize: 12, color: t.text3, fontFamily: "var(--font-display)", marginBottom: 12 }}>Recorded spend per month, {settings.currency}</p>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                      {analytics.months.map((month) => {
+                        const max = Math.max(1, ...analytics.months.map((m) => m.value));
+                        return (
+                          <div key={month.label} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                            <span style={{ width: 36, fontSize: 12, color: t.text3 }}>{month.label}</span>
+                            <span style={{ flex: 1, height: 4, borderRadius: 2, background: t.surface3 }}>
+                              <span style={{ display: "block", width: `${(month.value / max) * 100}%`, height: 4, borderRadius: 2, background: t.border2 }} />
+                            </span>
+                            <span style={{ fontSize: 12, color: t.text, fontVariantNumeric: "tabular-nums" }}>{money(month.value, settings.currency)}</span>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
 
                 <div style={{ ...card, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-                  <Layers size={16} color={t.green} />
+                  <Layers size={16} strokeWidth={1.5} color={t.text3} />
                   <span style={{ flex: 1, fontSize: 12, color: t.text2, fontFamily: "var(--font-mono)" }}>
                     Want to change your monthly budget or vault currency?
                   </span>
@@ -504,19 +504,19 @@ export function VaultView({
               <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 680, width: "100%" }}>
                 <div style={card}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                    <Target size={14} color={t.green} />
-                    <span style={{ fontSize: 14, fontWeight: 700, color: t.text, fontFamily: "var(--font-display)" }}>Monthly budget</span>
+                    <Target size={16} strokeWidth={1.5} color={t.text3} />
+                    <span style={{ fontSize: 14, fontWeight: 500, color: t.text, fontFamily: "var(--font-display)" }}>Monthly budget</span>
                   </div>
                   <p style={{ fontSize: 12, color: t.text3, fontFamily: "var(--font-mono)", marginBottom: 14, lineHeight: 1.5 }}>
                     Set a target for personal spending. Analytics will show how much of it you have used this month. Set 0 to hide the budget.
                   </p>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                     <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                      <span style={{ fontSize: 10, color: t.text3, fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Amount</span>
+                      <span style={{ fontSize: 12, color: t.text3, fontFamily: "var(--font-mono)", letterSpacing: 0 }}>Amount</span>
                       <input style={inputStyle} type="number" min="0" step="0.01" value={budgetInput} onChange={(e) => setBudgetInput(e.target.value)} />
                     </label>
                     <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                      <span style={{ fontSize: 10, color: t.text3, fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Vault currency</span>
+                      <span style={{ fontSize: 12, color: t.text3, fontFamily: "var(--font-mono)", letterSpacing: 0 }}>Vault currency</span>
                       <select style={inputStyle} value={settingsCurrency} onChange={(e) => setSettingsCurrency(e.target.value as Currency)}>
                         {["USD", "EUR", "GBP", "PKR", "CAD", "AUD", "JPY", "CHF", "INR", "SGD", "AED"].map((c) => <option key={c}>{c}</option>)}
                       </select>
@@ -526,19 +526,19 @@ export function VaultView({
                     onClick={saveSettings} disabled={savingSettings}
                     style={{
                       marginTop: 16, background: t.green, color: "#000", border: "none", borderRadius: 8,
-                      padding: "10px 18px", fontSize: 13, fontWeight: 700, fontFamily: "var(--font-display)",
+                      padding: "10px 18px", fontSize: 13, fontWeight: 500, fontFamily: "var(--font-display)",
                       cursor: savingSettings ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 7,
                       opacity: savingSettings ? 0.7 : 1,
                     }}
                   >
-                    {savingSettings ? <RefreshCw size={14} style={{ animation: "spin 1s linear infinite" }} /> : <Save size={14} />} Save vault settings
+                    {savingSettings ? <RefreshCw size={14} style={{ animation: "spin 1s linear infinite" }} /> : <Save size={16} strokeWidth={1.5} />} Save vault settings
                   </button>
                 </div>
 
                 <div style={{ ...card, display: "flex", alignItems: "flex-start", gap: 12 }}>
-                  <ShieldCheck size={16} color={t.green} style={{ flexShrink: 0, marginTop: 2 }} />
+                  <ShieldCheck size={16} strokeWidth={1.5} color={t.text3} style={{ flexShrink: 0, marginTop: 2 }} />
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: t.text, fontFamily: "var(--font-display)" }}>Private by design</div>
+                    <div style={{ fontSize: 13, fontWeight: 500, color: t.text, fontFamily: "var(--font-display)" }}>Private by design</div>
                     <p style={{ fontSize: 11.5, color: t.text3, fontFamily: "var(--font-mono)", marginTop: 5, lineHeight: 1.6 }}>
                       Vault records are tied to your account and protected by row level security. They stay separate from your tracked subscriptions, so your personal expenses never mix with subscription analytics.
                     </p>

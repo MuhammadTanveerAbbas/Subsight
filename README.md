@@ -1,9 +1,9 @@
 <div align="center">
 
-  <img src="./public/icon.svg" alt="Subsight Logo" width="80" height="80" />
-  
+  <img src="./public/Subsight.png" alt="Subsight Logo" width="80" height="80" />
+
    # Subsight
-  **Open-source subscription tracker with AI-powered insights free forever.**
+  **Open-source tracker for recurring charges and personal spending.**
 
   [![Live Demo](https://img.shields.io/badge/Live-Demo-brightgreen?style=for-the-badge)](https://subsight-tracker.vercel.app/)
   [![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
@@ -29,19 +29,23 @@ Subsight gives you real-time visibility into every recurring charge. Self-hosted
 
 All of the following are implemented and available to every user at no cost:
 
+- **Plan**: One monthly forecast combining recurring charges and vault spending, with scenario switches to see the effect of stopping a subscription
 - **Live dashboard**: KPI cards for monthly spend, active subscriptions, annual total, and upcoming renewals
+- **Renewal calendar**: Month grid of upcoming charges, next 14 days list, and ICS export
 - **Subscriptions management**: Add, edit, delete, and search subscriptions
+- **Price history**: Records the old amount whenever a subscription price changes
+- **Cancellation center**: Mark a subscription as planned to cancel, set a cancel-by date, and get an email reminder before that deadline
 - **Simulation mode**: Toggle subscriptions on/off to preview budget impact before making real changes
-- **Analytics**: Monthly spending bar chart, category donut chart, annual totals, and trend data
-- **AI auto-fill**: Type a service name; Groq AI fills in price, category, and billing cycle instantly (requires Groq API key)
+- **Analytics**: Monthly spending area chart, category donut chart, annual totals, and trend data
+- **AI auto-fill**: Type a service name; the app fills in price, category, and billing cycle (requires Groq API key)
 - **AI spending summary**: Plain-English analysis of your spending patterns (requires Groq API key)
-- **Export**: Download your full list as JSON, CSV, or PDF
+- **Export**: Download subscriptions and vault items as JSON, CSV, PDF or ICS. Filter by category and renewal date, or import a Wallos JSON backup with a preview first
 - **Renewal email reminders**: Email alerts 1, 3, 7, or 14 days before each renewal via SMTP
 - **Custom categories**: Create your own subscription categories alongside built-in defaults
 - **Multi-currency**: Track in USD, EUR, GBP, PKR, CAD, AUD, JPY, CHF, INR, SGD, AED
 - **Duplicate detection**: Levenshtein-based warning before adding a duplicate subscription
 - **Supabase Auth**: Email/password and Google OAuth with Row Level Security
-- **Dark/light theme**: Fully themed UI that persists across sessions
+- **Exact dark and light themes**: Pure black and pure white backgrounds, with a flat monochrome mark that inverts with the theme
 - **Self-hostable**: Deploy anywhere Next.js runs
 
 ---
@@ -50,7 +54,7 @@ All of the following are implemented and available to every user at no cost:
 
 | Category | Technology |
 |---|---|
-| Framework | Next.js 15 (App Router) |
+| Framework | Next.js 16 (App Router), React 18 |
 | Language | TypeScript 5 (strict mode) |
 | Styling | Tailwind CSS v3 + custom design tokens |
 | Database / Auth | Supabase (PostgreSQL + RLS) |
@@ -58,8 +62,8 @@ All of the following are implemented and available to every user at no cost:
 | Email | Nodemailer (SMTP) |
 | Charts | Recharts |
 | Rate Limiting | Upstash Redis (with in-memory fallback) |
-| PDF Export | Browser print dialog |
-| Testing | Vitest |
+| PDF Export | jsPDF + jspdf-autotable |
+| Testing | Vitest, Playwright |
 
 ---
 
@@ -90,9 +94,11 @@ Fill in the required values (see the table below).
 ### 3. Set up Supabase
 
 1. Create a project at [supabase.com](https://supabase.com)
-2. In the SQL Editor, run `supabase/schema.sql`
+2. In the SQL Editor, run `supabase/schema.sql`. This is the only database setup script. It is meant for a fresh database.
 3. Enable the Email provider in **Authentication → Providers**
 4. Copy your Project URL and anon key into `.env.local`
+
+> If your database already exists, `schema.sql` is not an incremental migration. Take a backup, then apply the new columns, `price_history` table, policies and indexes manually before using the new features.
 
 ### 4. Run the development server
 
@@ -155,7 +161,7 @@ All five variables must be set for renewal email reminders to work.
 
 ## SMTP Configuration
 
-Renewal reminders are sent by a daily cron job (`/api/reminders/send`). The job reads SMTP settings from environment variables on the server. Credentials are **never** stored in the database or sent to the client.
+Renewal reminders and cancellation deadline reminders are sent by a daily cron job (`/api/reminders/send`). The job reads SMTP settings from environment variables on the server. Credentials are **never** stored in the database or sent to the client.
 
 ### Gmail setup
 
@@ -210,8 +216,9 @@ src/
 ├── app/
 │   ├── (app)/dashboard/       # Dashboard SPA
 │   │   ├── billing/           # Plan & features page
-│   │   └── views/             # 8 views: overview, subscriptions, analytics,
-│   │                          #   ai-summary, add, export, settings, profile
+│   │   └── views/             # 11 views: plan, overview, calendar, subscriptions,
+│   │                          #   analytics, ai-summary, add, export, vault,
+│   │                          #   settings, profile
 │   ├── (auth)/                # Sign-in, sign-up, forgot-password, verify-email
 │   ├── (marketing)/           # Landing page, pricing, privacy, terms
 │   ├── api/

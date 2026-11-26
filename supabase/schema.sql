@@ -1,6 +1,6 @@
 -- ============================================================
 -- Subsight Full Database Schema
--- Last updated: 2026-11-18
+-- Last updated: 2026-11-26
 -- ============================================================
 -- Run this file only on a fresh database.
 -- ============================================================
@@ -14,6 +14,7 @@ DROP TABLE IF EXISTS categories CASCADE;
 DROP TABLE IF EXISTS processed_webhook_events CASCADE;
 DROP TABLE IF EXISTS vault_items CASCADE;
 DROP TABLE IF EXISTS vault_settings CASCADE;
+DROP TABLE IF EXISTS price_history CASCADE;
 DROP TABLE IF EXISTS subscriptions CASCADE;
 DROP TABLE IF EXISTS profiles CASCADE;
 
@@ -62,9 +63,28 @@ CREATE TABLE subscriptions (
   reminder_enabled    BOOLEAN     DEFAULT false,
   reminder_days_before INTEGER    DEFAULT 3 CHECK (reminder_days_before IN (1,3,7,14)),
   last_reminder_sent  TIMESTAMPTZ,
+  cancel_by_date      DATE,
+  cancel_state        TEXT        DEFAULT 'none' CHECK (cancel_state IN ('none','planned','canceled')),
   created_at          TIMESTAMPTZ DEFAULT NOW() NOT NULL,
   updated_at          TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
+
+-- ============================================================
+-- price_history (recorded when a subscription amount changes)
+-- ============================================================
+CREATE TABLE price_history (
+  id              UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id         UUID        NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  subscription_id UUID        NOT NULL REFERENCES subscriptions(id) ON DELETE CASCADE,
+  amount          NUMERIC(10,2) NOT NULL,
+  currency        TEXT        DEFAULT 'USD',
+  recorded_at     TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+CREATE INDEX idx_price_history_subscription
+  ON price_history(subscription_id, recorded_at DESC);
+CREATE INDEX idx_price_history_user
+  ON price_history(user_id, recorded_at DESC);
 
 -- ============================================================
 -- categories
@@ -111,7 +131,7 @@ CREATE TABLE IF NOT EXISTS ai_summaries (
 CREATE TABLE IF NOT EXISTS export_logs (
   id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id     UUID        NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
-  format      TEXT        NOT NULL CHECK (format IN ('json','csv','pdf')),
+  format      TEXT        NOT NULL CHECK (format IN ('json','csv','pdf','ics','vault-csv')),
   row_count   INT,
   created_at  TIMESTAMPTZ DEFAULT NOW()
 );
@@ -167,6 +187,7 @@ CREATE TABLE processed_webhook_events (
 -- ============================================================
 ALTER TABLE profiles                 ENABLE ROW LEVEL SECURITY;
 ALTER TABLE subscriptions            ENABLE ROW LEVEL SECURITY;
+ALTER TABLE price_history            ENABLE ROW LEVEL SECURITY;
 ALTER TABLE categories               ENABLE ROW LEVEL SECURITY;
 ALTER TABLE spending_goals           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ai_summaries             ENABLE ROW LEVEL SECURITY;
@@ -187,6 +208,7 @@ CREATE POLICY "Users can view own subscriptions"   ON subscriptions FOR SELECT U
 CREATE POLICY "Users can insert own subscriptions" ON subscriptions FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Users can update own subscriptions" ON subscriptions FOR UPDATE USING (auth.uid() = user_id);
 CREATE POLICY "Users can delete own subscriptions" ON subscriptions FOR DELETE USING (auth.uid() = user_id);
+CREATE POLICY "Users manage own price history" ON price_history FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 
 -- categories policies (includes system categories with NULL user_id)
 CREATE POLICY "Users manage own categories"      ON categories FOR ALL    USING (auth.uid() = user_id);
@@ -280,6 +302,7 @@ CREATE INDEX idx_subscriptions_created_at    ON subscriptions(created_at);
 CREATE INDEX idx_subscriptions_active_status ON subscriptions(active_status);
 CREATE INDEX idx_subscriptions_category      ON subscriptions(category);
 CREATE INDEX idx_subscriptions_renewal_date  ON subscriptions(next_renewal_date);
+CREATE INDEX idx_subscriptions_cancel        ON subscriptions(user_id, cancel_state, cancel_by_date);
 CREATE INDEX idx_ai_summaries_user_expires   ON ai_summaries(user_id, expires_at DESC);
 CREATE INDEX idx_vault_items_user_id         ON vault_items(user_id);
 CREATE INDEX idx_vault_items_category        ON vault_items(user_id, category);

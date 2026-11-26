@@ -80,7 +80,7 @@ export function AISummaryView({ t, subs }: { t: T; subs: Sub[] }) {
     text.split(/\*\*(.*?)\*\*/g).map((part, i) =>
       i % 2 === 0
         ? part
-        : <strong key={i} style={{ color: t.text, fontWeight: 700 }}>{part}</strong>,
+        : <strong key={i} style={{ color: t.text, fontWeight: 500 }}>{part}</strong>,
     );
 
   const statCards = [
@@ -95,11 +95,11 @@ export function AISummaryView({ t, subs }: { t: T; subs: Sub[] }) {
       {/* Header */}
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
         <div>
-          <h2 style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 800, color: t.text, letterSpacing: -0.5 }}>
+          <h2 style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 500, color: t.text, letterSpacing: 0 }}>
             AI Summary
           </h2>
           <p style={{ fontSize: 11.5, color: t.text3, fontFamily: "var(--font-mono)", marginTop: 3, lineHeight: 1.5 }}>
-            AI-powered spending insights powered by Groq AI
+            AI spending insights
           </p>
         </div>
 
@@ -112,14 +112,14 @@ export function AISummaryView({ t, subs }: { t: T; subs: Sub[] }) {
             style={{
               background: t.green, color: "#000", border: "none",
               borderRadius: 9, padding: "11px 20px",
-              fontSize: 13, fontWeight: 700, fontFamily: "var(--font-display)",
+              fontSize: 13, fontWeight: 500, fontFamily: "var(--font-display)",
               cursor: loading ? "not-allowed" : "pointer",
               display: "flex", alignItems: "center", gap: 7,
               opacity: loading ? 0.85 : 1,
               transition: "background 0.2s",
               overflow: "hidden",
               position: "relative",
-              boxShadow: `0 2px 10px ${t.green}44`,
+              boxShadow: "none",
               minWidth: 160,
               justifyContent: "center",
             }}
@@ -159,11 +159,11 @@ export function AISummaryView({ t, subs }: { t: T; subs: Sub[] }) {
               <div style={{ width: 32, height: 32, borderRadius: 8, background: card.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <card.Icon size={14} color={card.col} strokeWidth={1.5} aria-hidden="true" />
               </div>
-              <span style={{ fontSize: 10.5, color: t.text3, fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.08em", lineHeight: 1.4 }}>
+              <span style={{ fontSize: 12, color: t.text3, fontFamily: "var(--font-mono)", letterSpacing: 0, lineHeight: 1.4 }}>
                 {card.label}
               </span>
             </div>
-            <div style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 800, color: t.text }}>
+            <div style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 500, color: t.text }}>
               {card.value}
             </div>
           </div>
@@ -190,8 +190,8 @@ export function AISummaryView({ t, subs }: { t: T; subs: Sub[] }) {
       {loading && !summary && (
         <div style={{ background: t.surface, border: `1px solid ${t.border}`, borderRadius: 12, padding: "24px 26px", display: "flex", flexDirection: "column", gap: 14 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-            <Sparkles size={14} color={t.green} />
-            <span style={{ fontSize: 13, fontWeight: 700, color: t.text, fontFamily: "var(--font-display)" }}>
+            <Sparkles size={14} color={t.greenInk} />
+            <span style={{ fontSize: 13, fontWeight: 500, color: t.text, fontFamily: "var(--font-display)" }}>
               Analyzing your subscriptions…
             </span>
           </div>
@@ -213,11 +213,11 @@ export function AISummaryView({ t, subs }: { t: T; subs: Sub[] }) {
       {summary && !loading && (
         <div style={{ background: t.surface, border: `1px solid ${t.border}`, borderRadius: 12, padding: "24px 26px", animation: "fadeIn 0.3s ease" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
-            <Sparkles size={14} color={t.green} />
-            <span style={{ fontSize: 13, fontWeight: 700, color: t.text, fontFamily: "var(--font-display)" }}>
+            <Sparkles size={14} color={t.greenInk} />
+            <span style={{ fontSize: 13, fontWeight: 500, color: t.text, fontFamily: "var(--font-display)" }}>
               AI Analysis
             </span>
-            <span style={{ fontSize: 10, color: t.text3, fontFamily: "var(--font-mono)", marginLeft: "auto" }}>
+            <span style={{ fontSize: 12, color: t.text3, fontFamily: "var(--font-mono)", marginLeft: "auto" }}>
               Powered by Groq AI
             </span>
           </div>
@@ -232,10 +232,10 @@ export function AISummaryView({ t, subs }: { t: T; subs: Sub[] }) {
                 background: t.surface2, border: `1px solid ${t.border2}`, borderRadius: 7,
                 padding: "8px 14px", fontSize: 12, color: t.text2, cursor: "pointer",
                 fontFamily: "var(--font-mono)", display: "flex", alignItems: "center", gap: 6,
-                transition: "all 0.15s",
+                transition: "background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease",
               }}
             >
-              {copied ? <><Check size={12} color={t.green} /> Copied!</> : <><Copy size={12} /> Copy</>}
+              {copied ? <><Check size={12} color={t.greenInk} /> Copied!</> : <><Copy size={12} /> Copy</>}
             </button>
             <button
               onClick={download}
@@ -244,7 +244,7 @@ export function AISummaryView({ t, subs }: { t: T; subs: Sub[] }) {
                 background: t.surface2, border: `1px solid ${t.border2}`, borderRadius: 7,
                 padding: "8px 14px", fontSize: 12, color: t.text2, cursor: "pointer",
                 fontFamily: "var(--font-mono)", display: "flex", alignItems: "center", gap: 6,
-                transition: "all 0.15s",
+                transition: "background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease",
               }}
             >
               <Download size={12} /> Download
@@ -256,7 +256,7 @@ export function AISummaryView({ t, subs }: { t: T; subs: Sub[] }) {
                 background: t.surface2, border: `1px solid ${t.border2}`, borderRadius: 7,
                 padding: "8px 14px", fontSize: 12, color: t.text2, cursor: "pointer",
                 fontFamily: "var(--font-mono)", display: "flex", alignItems: "center", gap: 6,
-                transition: "all 0.15s",
+                transition: "background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease",
               }}
             >
               <RefreshCw size={12} /> Regenerate
@@ -269,13 +269,13 @@ export function AISummaryView({ t, subs }: { t: T; subs: Sub[] }) {
       {!summary && !loading && !error && (
         <div style={{ background: t.surface, border: `1px dashed ${t.border2}`, borderRadius: 12, padding: "52px 24px", textAlign: "center" }}>
           <div style={{ width: 52, height: 52, borderRadius: 14, background: t.greenDim, border: `1px solid ${t.greenBorder}`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
-            <Sparkles size={22} color={t.green} strokeWidth={1.5} />
+            <Sparkles size={22} color={t.greenInk} strokeWidth={1.5} />
           </div>
-          <div style={{ fontSize: 14, fontWeight: 600, color: t.text2, fontFamily: "var(--font-display)", marginBottom: 8 }}>
+          <div style={{ fontSize: 14, fontWeight: 500, color: t.text2, fontFamily: "var(--font-display)", marginBottom: 8 }}>
             No summary yet
           </div>
           <div style={{ fontSize: 13, color: t.text3, fontFamily: "var(--font-mono)", lineHeight: 1.6 }}>
-            Click <strong style={{ color: t.green }}>Generate Summary</strong> to get personalized spending insights from AI
+            Click <strong style={{ color: t.greenInk }}>Generate Summary</strong> to get personalized spending insights from AI
           </div>
         </div>
       )}

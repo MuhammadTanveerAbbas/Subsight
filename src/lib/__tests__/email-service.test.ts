@@ -8,7 +8,7 @@ vi.mock('nodemailer', () => ({
   },
 }))
 
-import { sendRenewalReminder } from '../email-service'
+import { sendRenewalReminder, sendCancellationReminder } from '../email-service'
 
 const BASE = {
   to: 'user@example.com',
@@ -27,6 +27,25 @@ beforeEach(() => {
   process.env.SMTP_PASS = 'secret'
   process.env.SMTP_FROM = 'noreply@subsight.app'
   process.env.NEXT_PUBLIC_APP_URL = 'http://localhost:3000'
+})
+
+describe('sendCancellationReminder', () => {
+  it('sends a plain deadline email', async () => {
+    sendMailMock.mockResolvedValue({})
+    await sendCancellationReminder({
+      to: 'user@example.com',
+      subscriptionName: 'Netflix',
+      cancelByDate: '2026-12-10',
+      daysUntilDeadline: 3,
+    })
+
+    const call = sendMailMock.mock.calls[0]![0]!
+    expect(call.to).toBe('user@example.com')
+    expect(call.subject).toContain('Netflix')
+    expect(call.subject).toContain('Cancel')
+    expect(call.html).toContain('2026-12-10')
+    expect(call.html).toContain('3 days')
+  })
 })
 
 describe('sendRenewalReminder', () => {

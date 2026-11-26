@@ -126,11 +126,10 @@ export function AddView({
     transition: "border-color 0.2s",
   };
   const lStyle: React.CSSProperties = {
-    fontSize: 10.5,
+    fontSize: 12,
     color: t.text3,
     fontFamily: "var(--font-mono)",
-    letterSpacing: "0.08em",
-    textTransform: "uppercase",
+    letterSpacing: 0,
     display: "block",
     marginBottom: 5,
     lineHeight: 1.5,
@@ -152,7 +151,7 @@ export function AddView({
     >
       {/* ── Form card ─────────────────────────────── */}
       <div style={{ background: t.surface, border: `1px solid ${t.border}`, borderRadius: 12, padding: 28 }}>
-        <h2 style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 800, color: t.text, letterSpacing: -0.5, marginBottom: 4 }}>
+        <h2 style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 500, color: t.text, letterSpacing: 0, marginBottom: 4 }}>
           Add Subscription
         </h2>
         <p style={{ fontSize: 12, color: t.text3, fontFamily: "var(--font-mono)", marginBottom: 24, lineHeight: 1.5 }}>
@@ -207,8 +206,8 @@ export function AddView({
                   gap: 6,
                   fontSize: 12,
                   fontFamily: "var(--font-mono)",
-                  fontWeight: 600,
-                  transition: "all 0.2s",
+                  fontWeight: 500,
+                  transition: "background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease",
                   position: "relative",
                   overflow: "hidden",
                   minWidth: 86,
@@ -352,7 +351,7 @@ export function AddView({
             }}
           >
             <div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: t.text, fontFamily: "var(--font-display)" }}>
+              <div style={{ fontSize: 13, fontWeight: 500, color: t.text, fontFamily: "var(--font-display)" }}>
                 Auto Renew
               </div>
               <div style={{ fontSize: 11, color: t.text3, fontFamily: "var(--font-mono)", marginTop: 2, lineHeight: 1.4 }}>
@@ -377,12 +376,12 @@ export function AddView({
             aria-disabled={!form.name.trim() || !form.amount || loading}
             style={{
               background: t.green, color: "#000", border: "none", borderRadius: 9, padding: "13px",
-              fontSize: 14, fontWeight: 700, fontFamily: "var(--font-display)",
+              fontSize: 14, fontWeight: 500, fontFamily: "var(--font-display)",
               cursor: !form.name.trim() || !form.amount || loading ? "not-allowed" : "pointer",
               display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
               opacity: !form.name.trim() || !form.amount ? 0.6 : 1,
               transition: "background 0.2s, opacity 0.2s",
-              boxShadow: form.name.trim() && form.amount ? `0 2px 12px ${t.green}44` : "none",
+              boxShadow: "none",
             }}
             onMouseEnter={(e) => { if (form.name.trim() && form.amount && !loading) (e.currentTarget as HTMLElement).style.background = t.green2; }}
             onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = t.green; }}
@@ -402,7 +401,7 @@ export function AddView({
           position: "sticky", top: 88, alignSelf: "start",
         }}
       >
-        <div style={{ fontSize: 13, fontWeight: 700, color: t.text, fontFamily: "var(--font-display)", marginBottom: 14 }}>
+        <div style={{ fontSize: 13, fontWeight: 500, color: t.text, fontFamily: "var(--font-display)", marginBottom: 14 }}>
           Preview
         </div>
         <div style={{ background: t.surface2, border: `1px solid ${t.border}`, borderRadius: 10, padding: 16 }}>
@@ -415,10 +414,10 @@ export function AddView({
                 display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
               }}
             >
-              <CreditCard size={16} color={t.green} strokeWidth={1.5} />
+              <CreditCard size={16} color={t.greenInk} strokeWidth={1.5} />
             </div>
             <div style={{ minWidth: 0 }}>
-              <div style={{ fontFamily: "var(--font-display)", fontSize: 14, fontWeight: 700, color: t.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <div style={{ fontFamily: "var(--font-display)", fontSize: 14, fontWeight: 500, color: t.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {preview.name}
               </div>
               <div style={{ fontSize: 11, color: t.text3, fontFamily: "var(--font-mono)", marginTop: 1 }}>
@@ -436,19 +435,19 @@ export function AddView({
           ] as [string, string][]).map(([k, v]) => (
             <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${t.border}` }}>
               <span style={{ fontSize: 11.5, color: t.text3, fontFamily: "var(--font-mono)" }}>{k}</span>
-              <span style={{ fontSize: 11.5, fontWeight: 600, color: t.text, fontFamily: "var(--font-mono)" }}>{v}</span>
+              <span style={{ fontSize: 11.5, fontWeight: 500, color: t.text, fontFamily: "var(--font-mono)" }}>{v}</span>
             </div>
           ))}
           {/* Status badge */}
           <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0" }}>
             <span style={{ fontSize: 11.5, color: t.text3, fontFamily: "var(--font-mono)" }}>Status</span>
-            <span style={{ fontSize: 10, color: t.green, background: t.greenDim, border: `1px solid ${t.greenBorder}`, borderRadius: 4, padding: "2px 8px", fontFamily: "var(--font-mono)" }}>
+            <span style={{ fontSize: 12, color: t.greenInk, background: t.greenDim, border: `1px solid ${t.greenBorder}`, borderRadius: 4, padding: "2px 8px", fontFamily: "var(--font-mono)" }}>
               Active
             </span>
           </div>
         </div>
         <p style={{ fontSize: 11, color: t.text3, fontFamily: "var(--font-mono)", marginTop: 12, lineHeight: 1.5 }}>
-          Type a service name and press <strong style={{ color: t.green }}>AI Fill</strong> to auto-populate all fields instantly.
+          Type a service name and press <strong style={{ color: t.greenInk }}>AI Fill</strong> to auto-populate all fields instantly.
         </p>
       </div>
     </div>

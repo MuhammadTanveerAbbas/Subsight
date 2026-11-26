@@ -71,7 +71,7 @@ export default function VerifyEmailPage() {
           description={
             <>
               We sent a confirmation link to <strong style={{ color: "var(--text)" }}>{user.email}</strong>.
-              Open it to unlock your dashboard.
+              Open it to access your dashboard.
             </>
           }
         >

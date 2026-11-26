@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
-import { sendRenewalReminder } from '@/lib/email-service'
+import { sendCancellationReminder, sendRenewalReminder } from '@/lib/email-service'
+import { cancelReminderDue } from '@/lib/reminder-helpers'
 import { NextRequest } from 'next/server'
 
 function getSupabaseAdmin() {
@@ -29,10 +30,6 @@ export async function GET(req: NextRequest) {
 
     if (fetchError) {
       return Response.json({ error: 'Database error', details: fetchError.message }, { status: 500 })
-    }
-
-    if (!subscriptions || subscriptions.length === 0) {
-      return Response.json({ sent: 0, checked: 0, message: 'No reminders to send' })
     }
 
     let sent = 0
@@ -81,7 +78,53 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    return Response.json({ sent, failed, checked: subscriptions.length, timestamp: new Date().toISOString() })
+    const { data: cancellations, error: cancelFetchError } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('cancel_state', 'planned')
+      .not('cancel_by_date', 'is', null)
+
+    if (cancelFetchError) {
+      return Response.json({ error: 'Database error', details: cancelFetchError.message }, { status: 500 })
+    }
+
+    let cancelSent = 0
+
+    for (const sub of (cancellations ?? []) as any[]) {
+      if (!cancelReminderDue({
+        cancelByDate: sub.cancel_by_date,
+        cancelState: sub.cancel_state,
+        reminderDaysBefore: sub.reminder_days_before ?? 3,
+        lastReminderSent: sub.last_reminder_sent,
+      }, today)) continue
+
+      const { data: userData, error: userError } = await supabase.auth.admin.getUserById(sub.user_id)
+      if (userError || !userData.user?.email) {
+        failed++
+        continue
+      }
+
+      const deadline = new Date(`${sub.cancel_by_date}T00:00:00Z`)
+      const daysUntil = Math.round((deadline.getTime() - Date.UTC(today.getFullYear(), today.getMonth(), today.getDate())) / 86400000)
+
+      try {
+        await sendCancellationReminder({
+          to: userData.user.email,
+          subscriptionName: sub.name,
+          cancelByDate: sub.cancel_by_date,
+          daysUntilDeadline: daysUntil,
+        })
+        const { error: updateError } = await supabase
+          .from('subscriptions')
+          .update({ last_reminder_sent: new Date().toISOString() })
+          .eq('id', sub.id)
+        if (updateError) { failed++ } else { cancelSent++ }
+      } catch {
+        failed++
+      }
+    }
+
+    return Response.json({ sent, cancelSent, failed, checked: subscriptions.length, timestamp: new Date().toISOString() })
   } catch (error) {
     const msg = error instanceof Error ? error.message : 'Unknown error'
     return Response.json({ error: 'Cron job failed', details: msg }, { status: 500 })

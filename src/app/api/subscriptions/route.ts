@@ -35,6 +35,8 @@ const updateSchema = z
     activeStatus: z.boolean().optional(),
     reminderEnabled: z.boolean().optional(),
     reminderDaysBefore: z.union([z.literal(1), z.literal(3), z.literal(7), z.literal(14)]).optional(),
+    cancelByDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+    cancelState: z.enum(['none', 'planned', 'canceled']).optional(),
   })
   .refine(
     (data) =>
@@ -164,7 +166,7 @@ export async function PATCH(req: NextRequest) {
 
   const { data: existing, error: fetchError } = await supabase
     .from('subscriptions')
-    .select('start_date, billing_cycle')
+    .select('start_date, billing_cycle, amount, currency')
     .eq('id', id)
     .eq('user_id', user.id)
     .single()
@@ -188,6 +190,8 @@ export async function PATCH(req: NextRequest) {
   if (updates.reminderDaysBefore !== undefined) {
     dbUpdates.reminder_days_before = updates.reminderDaysBefore
   }
+  if (updates.cancelByDate !== undefined) dbUpdates.cancel_by_date = updates.cancelByDate
+  if (updates.cancelState !== undefined) dbUpdates.cancel_state = updates.cancelState
 
   if (updates.activeStatus !== undefined) {
     dbUpdates.active_status = updates.activeStatus
@@ -204,6 +208,23 @@ export async function PATCH(req: NextRequest) {
     dbUpdates.next_renewal_date = nextRenewal
       ? nextRenewal.toISOString().split('T')[0]
       : null
+  }
+
+  if (
+    updates.amount !== undefined &&
+    Number(existing.amount) !== updates.amount
+  ) {
+    const { error: historyError } = await supabase
+      .from('price_history')
+      .insert({
+        user_id: user.id,
+        subscription_id: id,
+        amount: Number(existing.amount),
+        currency: updates.currency ?? existing.currency ?? 'USD',
+      })
+    if (historyError) {
+      return Response.json({ error: historyError.message }, { status: 500 })
+    }
   }
 
   const { error: dbError } = await supabase

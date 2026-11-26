@@ -8,7 +8,7 @@ export type { TK, SubStatus, Sub } from "./dashboard-types";
 
 import {
   LayoutDashboard, CreditCard, Sparkles, Download,
-  Settings, User, Plus, Receipt, Wallet,
+  Settings, User, Plus, Receipt, Wallet, ChartNoAxesCombined, CalendarDays,
 } from "lucide-react";
 
 export interface NavItem {
@@ -26,17 +26,24 @@ export interface NavGroup {
    when expanded and a divider when collapsed. */
 export const NAV_GROUPS: NavGroup[] = [
   {
-    label: "Overview",
+    label: "Dashboard",
     items: [
-      { id: "overview",      label: "Dashboard",        Icon: LayoutDashboard },
-      { id: "ai-summary",    label: "AI Summary",       Icon: Sparkles },
+      { id: "overview",      label: "Overview",         Icon: LayoutDashboard },
+      { id: "plan",          label: "Plan",             Icon: ChartNoAxesCombined },
+      { id: "calendar",      label: "Calendar",         Icon: CalendarDays },
     ],
   },
   {
-    label: "Manage",
+    label: "Subscriptions",
     items: [
-      { id: "subscriptions", label: "Subscriptions",    Icon: CreditCard },
-      { id: "add",           label: "Add Subscription", Icon: Plus },
+      { id: "subscriptions", label: "All Subscriptions", Icon: CreditCard },
+      { id: "add",           label: "Add New",           Icon: Plus },
+    ],
+  },
+  {
+    label: "Tools",
+    items: [
+      { id: "ai-summary",    label: "AI Summary",       Icon: Sparkles },
       { id: "vault",         label: "Vault",            Icon: Wallet },
       { id: "export",        label: "Export",           Icon: Download },
     ],
@@ -53,3 +60,7 @@ export const NAV_ALL: NavItem[] = [
   ...NAV_GROUPS.flatMap((g) => g.items),
   ...NAV_BOTTOM,
 ];
+
+export const MOBILE_MORE_IDS = [
+  "plan", "calendar", "ai-summary", "export", "billing", "settings", "profile",
+] as const;

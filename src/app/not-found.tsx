@@ -16,7 +16,7 @@ export default function NotFound() {
 
       {/* 404 */}
       <div className="flex flex-col items-center gap-2">
-        <span className="font-mono text-7xl font-bold text-primary leading-none">
+        <span className="font-mono text-6xl font-medium text-primary leading-none">
           404
         </span>
         <span className="text-muted-foreground text-sm tracking-widest uppercase">

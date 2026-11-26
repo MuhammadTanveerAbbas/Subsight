@@ -68,8 +68,8 @@ export function ProfileView({
     fontFamily: "var(--font-mono)", outline: "none", transition: "border-color 0.2s",
   };
   const lStyle: React.CSSProperties = {
-    fontSize: 10.5, color: t.text3, fontFamily: "var(--font-mono)",
-    letterSpacing: "0.08em", textTransform: "uppercase", display: "block", marginBottom: 5, lineHeight: 1.5,
+    fontSize: 12, color: t.text3, fontFamily: "var(--font-mono)",
+    letterSpacing: 0, display: "block", marginBottom: 5, lineHeight: 1.5,
   };
 
   if (loading) {
@@ -88,7 +88,7 @@ export function ProfileView({
     <div style={{ display: "flex", flexDirection: "column", gap: 18, maxWidth: 640, margin: "0 auto", width: "100%" }}>
       {/* Title */}
       <div>
-        <h2 style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 800, color: t.text, letterSpacing: -0.5, textAlign: "center" }}>
+        <h2 style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 500, color: t.text, letterSpacing: 0, textAlign: "center" }}>
           Profile
         </h2>
         <p style={{ fontSize: 11.5, color: t.text3, fontFamily: "var(--font-mono)", marginTop: 3, lineHeight: 1.5, textAlign: "center" }}>
@@ -99,8 +99,8 @@ export function ProfileView({
       {/* Profile settings */}
       <div style={{ background: t.surface, border: `1px solid ${t.border}`, borderRadius: 12, padding: 26 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-          <User size={14} color={t.green} aria-hidden="true" />
-          <span style={{ fontSize: 14, fontWeight: 700, color: t.text, fontFamily: "var(--font-display)" }}>
+          <User size={14} color={t.greenInk} aria-hidden="true" />
+          <span style={{ fontSize: 14, fontWeight: 500, color: t.text, fontFamily: "var(--font-display)" }}>
             Profile Settings
           </span>
         </div>
@@ -113,13 +113,13 @@ export function ProfileView({
           <div style={{ width: 56, height: 56, borderRadius: 13, background: t.greenDim, border: `1px solid ${t.greenBorder}`, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 }}>
             {form.avatar
               ? <img src={form.avatar} alt="Your avatar" style={{ width: 56, height: 56, objectFit: "cover" }} />
-              : <span style={{ fontSize: 20, fontWeight: 700, color: t.green, fontFamily: "var(--font-display)" }}>
+              : <span style={{ fontSize: 20, fontWeight: 500, color: t.greenInk, fontFamily: "var(--font-display)" }}>
                   {(form.name || email || "U").charAt(0).toUpperCase()}
                 </span>
             }
           </div>
           <div>
-            <div style={{ fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 700, color: t.text }}>
+            <div style={{ fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 500, color: t.text }}>
               {form.name || "User"}
             </div>
             <div style={{ fontSize: 12, color: t.text3, fontFamily: "var(--font-mono)", marginTop: 2 }}>
@@ -150,7 +150,7 @@ export function ProfileView({
               onFocus={(e) => ((e.target as HTMLInputElement).style.borderColor = t.greenBorder)}
               onBlur={(e)  => ((e.target as HTMLInputElement).style.borderColor = t.border)}
             />
-            <p style={{ fontSize: 10, color: t.text3, fontFamily: "var(--font-mono)", marginTop: 5, lineHeight: 1.4 }}>
+            <p style={{ fontSize: 12, color: t.text3, fontFamily: "var(--font-mono)", marginTop: 5, lineHeight: 1.4 }}>
               Provide a direct URL to your profile image
             </p>
           </div>
@@ -159,7 +159,7 @@ export function ProfileView({
             disabled={saving}
             style={{
               background: t.green, color: "#000", border: "none", borderRadius: 8,
-              padding: "12px 22px", fontSize: 13, fontWeight: 700,
+              padding: "12px 22px", fontSize: 13, fontWeight: 500,
               fontFamily: "var(--font-display)", cursor: saving ? "not-allowed" : "pointer",
               display: "flex", alignItems: "center", gap: 7, width: "fit-content",
               transition: "background 0.2s",
@@ -178,27 +178,27 @@ export function ProfileView({
       {/* Plan info all features free */}
       <div style={{ background: t.surface, border: `1px solid ${t.border}`, borderRadius: 12, padding: "20px 22px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-          <Sparkles size={14} color={t.green} aria-hidden="true" />
-          <span style={{ fontSize: 14, fontWeight: 700, color: t.text, fontFamily: "var(--font-display)" }}>
+          <Sparkles size={14} color={t.greenInk} aria-hidden="true" />
+          <span style={{ fontSize: 14, fontWeight: 500, color: t.text, fontFamily: "var(--font-display)" }}>
             Your Plan
           </span>
         </div>
         <div style={{ background: t.greenDim, border: `1px solid ${t.greenBorder}`, borderRadius: 10, padding: "13px 16px", display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 8, height: 8, borderRadius: "50%", background: t.green, boxShadow: `0 0 6px ${t.green}`, flexShrink: 0 }} />
-          <span style={{ fontSize: 13, fontWeight: 600, color: t.green, fontFamily: "var(--font-display)" }}>
+          <div style={{ width: 8, height: 8, borderRadius: "50%", background: t.green, boxShadow: "none", flexShrink: 0 }} />
+          <span style={{ fontSize: 13, fontWeight: 500, color: t.greenInk, fontFamily: "var(--font-display)" }}>
             All Features Included Free Forever
           </span>
         </div>
         <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 8 }}>
           {[
             "Unlimited subscriptions",
-            "AI-powered spending insights",
+            "AI spending insights",
             "AI auto-fill for subscription details",
             "Full analytics dashboard",
             "Data export (CSV, JSON, PDF)",
           ].map((feat) => (
             <div key={feat} style={{ display: "flex", alignItems: "center", gap: 9 }}>
-              <CheckCircle2 size={13} color={t.green} style={{ flexShrink: 0 }} />
+              <CheckCircle2 size={13} color={t.greenInk} style={{ flexShrink: 0 }} />
               <span style={{ fontSize: 12, color: t.text2, fontFamily: "var(--font-mono)" }}>{feat}</span>
             </div>
           ))}
@@ -208,8 +208,8 @@ export function ProfileView({
       {/* Privacy & Security */}
       <div style={{ background: t.surface, border: `1px solid ${t.border}`, borderRadius: 12, padding: "20px 22px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-          <Shield size={14} color={t.green} aria-hidden="true" />
-          <span style={{ fontSize: 14, fontWeight: 700, color: t.text, fontFamily: "var(--font-display)" }}>
+          <Shield size={14} color={t.greenInk} aria-hidden="true" />
+          <span style={{ fontSize: 14, fontWeight: 500, color: t.text, fontFamily: "var(--font-display)" }}>
             Privacy & Security
           </span>
         </div>
@@ -225,10 +225,10 @@ export function ProfileView({
             style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "10px 0", borderBottom: `1px solid ${t.border}` }}
           >
             <div style={{ width: 28, height: 28, borderRadius: 7, background: t.greenDim, border: `1px solid ${t.greenBorder}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
-              <item.Icon size={12} color={t.green} strokeWidth={1.5} aria-hidden="true" />
+              <item.Icon size={12} color={t.greenInk} strokeWidth={1.5} aria-hidden="true" />
             </div>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: t.text, fontFamily: "var(--font-display)" }}>
+              <div style={{ fontSize: 13, fontWeight: 500, color: t.text, fontFamily: "var(--font-display)" }}>
                 {item.label}
               </div>
               <div style={{ fontSize: 11, color: t.text3, fontFamily: "var(--font-mono)", marginTop: 2, lineHeight: 1.5 }}>
@@ -243,7 +243,7 @@ export function ProfileView({
       <div style={{ background: t.surface, border: `1px solid ${t.red}33`, borderRadius: 12, padding: "20px 22px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
           <AlertTriangle size={14} color={t.red} aria-hidden="true" />
-          <span style={{ fontSize: 14, fontWeight: 700, color: t.red, fontFamily: "var(--font-display)" }}>
+          <span style={{ fontSize: 14, fontWeight: 500, color: t.red, fontFamily: "var(--font-display)" }}>
             Danger Zone
           </span>
         </div>
@@ -254,7 +254,7 @@ export function ProfileView({
           onClick={() => { setConfirmText(""); setConfirmOpen(true); }}
           style={{
             background: t.redDim, color: t.red, border: `1px solid ${t.red}33`,
-            borderRadius: 8, padding: "10px 18px", fontSize: 13, fontWeight: 600,
+            borderRadius: 8, padding: "10px 18px", fontSize: 13, fontWeight: 500,
             fontFamily: "var(--font-display)", cursor: "pointer",
             display: "flex", alignItems: "center", gap: 7, transition: "background 0.15s",
           }}
@@ -269,7 +269,7 @@ export function ProfileView({
       {confirmOpen && (
         <div
           role="dialog" aria-modal="true" aria-labelledby="del-acct-title"
-          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}
           onClick={() => setConfirmOpen(false)}
         >
           <div
@@ -279,7 +279,7 @@ export function ProfileView({
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <AlertTriangle size={16} color={t.red} />
-                <span id="del-acct-title" style={{ fontSize: 16, fontWeight: 700, color: t.text, fontFamily: "var(--font-display)" }}>
+                <span id="del-acct-title" style={{ fontSize: 16, fontWeight: 500, color: t.text, fontFamily: "var(--font-display)" }}>
                   Confirm Deletion
                 </span>
               </div>
@@ -289,7 +289,7 @@ export function ProfileView({
             </div>
             <p style={{ fontSize: 12, color: t.text3, fontFamily: "var(--font-mono)", marginBottom: 18, lineHeight: 1.6 }}>
               This will permanently delete your account, subscriptions, and all data. Type{" "}
-              <span style={{ color: t.red, fontWeight: 700 }}>DELETE</span> below to confirm.
+              <span style={{ color: t.red, fontWeight: 500 }}>DELETE</span> below to confirm.
             </p>
             <input
               value={confirmText}
@@ -307,7 +307,7 @@ export function ProfileView({
             <div style={{ display: "flex", gap: 10 }}>
               <button
                 onClick={() => setConfirmOpen(false)}
-                style={{ flex: 1, background: t.surface2, color: t.text, border: `1px solid ${t.border}`, borderRadius: 8, padding: 11, fontSize: 13, fontWeight: 600, fontFamily: "var(--font-display)", cursor: "pointer" }}
+                style={{ flex: 1, background: t.surface2, color: t.text, border: `1px solid ${t.border}`, borderRadius: 8, padding: 11, fontSize: 13, fontWeight: 500, fontFamily: "var(--font-display)", cursor: "pointer" }}
               >
                 Cancel
               </button>
@@ -320,7 +320,7 @@ export function ProfileView({
                 disabled={confirmText !== "DELETE" || deleting}
                 style={{
                   flex: 1, background: t.red, color: "#fff", border: "none",
-                  borderRadius: 8, padding: 11, fontSize: 13, fontWeight: 700,
+                  borderRadius: 8, padding: 11, fontSize: 13, fontWeight: 500,
                   fontFamily: "var(--font-display)", cursor: confirmText !== "DELETE" || deleting ? "not-allowed" : "pointer",
                   opacity: confirmText !== "DELETE" || deleting ? 0.5 : 1,
                   display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
@@ -341,10 +341,10 @@ export function ProfileView({
         onClick={signOut}
         style={{
           background: t.surface2, color: t.text2, border: `1px solid ${t.border2}`,
-          borderRadius: 9, padding: 13, fontSize: 13, fontWeight: 600,
+          borderRadius: 9, padding: 13, fontSize: 13, fontWeight: 500,
           fontFamily: "var(--font-display)", cursor: "pointer",
           display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-          transition: "all 0.2s",
+          transition: "background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease",
         }}
         onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = t.redDim; (e.currentTarget as HTMLElement).style.color = t.red; (e.currentTarget as HTMLElement).style.borderColor = `${t.red}44`; }}
         onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = t.surface2; (e.currentTarget as HTMLElement).style.color = t.text2; (e.currentTarget as HTMLElement).style.borderColor = t.border2; }}

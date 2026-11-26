@@ -9,6 +9,7 @@ import {
   Sun, Moon, Menu, Plus,
   LayoutDashboard, CreditCard, Sparkles, Download,
   Settings, User, Receipt, MoreHorizontal, ChevronRight, Wallet,
+  ChartNoAxesCombined, CalendarDays,
 } from "lucide-react";
 import {
   DARK, LIGHT, NAV_GROUPS, NAV_BOTTOM, NAV_ALL,
@@ -17,6 +18,8 @@ import {
 
 const VALID_TABS = new Set(NAV_ALL.map((n) => n.id));
 
+import { PlanView }      from "./views/plan-view";
+import { CalendarView }  from "./views/calendar-view";
 import { OverviewView }  from "./views/overview-view";
 import { SubsView }      from "./views/subs-view";
 import { AISummaryView } from "./views/ai-summary-view";
@@ -29,6 +32,8 @@ import BillingPage       from "./billing/page";
 
 /* ── Icon map used by sidebar links ───────────────────────────────────── */
 const ICON_MAP: Record<string, React.ElementType> = {
+  plan:          ChartNoAxesCombined,
+  calendar:      CalendarDays,
   overview:      LayoutDashboard,
   subscriptions: CreditCard,
   "ai-summary":  Sparkles,
@@ -170,7 +175,15 @@ export default function Dashboard() {
   /* ── Map Supabase subscriptions ➜ local Sub shape ─────────────────── */
   useEffect(() => {
     if (!subscriptions || subscriptions.length === 0) { setSubs([]); return; }
-    const mappedSubs = subscriptions.map((s) => ({
+    const mappedSubs = subscriptions.map((raw) => {
+      const s = raw as unknown as {
+        id: string; name: string; category: string | null; amount: number;
+        billingCycle: string | null; nextRenewalDate: string | null;
+        activeStatus: boolean | null; autoRenew: boolean | null;
+        currency: string | null; provider: string | null; notes: string | null;
+        cancel_by_date?: string | null; cancel_state?: string | null;
+      };
+      return {
       id: s.id,
       name: s.name,
       category: s.category || "Other",
@@ -182,7 +195,10 @@ export default function Dashboard() {
       currency: s.currency || "USD",
       provider: s.provider || "",
       notes: s.notes || "",
-    }));
+        cancelByDate: s.cancel_by_date ?? null,
+        cancelState: (s.cancel_state as Sub["cancelState"]) ?? "none",
+      };
+    });
     setSubs(mappedSubs);
   }, [subscriptions]);
 
@@ -194,7 +210,7 @@ export default function Dashboard() {
       const resolved = tab === "analytics" ? "overview" : tab;
       if (VALID_TABS.has(resolved)) setActive(resolved);
     }
-    if (params.get("upgraded") === "true") showToast("All features are now unlocked enjoy!", "success");
+    if (params.get("upgraded") === "true") showToast("All features are available", "success");
     if (tab || params.get("upgraded") === "true") window.history.replaceState({}, "", "/dashboard");
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -229,7 +245,7 @@ export default function Dashboard() {
 
   const SBW = collapsed ? 64 : 228;
 
-  /* ── Professional Sidebar Link ────────────────────────────────────── */
+  /* ── Sidebar link ─────────────────────────────────────────────────── */
   const SidebarLink = ({
     id, label, Icon, section,
   }: {
@@ -250,60 +266,46 @@ export default function Dashboard() {
             tooltipTimerRef.current = setTimeout(() => setHoveredNav(null), 100);
           }}
           aria-label={label}
+          aria-current={isActive ? "page" : undefined}
           title={collapsed ? label : undefined}
           style={{
             width: "100%",
             display: "flex",
             alignItems: "center",
-            gap: 10,
-            padding: collapsed ? "10px 0" : "9px 12px",
-            paddingLeft: collapsed ? 0 : 12,
+            gap: 12,
+            padding: collapsed ? "8px 0" : "8px 12px",
             justifyContent: collapsed ? "center" : "flex-start",
-            background: isActive
-              ? `linear-gradient(90deg, ${t.greenDim} 0%, transparent 100%)`
+            background: isActive 
+              ? `linear-gradient(90deg, ${t.greenDim}, transparent)` 
               : "transparent",
             cursor: "pointer",
-            color: isActive ? t.green : isHovered ? t.text : t.text2,
-            transition: "all 0.18s ease",
-            borderRadius: collapsed ? 0 : "0 10px 10px 0",
+            color: isActive ? t.greenInk : isHovered ? t.text : t.text2,
+            transition: "background-color 0.15s ease, color 0.15s ease",
+            borderRadius: 8,
             marginRight: collapsed ? 0 : 8,
             position: "relative",
             outline: "none",
           }}
         >
-          {/* Icon with enhanced styling */}
           <span
             style={{
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              width: 30,
-              height: 30,
-              borderRadius: 8,
-              background: isActive ? t.greenDim : "transparent",
-              border: isActive ? `1.5px solid ${t.green}` : "1px solid transparent",
-              transition: "all 0.18s ease",
+              width: 20,
+              height: 20,
               flexShrink: 0,
-              filter: isActive ? `drop-shadow(0 0 6px ${t.green}66)` : "none",
             }}
           >
-            <Icon
-              size={15}
-              strokeWidth={isActive ? 2.2 : 1.6}
-              style={{ transition: "all 0.18s ease" }}
-            />
+            <Icon size={16} strokeWidth={1.5} />
           </span>
-
-          {/* Label */}
           {!collapsed && (
             <span
               style={{
-                fontSize: 13,
-                fontWeight: isActive ? 600 : 400,
+                fontSize: 14,
+                fontWeight: isActive ? 500 : 400,
                 whiteSpace: "nowrap",
                 fontFamily: "var(--font-display)",
-                letterSpacing: isActive ? -0.1 : 0,
-                transition: "all 0.18s ease",
               }}
             >
               {label}
@@ -311,7 +313,6 @@ export default function Dashboard() {
           )}
         </button>
 
-        {/* Tooltip for collapsed mode */}
         {collapsed && isHovered && (
           <div
             style={{
@@ -329,12 +330,11 @@ export default function Dashboard() {
               fontFamily: "var(--font-display)",
               whiteSpace: "nowrap",
               zIndex: 200,
-              boxShadow: `0 4px 24px ${t.shadow}`,
+              boxShadow: `0 2px 8px ${t.shadow}`,
               pointerEvents: "none",
             }}
           >
             {label}
-            {/* Arrow */}
             <span
               style={{
                 position: "absolute",
@@ -359,6 +359,8 @@ export default function Dashboard() {
   const renderView = () => {
     if (loading) return <LoadingSkeleton />;
     switch (active) {
+      case "plan":          return <PlanView t={t} subs={subs} />;
+      case "calendar":      return <CalendarView t={t} subs={subs} />;
       case "overview":      return <OverviewView t={t} subs={subs} onNav={navTo} />;
       case "subscriptions": return <SubsView t={t} subs={subs} setSubs={setSubs} onAdd={() => navTo("add")} toast={showToast} />;
       case "ai-summary":    return <AISummaryView t={t} subs={subs} />;
@@ -376,40 +378,44 @@ export default function Dashboard() {
   const activeLabel = NAV_ALL.find((n) => n.id === active)?.label || "Dashboard";
 
   /* ── Sidebar inner content (desktop only) ─────────────────────────── */
+  const groupLabel: React.CSSProperties = {
+    fontSize: 12,
+    fontWeight: 500,
+    color: t.text3,
+    fontFamily: "var(--font-display)",
+    padding: "12px 12px 4px",
+  };
+
   const SidebarContent = () => (
     <>
-      {/* Logo / Brand */}
+      {/* Wordmark */}
       <div
         style={{
           height: 64,
           display: "flex",
           alignItems: "center",
-          padding: collapsed ? "0" : "0 16px",
+          padding: collapsed ? "0" : "0 12px",
           justifyContent: collapsed ? "center" : "flex-start",
-          gap: 10,
+          gap: 12,
           borderBottom: `1px solid ${t.border}`,
           flexShrink: 0,
         }}
       >
         <img
-          src="/icon.svg"
-          alt="Subsight"
-          width={36}
-          height={36}
-          style={{ display: "block", borderRadius: 10, flexShrink: 0, boxShadow: `0 4px 16px ${t.greenGlow}` }}
+          src="/Subsight.png"
+          alt=""
+          width={32}
+          height={32}
+          style={{ display: "block", borderRadius: 8, flexShrink: 0 }}
         />
         {!collapsed && (
           <span
             style={{
               fontFamily: "var(--font-display)",
-              fontSize: 18,
-              fontWeight: 800,
-              letterSpacing: -0.6,
+              fontSize: 17,
+              fontWeight: 500,
+              color: t.text,
               whiteSpace: "nowrap",
-              background: `linear-gradient(135deg, ${t.green} 0%, ${t.green2} 100%)`,
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
             }}
           >
             Subsight
@@ -417,18 +423,13 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* Main nav, split into labeled categories */}
-      <nav style={{ flex: 1, padding: "10px 0", overflowY: "auto", overflowX: "hidden" }} role="navigation" aria-label="Main navigation">
+      <nav style={{ flex: 1, padding: "8px 0", overflowY: "auto", overflowX: "hidden" }} role="navigation" aria-label="Main navigation">
         {NAV_GROUPS.map((group, gi) => (
           <div key={group.label}>
             {gi > 0 && (
-              <div style={{ height: 1, background: t.border, margin: "10px 12px 8px" }} />
+              <div style={{ height: 1, background: t.border, margin: "12px 12px 4px" }} />
             )}
-            {!collapsed && (
-              <div style={{ fontSize: 9.5, fontWeight: 600, color: t.text3, fontFamily: "var(--font-mono)", letterSpacing: "0.1em", textTransform: "uppercase", padding: "6px 16px 8px" }}>
-                {group.label}
-              </div>
-            )}
+            {!collapsed && <div style={groupLabel}>{group.label}</div>}
             {group.items.map((item) => (
               <SidebarLink key={item.id} section="main" {...item} />
             ))}
@@ -436,45 +437,50 @@ export default function Dashboard() {
         ))}
       </nav>
 
-      {/* Bottom nav */}
-      <div style={{ padding: "10px 0", borderTop: `1px solid ${t.border}`, flexShrink: 0 }}>
-        {!collapsed && (
-          <div style={{ fontSize: 9.5, fontWeight: 600, color: t.text3, fontFamily: "var(--font-mono)", letterSpacing: "0.1em", textTransform: "uppercase", padding: "6px 16px 8px" }}>
-            Account
-          </div>
-        )}
+      <div style={{ padding: "8px 0", borderTop: `1px solid ${t.border}`, flexShrink: 0 }}>
+        {!collapsed && <div style={groupLabel}>Account</div>}
         {NAV_BOTTOM.map((item) => (
           <SidebarLink key={item.id} section="bottom" {...item} />
         ))}
       </div>
 
-      {/* Collapse toggle */}
-      <div style={{ padding: "8px 8px 12px", borderTop: `1px solid ${t.border}`, flexShrink: 0 }}>
+      <div style={{ padding: "8px", borderTop: `1px solid ${t.border}`, flexShrink: 0 }}>
         <button
           onClick={() => setCollapsed((c) => !c)}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           style={{
-            width: "100%", display: "flex", alignItems: "center",
+            width: "100%",
+            minHeight: 36,
+            display: "flex",
+            alignItems: "center",
             justifyContent: collapsed ? "center" : "flex-start",
-            gap: 8, padding: collapsed ? "8px 0" : "8px 10px",
-            background: "transparent", border: `1px solid ${t.border}`,
-            borderRadius: 8, cursor: "pointer", color: t.text3,
-            transition: "all 0.18s ease",
+            gap: 12,
+            padding: collapsed ? "8px 0" : "8px 12px",
+            background: "transparent",
+            border: `1px solid ${t.border}`,
+            borderRadius: 8,
+            cursor: "pointer",
+            color: t.text3,
+            transition: "background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease",
           }}
           onMouseEnter={(e) => {
-            (e.currentTarget as HTMLElement).style.color = t.text;
-            (e.currentTarget as HTMLElement).style.borderColor = t.border2;
-            (e.currentTarget as HTMLElement).style.background = t.surface2;
+            const el = e.currentTarget as HTMLElement;
+            el.style.color = t.text;
+            el.style.borderColor = t.border2;
+            el.style.background = t.surface2;
           }}
           onMouseLeave={(e) => {
-            (e.currentTarget as HTMLElement).style.color = t.text3;
-            (e.currentTarget as HTMLElement).style.borderColor = t.border;
-            (e.currentTarget as HTMLElement).style.background = "transparent";
+            const el = e.currentTarget as HTMLElement;
+            el.style.color = t.text3;
+            el.style.borderColor = t.border;
+            el.style.background = "transparent";
           }}
         >
-          <Menu size={14} />
+          <span style={{ display: "flex", width: 20, height: 20, alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <Menu size={16} strokeWidth={1.5} />
+          </span>
           {!collapsed && (
-            <span style={{ fontSize: 12, fontFamily: "var(--font-display)", fontWeight: 500, whiteSpace: "nowrap" }}>
+            <span style={{ fontSize: 13, fontFamily: "var(--font-display)", fontWeight: 400, whiteSpace: "nowrap" }}>
               Collapse
             </span>
           )}
@@ -495,7 +501,9 @@ export default function Dashboard() {
 
   /* Items that appear in the More sheet */
   const MOB_MORE = [
-    { id: "ai-summary", label: "AI Summary", Icon: Sparkles },
+    { id: "plan",       label: "Plan",       Icon: ChartNoAxesCombined },
+    { id: "calendar",   label: "Calendar",   Icon: CalendarDays },
+    { id: "ai-summary", label: "AI summary", Icon: Sparkles },
     { id: "export",     label: "Export",     Icon: Download },
     { id: "billing",    label: "Billing",    Icon: Receipt },
     { id: "settings",   label: "Settings",   Icon: Settings },
@@ -545,6 +553,7 @@ export default function Dashboard() {
           .mob-bottom-nav{display:flex!important}
           .mob-logo{display:block!important}
         }
+        @media(max-width:900px){ .cal-layout{grid-template-columns:1fr!important} }
         @media(max-width:640px){
           .chart-2col{grid-template-columns:1fr!important}
           .ana-2col{grid-template-columns:1fr!important}
@@ -563,9 +572,7 @@ export default function Dashboard() {
         style={{
           width: SBW,
           minHeight: "100vh",
-          background: themeKey === "dark"
-            ? "linear-gradient(180deg, #0c0c0e 0%, #0a0a0c 100%)"
-            : "linear-gradient(180deg, #f0f0ee 0%, #eaeae8 100%)",
+          background: t.sidebarBg,
           borderRight: `1px solid ${t.border}`,
           flexDirection: "column",
           position: "fixed",
@@ -573,7 +580,6 @@ export default function Dashboard() {
           top: 0,
           bottom: 0,
           zIndex: 50,
-          transition: "width 0.25s cubic-bezier(0.4,0,0.2,1)",
           overflow: "visible",
           flexShrink: 0,
           display: "flex",
@@ -592,7 +598,7 @@ export default function Dashboard() {
         >
           {/* Backdrop */}
           <div
-            style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)" }}
+            style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.55)" }}
             onClick={() => setMoreOpen(false)}
           />
           {/* Sheet */}
@@ -602,12 +608,12 @@ export default function Dashboard() {
               bottom: 64,
               left: 12,
               right: 12,
-              background: themeKey === "dark" ? "#141414" : "#ffffff",
-              border: `1px solid ${t.border2}`,
-              borderRadius: 20,
-              padding: "8px 6px",
+              background: t.surface,
+              border: `1px solid ${t.border}`,
+              borderRadius: 16,
+              padding: "8px",
               zIndex: 301,
-              boxShadow: `0 -4px 40px ${t.shadow}`,
+              boxShadow: `0 2px 8px ${t.shadow}`,
               animation: "slideInUp 0.22s cubic-bezier(0.16,1,0.3,1)",
             }}
           >
@@ -615,7 +621,7 @@ export default function Dashboard() {
             <div style={{ display: "flex", justifyContent: "center", marginBottom: 6 }}>
               <div style={{ width: 36, height: 4, borderRadius: 2, background: t.border2 }} />
             </div>
-            <div style={{ fontSize: 10, fontWeight: 600, color: t.text3, fontFamily: "var(--font-mono)", letterSpacing: "0.1em", textTransform: "uppercase", padding: "4px 10px 10px" }}>
+            <div style={{ fontSize: 12, fontWeight: 500, color: t.text3, fontFamily: "var(--font-display)", padding: "8px 12px 4px" }}>
               More
             </div>
             {MOB_MORE.map((item) => {
@@ -628,14 +634,14 @@ export default function Dashboard() {
                     width: "100%",
                     display: "flex",
                     alignItems: "center",
-                    gap: 14,
-                    padding: "12px 14px",
-                    background: isActive ? t.greenDim : "transparent",
+                    gap: 12,
+                    padding: "8px 12px",
+                    background: isActive ? t.surface2 : "transparent",
                     border: "none",
-                    borderRadius: 12,
+                    borderRadius: 8,
                     cursor: "pointer",
-                    color: isActive ? t.green : t.text2,
-                    transition: "background 0.15s, color 0.15s",
+                    color: isActive ? t.greenInk : t.text2,
+                    transition: "background-color 0.15s ease, color 0.15s ease",
                     textAlign: "left",
                   }}
                   onMouseEnter={(e) => { if (!isActive) (e.currentTarget as HTMLElement).style.background = t.surface2; }}
@@ -644,18 +650,15 @@ export default function Dashboard() {
                   <span
                     style={{
                       display: "flex", alignItems: "center", justifyContent: "center",
-                      width: 36, height: 36, borderRadius: 10,
-                      background: isActive ? t.greenDim : t.surface2,
-                      border: `1px solid ${isActive ? t.greenBorder : t.border}`,
-                      flexShrink: 0,
+                      width: 20, height: 20, flexShrink: 0,
                     }}
                   >
-                    <item.Icon size={16} strokeWidth={isActive ? 2.2 : 1.6} />
+                    <item.Icon size={16} strokeWidth={1.5} />
                   </span>
-                  <span style={{ flex: 1, fontSize: 14, fontWeight: isActive ? 600 : 400, fontFamily: "var(--font-display)" }}>
+                  <span style={{ flex: 1, fontSize: 14, fontWeight: isActive ? 500 : 400, fontFamily: "var(--font-display)" }}>
                     {item.label}
                   </span>
-                  <ChevronRight size={14} color={t.text3} />
+                  <ChevronRight size={16} strokeWidth={1.5} color={t.text3} />
                 </button>
               );
             })}
@@ -672,7 +675,6 @@ export default function Dashboard() {
           minHeight: "100vh",
           display: "flex",
           flexDirection: "column",
-          transition: "margin-left 0.25s cubic-bezier(0.4,0,0.2,1)",
           minWidth: 0,
         }}
       >
@@ -686,11 +688,7 @@ export default function Dashboard() {
             justifyContent: "space-between",
             padding: "0 28px",
             borderBottom: `1px solid ${t.border}`,
-            background: themeKey === "dark"
-              ? "rgba(8,8,10,0.92)"
-              : "rgba(248,248,246,0.92)",
-            backdropFilter: "blur(16px)",
-            WebkitBackdropFilter: "blur(16px)",
+            background: t.bg,
             position: "sticky",
             top: 0,
             zIndex: 40,
@@ -701,11 +699,11 @@ export default function Dashboard() {
           <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
             {/* Mobile logo (visible only on mobile since sidebar is hidden) */}
             <img
-              src="/icon.svg"
+              src="/Subsight.png"
+              className="brand-mark mob-logo"
               alt="Subsight"
               width={28}
               height={28}
-              className="mob-logo"
               style={{ display: "none", borderRadius: 8, flexShrink: 0 }}
             />
 
@@ -714,9 +712,8 @@ export default function Dashboard() {
                 style={{
                   fontFamily: "var(--font-display)",
                   fontSize: 15,
-                  fontWeight: 700,
+                  fontWeight: 500,
                   color: t.text,
-                  letterSpacing: -0.3,
                   whiteSpace: "nowrap",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
@@ -726,7 +723,7 @@ export default function Dashboard() {
               </div>
               <div style={{ fontSize: 10, color: t.text3, fontFamily: "var(--font-mono)", marginTop: 1, lineHeight: 1.4 }}>
                 {subs.filter((s) => s.status === "active").length} active ·{" "}
-                <span style={{ color: t.green }}>${activeMonthly.toFixed(2)}/mo</span>
+                <span style={{ color: t.greenInk }}>${activeMonthly.toFixed(2)}/mo</span>
               </div>
             </div>
           </div>
@@ -763,7 +760,7 @@ export default function Dashboard() {
                     fontFamily: "var(--font-mono)", fontSize: 11, opacity: emailSent ? 0.7 : 1,
                   }}
                 >
-                  {emailSent ? "Sent ✓" : "Resend"}
+                  {emailSent ? "Sent" : "Resend"}
                 </button>
               </div>
             )}
@@ -773,12 +770,13 @@ export default function Dashboard() {
               onClick={() => setThemeKey(themeKey === "dark" ? "light" : "dark" as TK)}
               aria-label={`Switch to ${themeKey === "dark" ? "light" : "dark"} mode`}
               style={{
-                width: 34, height: 34, border: `1px solid ${t.border2}`, borderRadius: 9,
+                width: 36, height: 36, border: `1px solid ${t.border2}`, borderRadius: 8,
                 background: t.surface2, display: "flex", alignItems: "center",
-                justifyContent: "center", cursor: "pointer", transition: "all 0.2s", flexShrink: 0,
+                justifyContent: "center", cursor: "pointer",
+                transition: "background-color 0.15s ease, border-color 0.15s ease", flexShrink: 0,
               }}
             >
-              {themeKey === "dark" ? <Sun size={14} color={t.text2} /> : <Moon size={14} color={t.text2} />}
+              {themeKey === "dark" ? <Sun size={16} strokeWidth={1.5} color={t.text2} /> : <Moon size={16} strokeWidth={1.5} color={t.text2} />}
             </button>
 
             {/* Add button hidden on mobile (Add is in bottom bar) */}
@@ -787,18 +785,17 @@ export default function Dashboard() {
               onClick={() => navTo("add")}
               aria-label="Add new subscription"
               style={{
-                background: t.green, color: "#000", border: "none", borderRadius: 9,
-                padding: "8px 14px", fontSize: 12, fontWeight: 700,
+                background: t.green, color: "#000", border: "none", borderRadius: 8,
+                padding: "8px 16px", fontSize: 13, fontWeight: 500,
                 fontFamily: "var(--font-display)", cursor: "pointer",
-                display: "flex", alignItems: "center", gap: 6,
+                display: "flex", alignItems: "center", gap: 8,
                 flexShrink: 0, whiteSpace: "nowrap",
-                transition: "background 0.2s, transform 0.1s",
-                boxShadow: `0 2px 8px ${t.green}44`,
+                transition: "background-color 0.15s ease",
               }}
               onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = t.green2; }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = t.green; }}
             >
-              <Plus size={12} strokeWidth={2.5} /> Add
+              <Plus size={16} strokeWidth={1.5} /> Add
             </button>
           </div>
         </header>
@@ -825,11 +822,7 @@ export default function Dashboard() {
           right: 0,
           height: 64,
           zIndex: 100,
-          background: themeKey === "dark"
-            ? "rgba(10,10,12,0.96)"
-            : "rgba(248,248,246,0.96)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
+          background: t.bg,
           borderTop: `1px solid ${t.border}`,
           alignItems: "center",
           justifyContent: "space-around",
@@ -867,7 +860,7 @@ export default function Dashboard() {
                 borderRadius: 12,
                 minWidth: 52,
                 position: "relative",
-                transition: "all 0.15s ease",
+                transition: "background-color 0.15s ease",
                 outline: "none",
               }}
             >
@@ -880,13 +873,12 @@ export default function Dashboard() {
                     justifyContent: "center",
                     width: 44,
                     height: 44,
-                    borderRadius: 14,
+                    borderRadius: 12,
                     background: t.green,
-                    boxShadow: `0 4px 16px ${t.green}55`,
-                    transition: "transform 0.15s, box-shadow 0.15s",
+                    transition: "background-color 0.15s ease",
                   }}
                 >
-                  <item.Icon size={20} color="#000" strokeWidth={2.5} />
+                  <item.Icon size={16} strokeWidth={1.5} color="#000" />
                 </span>
               ) : (
                 <>
@@ -897,10 +889,10 @@ export default function Dashboard() {
                       alignItems: "center",
                       justifyContent: "center",
                       width: 32,
-                      height: 28,
+                      height: 32,
                       borderRadius: 8,
                       position: "relative",
-                      transition: "all 0.15s ease",
+                      transition: "background-color 0.15s ease",
                     }}
                   >
                     {/* Active pill indicator */}
@@ -916,21 +908,21 @@ export default function Dashboard() {
                       />
                     )}
                     <item.Icon
-                      size={18}
-                      strokeWidth={isActive ? 2.2 : 1.6}
-                      color={isActive ? t.green : t.text3}
-                      style={{ position: "relative", zIndex: 1, transition: "all 0.15s ease" }}
+                      size={16}
+                      strokeWidth={1.5}
+                      color={isActive ? t.greenInk : t.text3}
+                      style={{ position: "relative", zIndex: 1 }}
                     />
                   </span>
                   {/* Label */}
                   <span
                     style={{
-                      fontSize: 10,
-                      fontWeight: isActive ? 600 : 400,
-                      color: isActive ? t.green : t.text3,
+                      fontSize: 11,
+                      fontWeight: isActive ? 500 : 400,
+                      color: isActive ? t.greenInk : t.text3,
                       fontFamily: "var(--font-display)",
-                      lineHeight: 1,
-                      transition: "color 0.15s",
+                      lineHeight: 1.2,
+                      transition: "color 0.15s ease",
                     }}
                   >
                     {item.label}

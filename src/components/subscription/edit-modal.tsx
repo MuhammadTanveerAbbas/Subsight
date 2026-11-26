@@ -40,10 +40,10 @@ function InputRow({
     <div>
       <label
         style={{
-          fontSize: 10.5,
+          fontSize: 12,
           color: t.text3,
           fontFamily: "var(--font-mono)",
-          letterSpacing: "0.08em",
+          letterSpacing: 0,
           display: "block",
           marginBottom: 5,
         }}
@@ -86,10 +86,10 @@ function SelectRow({
     <div>
       <label
         style={{
-          fontSize: 10.5,
+          fontSize: 12,
           color: t.text3,
           fontFamily: "var(--font-mono)",
-          letterSpacing: "0.08em",
+          letterSpacing: 0,
           display: "block",
           marginBottom: 5,
         }}
@@ -207,6 +207,8 @@ export function EditModal({
         autoRenew: form.autoRenew,
         currency: form.currency,
         status: form.status,
+        cancelByDate: form.cancelByDate ?? null,
+        cancelState: form.cancelState ?? "none",
       });
       await refetchSubscriptions();
       onSave(form);
@@ -234,8 +236,7 @@ export function EditModal({
           position: "absolute",
           inset: 0,
           background: "rgba(0,0,0,0.6)",
-          backdropFilter: "blur(4px)",
-        }}
+          }}
         onClick={onClose}
       />
       <div
@@ -266,9 +267,9 @@ export function EditModal({
               style={{
                 fontFamily: "var(--font-display)",
                 fontSize: 19,
-                fontWeight: 800,
+                fontWeight: 500,
                 color: t.text,
-                letterSpacing: -0.5,
+                letterSpacing: 0,
               }}
             >
               Edit Subscription
@@ -329,7 +330,7 @@ export function EditModal({
               padding: "10px 14px",
               marginBottom: 16,
               fontSize: 12,
-              color: t.green,
+              color: t.greenInk,
               fontFamily: "var(--font-mono)",
             }}
           >
@@ -341,10 +342,10 @@ export function EditModal({
           <div>
             <label
               style={{
-                fontSize: 10.5,
+                fontSize: 12,
                 color: t.text3,
                 fontFamily: "var(--font-mono)",
-                letterSpacing: "0.08em",
+                letterSpacing: 0,
                 display: "block",
                 marginBottom: 5,
               }}
@@ -389,8 +390,8 @@ export function EditModal({
                   gap: 6,
                   fontSize: 12,
                   fontFamily: "var(--font-mono)",
-                  fontWeight: 600,
-                  transition: "all 0.2s",
+                  fontWeight: 500,
+                  transition: "background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease",
                   position: "relative",
                   overflow: "hidden",
                   minWidth: 86,
@@ -423,10 +424,10 @@ export function EditModal({
             <div>
               <label
                 style={{
-                  fontSize: 10.5,
+                  fontSize: 12,
                   color: t.text3,
                   fontFamily: "var(--font-mono)",
-                  letterSpacing: "0.08em",
+                  letterSpacing: 0,
                   display: "block",
                   marginBottom: 5,
                 }}
@@ -517,10 +518,10 @@ export function EditModal({
           <div>
             <label
               style={{
-                fontSize: 10.5,
+                fontSize: 12,
                 color: t.text3,
                 fontFamily: "var(--font-mono)",
-                letterSpacing: "0.08em",
+                letterSpacing: 0,
                 display: "block",
                 marginBottom: 5,
               }}
@@ -569,7 +570,7 @@ export function EditModal({
               <div
                 style={{
                   fontSize: 13,
-                  fontWeight: 600,
+                  fontWeight: 500,
                   color: t.text,
                   fontFamily: "var(--font-display)",
                 }}
@@ -603,6 +604,64 @@ export function EditModal({
               )}
             </button>
           </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div>
+              <label
+                htmlFor="cancel-by"
+                style={{ fontSize: 12, color: t.text3, fontFamily: "var(--font-display)", display: "block", marginBottom: 4 }}
+              >
+                Cancel by
+              </label>
+              <input
+                id="cancel-by"
+                type="date"
+                value={form.cancelByDate ?? ""}
+                onChange={(e) => f("cancelByDate")(e.target.value || null)}
+                style={{
+                  width: "100%", background: t.surface2, border: `1px solid ${t.border}`,
+                  borderRadius: 8, padding: "10px 12px", fontSize: 13, color: t.text, outline: "none",
+                }}
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="cancel-state"
+                style={{ fontSize: 12, color: t.text3, fontFamily: "var(--font-display)", display: "block", marginBottom: 4 }}
+              >
+                Cancellation state
+              </label>
+              <select
+                id="cancel-state"
+                value={form.cancelState ?? "none"}
+                onChange={(e) => f("cancelState")(e.target.value as Sub["cancelState"])}
+                style={{
+                  width: "100%", background: t.surface2, border: `1px solid ${t.border}`,
+                  borderRadius: 8, padding: "10px 12px", fontSize: 13, color: t.text, outline: "none",
+                }}
+              >
+                <option value="none">None</option>
+                <option value="planned">Planned</option>
+                <option value="canceled">Canceled</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize: 12, color: t.text3, fontFamily: "var(--font-display)", marginBottom: 8 }}>
+              Price history
+            </div>
+            {(form.priceHistory ?? []).length === 0 ? (
+              <div style={{ fontSize: 12, color: t.text3 }}>No recorded price changes</div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                {form.priceHistory?.map((point, i) => (
+                  <div key={`${point.recordedAt}-${i}`} style={{ display: "flex", gap: 12, fontSize: 12, color: t.text2, fontVariantNumeric: "tabular-nums" }}>
+                    <span>{point.currency} {Number(point.amount).toFixed(2)}</span>
+                    <span style={{ color: t.text3 }}>{point.recordedAt.slice(0, 10)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
         <div style={{ display: "flex", gap: 10, marginTop: 24 }}>
           <button
@@ -616,7 +675,7 @@ export function EditModal({
               borderRadius: 8,
               padding: "12px",
               fontSize: 13,
-              fontWeight: 700,
+              fontWeight: 500,
               fontFamily: "var(--font-display)",
               cursor: saving || !form.name ? "not-allowed" : "pointer",
               display: "flex",

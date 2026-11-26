@@ -38,10 +38,10 @@ export function MktNav({ t, themeKey, toggle }: { t: T; themeKey: TK; toggle: ()
           .mktnav-mobile-cta{display:flex!important}
         }
       `}</style>
-      <nav style={{ position:"fixed", top:0, left:0, right:0, zIndex:100, display:"grid", gridTemplateColumns:"1fr auto 1fr", alignItems:"center", padding:"0 24px", height:62, background:scrolled?t.navBg:"transparent", borderBottom:scrolled?`1px solid ${t.border}`:"none", backdropFilter:scrolled?"blur(14px)":"none", WebkitBackdropFilter:scrolled?"blur(14px)":"none", transition:"all 0.35s" }}>
+      <nav style={{ position:"fixed", top:0, left:0, right:0, zIndex:100, display:"grid", gridTemplateColumns:"1fr auto 1fr", alignItems:"center", padding:"0 24px", height:62, background:scrolled?t.navBg:"transparent", borderBottom:scrolled?`1px solid ${t.border}`:"none", backdropFilter:scrolled?"blur(14px)":"none", WebkitBackdropFilter:scrolled?"blur(14px)":"none", transition: "background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease" }}>
         <Link href="/" style={{ display:"flex", alignItems:"center", gap:9, textDecoration:"none" }}>
-          <Image src="/icon.svg" alt="Subsight" width={28} height={28} style={{ borderRadius:7, flexShrink:0, display:"block" }} />
-          <span style={{ fontFamily:"var(--font-display)", fontSize:17, fontWeight:800, color:t.text, letterSpacing:-0.5 }}>Subsight</span>
+          <Image src="/Subsight.png" className="brand-mark" alt="Subsight" width={28} height={28} style={{ borderRadius:7, flexShrink:0, display:"block" }} />
+          <span style={{ fontFamily:"var(--font-display)", fontSize:17, fontWeight: 500, color:t.text, letterSpacing: 0 }}>Subsight</span>
         </Link>
 
         <div className="mktnav-links" style={{ display:"flex", alignItems:"center", gap:24 }}>
@@ -53,16 +53,16 @@ export function MktNav({ t, themeKey, toggle }: { t: T; themeKey: TK; toggle: ()
         </div>
 
         <div style={{ display:"flex", gap:10, alignItems:"center", justifyContent:"flex-end" }}>
-          <button onClick={toggle} aria-label="Toggle theme" style={{ width:32, height:32, border:`1px solid ${t.border2}`, borderRadius:7, background:t.surface2, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", transition:"all 0.2s" }}>
+          <button onClick={toggle} aria-label="Toggle theme" style={{ width:32, height:32, border:`1px solid ${t.border2}`, borderRadius:7, background:t.surface2, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", transition: "background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease" }}>
             {themeKey==="dark" ? <Sun size={13} color={t.text2}/> : <Moon size={13} color={t.text2}/>}
           </button>
-          <Link href="/sign-up" className="mktnav-desktop-cta" style={{ background:t.green, color:t.onGreen, borderRadius:8, padding:"8px 18px", fontSize:13, fontWeight:700, fontFamily:"var(--font-display)", alignItems:"center", gap:6, transition:"background 0.2s" }}
+          <Link href="/sign-up" className="mktnav-desktop-cta" style={{ background:t.green, color:t.onGreen, borderRadius:8, padding:"8px 18px", fontSize:13, fontWeight: 500, fontFamily:"var(--font-display)", alignItems:"center", gap:6, transition:"background 0.2s" }}
             onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background=t.green2}
             onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background=t.green}>
             Get Started <ArrowRight size={12}/>
           </Link>
           <div className="mktnav-mobile-cta" style={{ alignItems:"center", gap:8 }}>
-            <Link href="/sign-up" style={{ background:t.green, color:t.onGreen, borderRadius:6, padding:"5px 10px", fontSize:11, fontWeight:700, fontFamily:"var(--font-display)", display:"flex", alignItems:"center", gap:4 }}>
+            <Link href="/sign-up" style={{ background:t.green, color:t.onGreen, borderRadius:6, padding:"5px 10px", fontSize:11, fontWeight: 500, fontFamily:"var(--font-display)", display:"flex", alignItems:"center", gap:4 }}>
               Get Started <ArrowRight size={10}/>
             </Link>
           </div>

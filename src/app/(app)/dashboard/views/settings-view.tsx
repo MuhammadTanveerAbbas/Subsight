@@ -128,7 +128,7 @@ export function SettingsView({
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 18, maxWidth: 680, margin: "0 auto", width: "100%" }}>
       <div>
-        <h2 style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 800, color: t.text, letterSpacing: -0.5, textAlign: "center" }}>
+        <h2 style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 500, color: t.text, letterSpacing: 0, textAlign: "center" }}>
           Settings
         </h2>
         <p style={{ fontSize: 11.5, color: t.text3, fontFamily: "var(--font-mono)", marginTop: 3, lineHeight: 1.5, textAlign: "center" }}>
@@ -139,8 +139,8 @@ export function SettingsView({
       {/* Currency */}
       <div style={{ background: t.surface, border: `1px solid ${t.border}`, borderRadius: 12, padding: 22 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-          <Globe size={14} color={t.green} aria-hidden="true" />
-          <span style={{ fontSize: 14, fontWeight: 700, color: t.text, fontFamily: "var(--font-display)" }}>
+          <Globe size={14} color={t.greenInk} aria-hidden="true" />
+          <span style={{ fontSize: 14, fontWeight: 500, color: t.text, fontFamily: "var(--font-display)" }}>
             Display Currency
           </span>
         </div>
@@ -162,8 +162,8 @@ export function SettingsView({
       {/* Custom categories */}
       <div style={{ background: t.surface, border: `1px solid ${t.border}`, borderRadius: 12, padding: 22 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-          <Tag size={14} color={t.green} aria-hidden="true" />
-          <span style={{ fontSize: 14, fontWeight: 700, color: t.text, fontFamily: "var(--font-display)" }}>
+          <Tag size={14} color={t.greenInk} aria-hidden="true" />
+          <span style={{ fontSize: 14, fontWeight: 500, color: t.text, fontFamily: "var(--font-display)" }}>
             Custom Categories
           </span>
         </div>
@@ -184,7 +184,7 @@ export function SettingsView({
             aria-label="Add category"
             style={{
               background: t.green, color: "#000", border: "none", borderRadius: 8,
-              padding: "10px 16px", fontSize: 13, fontWeight: 700,
+              padding: "10px 16px", fontSize: 13, fontWeight: 500,
               cursor: "pointer", fontFamily: "var(--font-display)",
               display: "flex", alignItems: "center", gap: 6,
             }}
@@ -219,8 +219,8 @@ export function SettingsView({
       {/* Notifications */}
       <div style={{ background: t.surface, border: `1px solid ${t.border}`, borderRadius: 12, padding: 22 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-          <Bell size={14} color={t.green} aria-hidden="true" />
-          <span style={{ fontSize: 14, fontWeight: 700, color: t.text, fontFamily: "var(--font-display)" }}>
+          <Bell size={14} color={t.greenInk} aria-hidden="true" />
+          <span style={{ fontSize: 14, fontWeight: 500, color: t.text, fontFamily: "var(--font-display)" }}>
             Notifications
           </span>
         </div>
@@ -241,7 +241,7 @@ export function SettingsView({
             }}
           >
             <div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: t.text, fontFamily: "var(--font-display)" }}>
+              <div style={{ fontSize: 13, fontWeight: 500, color: t.text, fontFamily: "var(--font-display)" }}>
                 {item.label}
               </div>
               <div style={{ fontSize: 11, color: t.text3, fontFamily: "var(--font-mono)", marginTop: 2, lineHeight: 1.4 }}>
@@ -263,8 +263,8 @@ export function SettingsView({
       {/* Vault settings */}
       <div style={{ background: t.surface, border: `1px solid ${t.border}`, borderRadius: 12, padding: 22 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-          <Wallet size={14} color={t.green} aria-hidden="true" />
-          <span style={{ fontSize: 14, fontWeight: 700, color: t.text, fontFamily: "var(--font-display)" }}>
+          <Wallet size={14} color={t.greenInk} aria-hidden="true" />
+          <span style={{ fontSize: 14, fontWeight: 500, color: t.text, fontFamily: "var(--font-display)" }}>
             Vault &amp; Personal Expenses
           </span>
         </div>
@@ -275,9 +275,9 @@ export function SettingsView({
           onClick={() => onNav?.("vault", "settings")}
           style={{
             background: t.surface2, color: t.text, border: `1px solid ${t.border2}`, borderRadius: 8,
-            padding: "10px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer",
+            padding: "10px 16px", fontSize: 13, fontWeight: 500, cursor: "pointer",
             fontFamily: "var(--font-display)", display: "flex", alignItems: "center", gap: 8,
-            transition: "all 0.2s",
+            transition: "background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease",
           }}
           onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = t.green; (e.currentTarget as HTMLElement).style.color = t.green; }}
           onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = t.border2; (e.currentTarget as HTMLElement).style.color = t.text; }}
@@ -289,8 +289,8 @@ export function SettingsView({
       {/* SMTP Connection Test */}
       <div style={{ background: t.surface, border: `1px solid ${t.border}`, borderRadius: 12, padding: 22 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-          <Mail size={14} color={t.green} aria-hidden="true" />
-          <span style={{ fontSize: 14, fontWeight: 700, color: t.text, fontFamily: "var(--font-display)" }}>
+          <Mail size={14} color={t.greenInk} aria-hidden="true" />
+          <span style={{ fontSize: 14, fontWeight: 500, color: t.text, fontFamily: "var(--font-display)" }}>
             Email (SMTP)
           </span>
         </div>
@@ -302,10 +302,10 @@ export function SettingsView({
           disabled={smtpTesting}
           style={{
             background: t.surface2, color: t.text, border: `1px solid ${t.border2}`, borderRadius: 8,
-            padding: "10px 18px", fontSize: 13, fontWeight: 600, fontFamily: "var(--font-display)",
+            padding: "10px 18px", fontSize: 13, fontWeight: 500, fontFamily: "var(--font-display)",
             cursor: smtpTesting ? "not-allowed" : "pointer",
             display: "flex", alignItems: "center", gap: 7, opacity: smtpTesting ? 0.7 : 1,
-            transition: "all 0.2s",
+            transition: "background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease",
           }}
           onMouseEnter={(e) => { if (!smtpTesting) { (e.currentTarget as HTMLElement).style.borderColor = t.green; (e.currentTarget as HTMLElement).style.color = t.green; } }}
           onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = t.border2; (e.currentTarget as HTMLElement).style.color = t.text; }}
@@ -323,7 +323,7 @@ export function SettingsView({
             borderRadius: 8, padding: "10px 14px",
           }}>
             {smtpStatus.ok
-              ? <CheckCircle2 size={14} color={t.green} style={{ flexShrink: 0, marginTop: 1 }} />
+              ? <CheckCircle2 size={14} color={t.greenInk} style={{ flexShrink: 0, marginTop: 1 }} />
               : <XCircle size={14} color={t.red} style={{ flexShrink: 0, marginTop: 1 }} />
             }
             <span style={{ fontSize: 12, color: smtpStatus.ok ? t.green : t.red, fontFamily: "var(--font-mono)", lineHeight: 1.5 }}>
@@ -339,11 +339,11 @@ export function SettingsView({
         disabled={saving}
         style={{
           background: t.green, color: "#000", border: "none", borderRadius: 9, padding: 13,
-          fontSize: 14, fontWeight: 700, fontFamily: "var(--font-display)",
+          fontSize: 14, fontWeight: 500, fontFamily: "var(--font-display)",
           cursor: saving ? "not-allowed" : "pointer",
           display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
           opacity: saving ? 0.75 : 1, transition: "background 0.2s",
-          boxShadow: `0 2px 10px ${t.green}44`,
+          boxShadow: "none",
         }}
         onMouseEnter={(e) => { if (!saving) (e.currentTarget as HTMLElement).style.background = t.green2; }}
         onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = t.green; }}

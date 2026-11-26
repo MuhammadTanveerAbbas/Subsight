@@ -24,10 +24,11 @@ function buildMockSupabase(options: {
   profileTier?: string
   subscriptionCount?: number
   insertError?: { message: string } | null
-  existingSubscription?: { start_date: string; billing_cycle: string } | null
+  existingSubscription?: { start_date: string; billing_cycle: string; amount?: number; currency?: string } | null
   deleteCount?: number
 }) {
   const insert = vi.fn().mockResolvedValue({ error: options.insertError ?? null })
+  const priceHistoryInsert = vi.fn().mockResolvedValue({ error: null })
   const update = vi.fn().mockReturnValue({
     eq: vi.fn().mockReturnValue({
       eq: vi.fn().mockResolvedValue({ error: null }),
@@ -53,7 +54,7 @@ function buildMockSupabase(options: {
         eq: vi.fn().mockReturnValue({
           eq: vi.fn().mockReturnValue({
             single: vi.fn().mockResolvedValue({
-              data: options.existingSubscription ?? { start_date: '2026-01-01', billing_cycle: 'monthly' },
+              data: options.existingSubscription ?? { start_date: '2026-01-01', billing_cycle: 'monthly', amount: 15.99, currency: 'USD' },
               error: options.existingSubscription === null ? { code: 'PGRST116' } : null,
             }),
           }),
@@ -84,9 +85,12 @@ function buildMockSupabase(options: {
     }),
   }
 
+  const priceHistoryFrom = { insert: priceHistoryInsert }
+
   const from = vi.fn((table: string) => {
     if (table === 'profiles') return profilesFrom
     if (table === 'subscriptions') return subscriptionsFrom
+    if (table === 'price_history') return priceHistoryFrom
     throw new Error(`Unexpected table: ${table}`)
   })
 
@@ -96,6 +100,7 @@ function buildMockSupabase(options: {
     },
     from,
     insert,
+    priceHistoryInsert,
     update,
     deleteFn,
   }
@@ -264,5 +269,74 @@ describe('Subscriptions API', () => {
     expect(response.status).toBe(200)
     expect(body.success).toBe(true)
     expect(supabase.deleteFn).toHaveBeenCalled()
+  })
+
+  it('records the old amount in price history when amount changes', async () => {
+    const supabase = buildMockSupabase({ user: verifiedUser() })
+    mockCreateClient.mockResolvedValue(supabase)
+
+    const { PATCH } = await import('../subscriptions/route')
+    const req = new Request('https://example.com/api/subscriptions', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: '00000000-0000-4000-8000-000000000001',
+        amount: 17.99,
+      }),
+    })
+    const response = await PATCH(req as any)
+
+    expect(response.status).toBe(200)
+    expect(supabase.priceHistoryInsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        user_id: 'user-1',
+        subscription_id: '00000000-0000-4000-8000-000000000001',
+        amount: 15.99,
+      }),
+    )
+  })
+
+  it('does not record price history when amount is unchanged', async () => {
+    const supabase = buildMockSupabase({ user: verifiedUser() })
+    mockCreateClient.mockResolvedValue(supabase)
+
+    const { PATCH } = await import('../subscriptions/route')
+    const req = new Request('https://example.com/api/subscriptions', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: '00000000-0000-4000-8000-000000000001',
+        name: 'Netflix',
+      }),
+    })
+    const response = await PATCH(req as any)
+
+    expect(response.status).toBe(200)
+    expect(supabase.priceHistoryInsert).not.toHaveBeenCalled()
+  })
+
+  it('accepts cancel-by date and cancellation state on PATCH', async () => {
+    const supabase = buildMockSupabase({ user: verifiedUser() })
+    mockCreateClient.mockResolvedValue(supabase)
+
+    const { PATCH } = await import('../subscriptions/route')
+    const req = new Request('https://example.com/api/subscriptions', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: '00000000-0000-4000-8000-000000000001',
+        cancelByDate: '2026-12-10',
+        cancelState: 'planned',
+      }),
+    })
+    const response = await PATCH(req as any)
+
+    expect(response.status).toBe(200)
+    expect(supabase.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cancel_by_date: '2026-12-10',
+        cancel_state: 'planned',
+      }),
+    )
   })
 })

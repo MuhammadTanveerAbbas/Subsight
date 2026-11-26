@@ -6,7 +6,7 @@ import { type T } from "@/app/(app)/dashboard/dashboard-constants";
 
 const STATUS_CFG = (t: T): Record<SubStatus, { color: string; bg: string; border: string; label: string; Icon: React.ElementType }> => ({
   active: {
-    color:  t.green,
+    color: t.greenInk,
     bg:     t.greenDim,
     border: `${t.green}33`,
     label:  "Active",
@@ -43,8 +43,8 @@ export function Badge({ status, t }: { status: SubStatus; t: T }) {
         display:     "inline-flex",
         alignItems:  "center",
         gap:         5,
-        fontSize:    10,
-        fontWeight:  600,
+        fontSize: 12,
+        fontWeight: 500,
         color:       c.color,
         background:  c.bg,
         border:      `1px solid ${c.border}`,
@@ -52,7 +52,7 @@ export function Badge({ status, t }: { status: SubStatus; t: T }) {
         padding:     "3px 8px",
         fontFamily:  "var(--font-mono)",
         whiteSpace:  "nowrap",
-        letterSpacing: "0.02em",
+        letterSpacing: 0,
       }}
     >
       <c.Icon size={10} strokeWidth={2.2} aria-hidden="true" />

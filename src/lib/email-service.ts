@@ -329,3 +329,45 @@ export async function sendRenewalReminder({
     throw error
   }
 }
+
+/** Plain cancellation deadline reminder. Uses the same SMTP configuration as renewal mail. */
+export async function sendCancellationReminder({
+  to,
+  subscriptionName,
+  cancelByDate,
+  daysUntilDeadline,
+}: {
+  to: string
+  subscriptionName: string
+  cancelByDate: string
+  daysUntilDeadline: number
+}) {
+  if (!isValidEmail(to)) {
+    throw new Error(`Invalid email address: ${to}`)
+  }
+
+  const safeName = escapeHtml(subscriptionName)
+  const safeDate = escapeHtml(cancelByDate)
+  const subject = `Cancel ${safeName} by ${safeDate}`
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #111; background: #fff; padding: 24px;">
+      <p style="font-size: 16px; margin: 0 0 12px;">Cancel ${safeName}</p>
+      <p style="font-size: 14px; margin: 0 0 12px;">Last day to cancel: ${safeDate}</p>
+      <p style="font-size: 14px; margin: 0;">That is ${daysUntilDeadline} day${daysUntilDeadline === 1 ? '' : 's'} from now.</p>
+      <p style="font-size: 12px; color: #666; margin-top: 24px;">Subsight</p>
+    </body>
+    </html>
+  `
+
+  try {
+    const cfg = getSmtpConfig()
+    const transporter = buildTransporter(cfg)
+    await transporter.sendMail({ from: `"Subsight" <${cfg.from}>`, to, subject, html })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown SMTP error'
+    console.error(`[Email] Failed to send cancellation reminder to ${to}: ${diagnoseSmtpError(message)}`)
+    throw error
+  }
+}

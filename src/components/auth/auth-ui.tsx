@@ -46,13 +46,13 @@ function AuthThemeToggle() {
         color: "var(--text2)",
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = "var(--green-border)";
+        e.currentTarget.style.borderColor = "var(--border2)";
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.borderColor = "var(--border2)";
       }}
     >
-      {theme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
+      {theme === "dark" ? <Sun size={16} strokeWidth={1.5} /> : <Moon size={16} strokeWidth={1.5} />}
     </button>
   );
 }
@@ -61,21 +61,11 @@ function AuthThemeToggle() {
 export function AuthShell({ children }: { children: ReactNode }) {
   return (
     <div
-      className="relative flex min-h-screen w-full items-center justify-center px-4 py-10 sm:px-6"
+      className="relative flex min-h-screen w-full items-center justify-center px-4 py-6 sm:px-6"
       style={{ background: "var(--bg)", color: "var(--text)" }}
     >
       <AuthThemeToggle />
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-        <svg className="h-full w-full">
-          <defs>
-            <pattern id="auth-dot-grid" x="0" y="0" width="28" height="28" patternUnits="userSpaceOnUse">
-              <circle cx="1" cy="1" r="1" fill="var(--grid)" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#auth-dot-grid)" />
-        </svg>
-      </div>
-      <div className="relative z-10 w-full min-w-0 max-w-[420px] animate-[fadeUp_0.5s_ease_both]">
+      <div className="relative z-10 w-full min-w-0 max-w-[380px]">
         {children}
       </div>
     </div>
@@ -86,21 +76,21 @@ export function AuthShell({ children }: { children: ReactNode }) {
 export function AuthCard({ children }: { children: ReactNode }) {
   return (
     <div
-      className="rounded-2xl p-5 sm:p-8"
+      className="rounded-xl p-4 sm:p-6"
       style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
     >
       <div
-        className="mb-6 flex flex-col items-center gap-2 border-b pb-6"
+        className="mb-4 flex flex-col items-center gap-1.5 border-b pb-4"
         style={{ borderColor: "var(--border)" }}
       >
         <Link href="/" className="flex items-center gap-2" style={{ textDecoration: "none" }}>
-          <Image src="/icon.svg" alt="" width={28} height={28} className="block rounded-lg" loading="eager" />
-          <span className="text-[19px] font-bold tracking-tight" style={{ ...authDisplay, color: "var(--text)" }}>
+          <Image src="/Subsight.png" alt="" width={26} height={26} className="brand-mark block rounded-lg" loading="eager" />
+          <span className="text-[16px] font-medium" style={{ ...authDisplay, color: "var(--text)" }}>
             Subsight
           </span>
         </Link>
-        <p className="text-center text-[11px] leading-snug" style={{ ...authMono, color: "var(--text3)" }}>
-          Subscription tracker with AI-powered insights
+        <p className="text-center text-[11px] leading-snug" style={{ ...authDisplay, color: "var(--text3)" }}>
+          Subscription tracker with AI spending insights
         </p>
       </div>
       {children}
@@ -111,11 +101,11 @@ export function AuthCard({ children }: { children: ReactNode }) {
 /** Left aligned title and helper line used above every form. */
 export function FormHeading({ title, subtitle }: { title: string; subtitle: string }) {
   return (
-    <div className="mb-6">
-      <h1 className="text-[24px] font-bold leading-tight tracking-tight" style={{ ...authDisplay, color: "var(--text)" }}>
+    <div className="mb-4">
+      <h1 className="text-[20px] font-medium leading-tight" style={{ ...authDisplay, color: "var(--text)" }}>
         {title}
       </h1>
-      <p className="mt-1.5 text-[13px] leading-relaxed" style={{ ...authMono, color: "var(--text3)" }}>
+      <p className="mt-1.5 text-[12px] leading-relaxed" style={{ ...authDisplay, color: "var(--text3)" }}>
         {subtitle}
       </p>
     </div>
@@ -153,13 +143,14 @@ export function AuthField({
 
   return (
     <div>
-      <label htmlFor={id} className="mb-1.5 block text-[12px]" style={{ ...authMono, color: "var(--text2)" }}>
+      <label htmlFor={id} className="mb-1.5 block text-[11px]" style={{ ...authDisplay, color: "var(--text2)" }}>
         {label}
       </label>
       <div className="relative">
         <Icon
-          size={15}
-          className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2"
+          size={16}
+          strokeWidth={1.5}
+          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2"
           style={{ color: error ? "var(--red)" : "var(--text3)" }}
           aria-hidden="true"
         />
@@ -173,11 +164,11 @@ export function AuthField({
           inputMode={inputMode}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? errorId : undefined}
-          className="block w-full rounded-lg py-3 text-base outline-none transition-[border-color,box-shadow] duration-200 sm:text-[14px]"
+          className="block w-full rounded-lg py-2.5 text-[14px] outline-none transition-[border-color,box-shadow] duration-200"
           style={{
             ...authMono,
-            paddingLeft: 40,
-            paddingRight: isPassword ? 42 : 14,
+            paddingLeft: 36,
+            paddingRight: isPassword ? 40 : 12,
             background: "var(--surface2)",
             color: "var(--text)",
             border: `1px solid ${error ? "var(--red)" : "var(--border)"}`,
@@ -186,7 +177,7 @@ export function AuthField({
             const input = e.currentTarget;
             if (error) {
               input.style.borderColor = "var(--red)";
-              input.style.boxShadow = "0 0 0 3px var(--red-dim)";
+              input.style.boxShadow = "0 0 0 2px var(--red)";
             }
           }}
           onBlur={(e) => {
@@ -203,13 +194,13 @@ export function AuthField({
             className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md"
             style={{ color: "var(--text3)" }}
           >
-            {show ? <EyeOff size={15} /> : <Eye size={15} />}
+            {show ? <EyeOff size={16} strokeWidth={1.5} /> : <Eye size={16} strokeWidth={1.5} />}
           </button>
         )}
       </div>
       {error && (
-        <p id={errorId} className="mt-1.5 flex items-center gap-1 text-[12px]" style={{ ...authMono, color: "var(--red)" }}>
-          <AlertCircle size={11} className="shrink-0" /> {error}
+        <p id={errorId} className="mt-1 flex items-center gap-1 text-[11px]" style={{ ...authMono, color: "var(--red)" }}>
+          <AlertCircle size={16} strokeWidth={1.5} className="shrink-0" /> {error}
         </p>
       )}
     </div>
@@ -236,11 +227,11 @@ export function PrimaryButton({
       type={type}
       onClick={onClick}
       disabled={inactive}
-      className="flex w-full items-center justify-center gap-2 rounded-lg border-none py-3.5 text-[14px] font-bold transition-colors duration-200"
+      className="flex w-full items-center justify-center gap-2 rounded-lg border-none py-2.5 text-[13px] font-medium transition-colors duration-200"
       style={{
         ...authDisplay,
         background: "var(--green)",
-        color: "#0a0a0a",
+        color: "#000",
         cursor: inactive ? "not-allowed" : "pointer",
         opacity: inactive ? 0.7 : 1,
       }}
@@ -251,7 +242,7 @@ export function PrimaryButton({
         e.currentTarget.style.background = "var(--green)";
       }}
     >
-      {loading ? <RefreshCw size={15} className="animate-spin" /> : null}
+      {loading ? <RefreshCw size={16} strokeWidth={1.5} className="animate-spin" /> : null}
       {children}
     </button>
   );
@@ -271,7 +262,7 @@ export function SubmitButton({
   return (
     <PrimaryButton onClick={onClick} loading={loading} disabled={disabled}>
       {loading ? "Loading…" : label}
-      {!loading && <ArrowRight size={15} />}
+      {!loading && <ArrowRight size={16} strokeWidth={1.5} />}
     </PrimaryButton>
   );
 }
@@ -292,7 +283,7 @@ export function GoogleButton({ onClick }: { onClick: () => void }) {
     <button
       type="button"
       onClick={onClick}
-      className="flex w-full items-center justify-center gap-2.5 rounded-lg border p-3 text-[13px] font-semibold transition-colors duration-200"
+      className="flex w-full items-center justify-center gap-2 rounded-lg border p-2.5 text-[12px] font-medium transition-colors duration-200"
       style={{
         ...authDisplay,
         background: "var(--surface2)",
@@ -301,7 +292,7 @@ export function GoogleButton({ onClick }: { onClick: () => void }) {
         cursor: "pointer",
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = "var(--green-border)";
+        e.currentTarget.style.borderColor = "var(--border2)";
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.borderColor = "var(--border2)";
@@ -326,7 +317,7 @@ export function ErrorBanner({ msg }: { msg: string }) {
   return (
     <div
       role="alert"
-      className="mb-5 flex items-start gap-2 rounded-lg p-2.5 text-[12px]"
+      className="mb-4 flex items-start gap-2 rounded-lg p-2 text-[11px]"
       style={{
         ...authMono,
         background: "var(--red-dim)",
@@ -334,7 +325,7 @@ export function ErrorBanner({ msg }: { msg: string }) {
         color: "var(--red)",
       }}
     >
-      <AlertCircle size={13} className="mt-0.5 shrink-0" /> <span>{msg}</span>
+      <AlertCircle size={16} strokeWidth={1.5} className="mt-0.5 shrink-0" /> <span>{msg}</span>
     </div>
   );
 }
@@ -343,7 +334,7 @@ export function ErrorBanner({ msg }: { msg: string }) {
 export function AuthFooter({ children }: { children: ReactNode }) {
   return (
     <div
-      className="mt-6 flex flex-col items-center gap-2 border-t pt-5"
+      className="mt-4 flex flex-col items-center gap-1.5 border-t pt-4"
       style={{ borderColor: "var(--border)" }}
     >
       {children}
@@ -366,24 +357,18 @@ export function StatusView({
   children?: ReactNode;
 }) {
   const accent = tone === "error" ? "var(--red)" : "var(--green)";
-  const dim = tone === "error" ? "var(--red-dim)" : "var(--green-dim)";
-  const outline =
-    tone === "error"
-      ? "color-mix(in srgb, var(--red) 22%, transparent)"
-      : "var(--green-border)";
 
   return (
     <div className="text-center">
       <div
-        className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-xl"
-        style={{ background: dim, border: `1px solid ${outline}` }}
-      >
-        <Icon size={22} style={{ color: accent }} />
+        className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-xl"
+        style={{ background: tone === "error" ? "var(--red-dim)" : "var(--green-dim)", border: `1px solid ${tone === "error" ? "var(--red)" : "var(--green)"}` }}>
+        <Icon size={22} strokeWidth={1.5} style={{ color: accent }} />
       </div>
-      <h1 className="text-[22px] font-bold leading-tight" style={{ ...authDisplay, color: "var(--text)" }}>
+      <h1 className="text-[20px] font-medium leading-tight" style={{ ...authDisplay, color: "var(--text)" }}>
         {title}
       </h1>
-      <div className="mt-3 text-[13px] leading-relaxed" style={{ ...authMono, color: "var(--text2)" }}>
+      <div className="mt-2 text-[13px] leading-relaxed" style={{ ...authDisplay, color: "var(--text2)" }}>
         {description}
       </div>
       {children}
@@ -396,7 +381,7 @@ export function PrimaryLink({ href, children }: { href: string; children: ReactN
   return (
     <Link
       href={href}
-      className="mt-6 inline-flex items-center justify-center gap-1.5 rounded-lg px-6 py-3 text-[13px] font-bold"
+      className="mt-4 inline-flex items-center justify-center gap-1.5 rounded-lg px-5 py-2.5 text-[12px] font-medium"
       style={{ ...authDisplay, background: "var(--green)", color: "#0a0a0a" }}
     >
       {children}
@@ -407,7 +392,7 @@ export function PrimaryLink({ href, children }: { href: string; children: ReactN
 /** Legal line shared by every auth footer. */
 export function AuthLegal({ prefix }: { prefix?: ReactNode }) {
   return (
-    <p className="text-center text-[11px] leading-relaxed" style={{ ...authMono, color: "var(--text3)" }}>
+    <p className="text-center text-[11px] leading-relaxed" style={{ ...authDisplay, color: "var(--text3)" }}>
       {prefix && <span className="block">{prefix}</span>}
       <span className="block">
         <Link href="/privacy" className="underline underline-offset-2">Privacy</Link>

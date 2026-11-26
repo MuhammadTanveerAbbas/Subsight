@@ -17,8 +17,8 @@ export function MktFooter({ t }: { t: T }) {
       `}</style>
       <div className="mktfooter-inner">
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-          <Image src="/icon.svg" alt="Subsight" width={22} height={22} style={{ borderRadius:5, display:"block" }} />
-          <span style={{ fontFamily:"var(--font-display)", fontSize:14, fontWeight:800, color:t.text }}>Subsight</span>
+          <Image src="/Subsight.png" className="brand-mark" alt="Subsight" width={22} height={22} style={{ borderRadius:5, display:"block" }} />
+          <span style={{ fontFamily:"var(--font-display)", fontSize:14, fontWeight: 500, color:t.text }}>Subsight</span>
         </div>
         <div className="mktfooter-links">
           {([["Home","/"],["Pricing","/pricing"],["Privacy","/privacy"],["Terms","/terms"],["GitHub","https://github.com/MuhammadTanveerAbbas/Subsight-Tracker"]] as [string,string][]).map(([l,h]) => (

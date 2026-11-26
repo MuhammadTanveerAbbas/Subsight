@@ -39,11 +39,10 @@ export function KPI({
       >
         <span
           style={{
-            fontSize: 10.5,
+            fontSize: 12,
             color: t.text3,
             fontFamily: "var(--font-mono)",
-            letterSpacing: "0.1em",
-            textTransform: "uppercase",
+            letterSpacing: 0,
           }}
         >
           {label}
@@ -60,7 +59,7 @@ export function KPI({
             justifyContent: "center",
           }}
         >
-          <Icon size={14} color={t.green} strokeWidth={1.5} />
+          <Icon size={14} color={t.greenInk} strokeWidth={1.5} />
         </div>
       </div>
       <div>
@@ -68,10 +67,10 @@ export function KPI({
           style={{
             fontFamily: "var(--font-display)",
             fontSize: 28,
-            fontWeight: 800,
+            fontWeight: 500,
             color: t.text,
             lineHeight: 1,
-            letterSpacing: -1,
+            letterSpacing: 0,
           }}
         >
           {value}
@@ -85,7 +84,7 @@ export function KPI({
               marginTop: 6,
             }}
           >
-            {trend === "up" && <TrendingUp size={11} color={t.green} />}
+            {trend === "up" && <TrendingUp size={11} color={t.greenInk} />}
             {trend === "down" && <TrendingDown size={11} color={t.red} />}
             <span
               style={{

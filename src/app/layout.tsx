@@ -5,7 +5,9 @@ import { LoadingProvider } from "@/contexts/loading-context";
 import { AuthProvider } from "@/contexts/auth-context";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ErrorBoundary } from "@/components/error-boundary";
+import { SmoothScroll } from "@/components/smooth-scroll";
 import { cn } from "@/lib/utils";
+import "lenis/dist/lenis.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -15,7 +17,7 @@ export const metadata: Metadata = {
     template: "%s | Subsight",
   },
   description:
-    "Track and manage your subscriptions with AI-powered insights. Privacy-first and secure. Free tier available.",
+    "Track and manage your subscriptions with AI spending insights. Privacy-first and secure. Free tier available.",
   keywords: [
     "subscription tracker",
     "manage subscriptions",
@@ -33,14 +35,14 @@ export const metadata: Metadata = {
     url: "https://subsight-tracker.vercel.app",
     title: "Subsight - Privacy-First Subscription Tracker",
     description:
-      "Track subscriptions with AI-powered insights. Privacy-first and secure.",
+      "Track subscriptions with AI spending insights. Privacy-first and secure.",
     siteName: "Subsight",
     images: [
       {
-        url: "/Subsight-Tracker.png",
+        url: "/opengraph-image",
         width: 1600,
-        height: 746,
-        alt: "Subsight - Subscription Tracker",
+        height: 900,
+        alt: "Subsight Tracker",
       },
     ],
   },
@@ -48,9 +50,9 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Subsight - Privacy-First Subscription Tracker",
     description:
-      "Track subscriptions with AI-powered insights. Privacy-first and secure.",
+      "Track subscriptions with AI spending insights. Privacy-first and secure.",
     creator: "@m_tanveerabbas",
-    images: ["/Subsight-Tracker.png"],
+    images: ["/opengraph-image"],
   },
   robots: {
     index: true,
@@ -65,11 +67,11 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/Subsight.png", type: "image/png", sizes: "any" },
       { url: "/favicon.ico", sizes: "any" },
     ],
-    shortcut: "/icon.svg",
-    apple: "/icon.svg",
+    shortcut: "/Subsight.png",
+    apple: "/Subsight.png",
   },
 };
 
@@ -94,7 +96,6 @@ export default function RootLayout({
     <html
       lang="en"
       className={cn(inter.variable, jetbrainsMono.variable)}
-      data-scroll-behavior="smooth"
     >
       <head>
         <link rel="manifest" href="/manifest.json" />
@@ -104,7 +105,7 @@ export default function RootLayout({
         <ErrorBoundary>
           <AuthProvider>
             <LoadingProvider>
-              <ThemeProvider>{children}</ThemeProvider>
+              <ThemeProvider><SmoothScroll>{children}</SmoothScroll></ThemeProvider>
             </LoadingProvider>
           </AuthProvider>
         </ErrorBoundary>

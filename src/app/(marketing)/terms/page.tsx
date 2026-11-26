@@ -8,24 +8,7 @@ import { ArrowRight, Sun, Moon } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
-const DARK = {
-  bg:"#080808", surface:"#111111", surface2:"#181818", surface3:"#1e1e1e",
-  border:"#1f1f1f", border2:"#2a2a2a",
-  text:"#f0f0f0", text2:"#a0a0a0", text3:"#585858",
-  green:"#22c55e", green2:"#16a34a",
-  greenDim:"rgba(34,197,94,0.08)", greenBorder:"rgba(34,197,94,0.22)", greenGlow:"rgba(34,197,94,0.14)",
-  red:"#ef4444", amber:"#f59e0b",
-  navBg:"rgba(8,8,8,0.92)", shadow:"rgba(0,0,0,0.70)",
-} as const;
-const LIGHT = {
-  bg:"#f8f8f6", surface:"#ffffff", surface2:"#f2f2ef", surface3:"#eaeae6",
-  border:"#e4e4e0", border2:"#d0d0ca",
-  text:"#111111", text2:"#545450", text3:"#888880",
-  green:"#16a34a", green2:"#15803d",
-  greenDim:"rgba(22,163,74,0.08)", greenBorder:"rgba(22,163,74,0.22)", greenGlow:"rgba(22,163,74,0.10)",
-  red:"#dc2626", amber:"#d97706",
-  navBg:"rgba(248,248,246,0.92)", shadow:"rgba(0,0,0,0.12)",
-} as const;
+import { DARK, LIGHT } from "@/app/(marketing)/marketing-constants";
 type T  = typeof DARK | typeof LIGHT;
 type TK = "dark" | "light";
 
@@ -57,10 +40,10 @@ function PageNav({ t, themeKey, toggle }: { t:T; themeKey:TK; toggle:()=>void })
   }, []);
 
   return (
-    <nav className="nav-wrap" style={{ position:"fixed", top:0, left:0, right:0, zIndex:100, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"0 48px", height:62, background:scrolled?t.navBg:"transparent", borderBottom:scrolled?`1px solid ${t.border}`:"none", backdropFilter:scrolled?"blur(14px)":"none", WebkitBackdropFilter:scrolled?"blur(14px)":"none", transition:"all 0.35s" }}>
+    <nav className="nav-wrap" style={{ position:"fixed", top:0, left:0, right:0, zIndex:100, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"0 48px", height:62, background:scrolled?t.navBg:"transparent", borderBottom:scrolled?`1px solid ${t.border}`:"none", backdropFilter:scrolled?"blur(14px)":"none", WebkitBackdropFilter:scrolled?"blur(14px)":"none", transition: "background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease" }}>
       <Link href="/" style={{ display:"flex", alignItems:"center", gap:9, textDecoration:"none" }}>
-        <Image src="/icon.svg" alt="Subsight" width={28} height={28} style={{ borderRadius:7, flexShrink:0, display:"block" }} />
-        <span style={{ fontFamily:"var(--font-display)", fontSize:17, fontWeight:800, color:t.text, letterSpacing:-0.5 }}>Subsight</span>
+        <Image src="/Subsight.png" className="brand-mark" alt="Subsight" width={28} height={28} style={{ borderRadius:7, flexShrink:0, display:"block" }} />
+        <span style={{ fontFamily:"var(--font-display)", fontSize:17, fontWeight: 500, color:t.text, letterSpacing: 0 }}>Subsight</span>
       </Link>
 
       <div className="nav-links" style={{ display:"flex", alignItems:"center", gap:24 }}>
@@ -72,10 +55,10 @@ function PageNav({ t, themeKey, toggle }: { t:T; themeKey:TK; toggle:()=>void })
       </div>
 
       <div style={{ display:"flex", gap:10, alignItems:"center" }}>
-        <button onClick={toggle} aria-label="Toggle theme" style={{ width:32, height:32, border:`1px solid ${t.border2}`, borderRadius:7, background:t.surface2, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", transition:"all 0.2s" }}>
+        <button onClick={toggle} aria-label="Toggle theme" style={{ width:32, height:32, border:`1px solid ${t.border2}`, borderRadius:7, background:t.surface2, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", transition: "background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease" }}>
           {themeKey==="dark" ? <Sun size={13} color={t.text2}/> : <Moon size={13} color={t.text2}/>}
         </button>
-        <Link href="/sign-up" style={{ background:t.green, color:"#000", borderRadius:8, padding:"8px 18px", fontSize:13, fontWeight:700, fontFamily:"var(--font-display)", display:"flex", alignItems:"center", gap:6, transition:"background 0.2s" }}
+        <Link href="/sign-up" style={{ background:t.green, color:"#000", borderRadius:8, padding:"8px 18px", fontSize:13, fontWeight: 500, fontFamily:"var(--font-display)", display:"flex", alignItems:"center", gap:6, transition:"background 0.2s" }}
           onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background=t.green2}
           onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background=t.green}>
           Get Started <ArrowRight size={12}/>
@@ -90,8 +73,8 @@ function PageFooter({ t }: { t:T }) {
     <footer style={{ borderTop:`1px solid ${t.border}`, padding:"36px 24px" }}>
       <div className="footer-row" style={{ maxWidth:1080, margin:"0 auto", display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:16 }}>
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-          <Image src="/icon.svg" alt="Subsight" width={24} height={24} style={{ borderRadius:5, display:"block" }} />
-          <span style={{ fontFamily:"var(--font-display)", fontSize:15, fontWeight:800, color:t.text }}>Subsight</span>
+          <Image src="/Subsight.png" className="brand-mark" alt="Subsight" width={24} height={24} style={{ borderRadius:5, display:"block" }} />
+          <span style={{ fontFamily:"var(--font-display)", fontSize:15, fontWeight: 500, color:t.text }}>Subsight</span>
         </div>
         <div style={{ display:"flex", gap:20, flexWrap:"wrap", justifyContent:"center" }}>
           {([["Home","/"],["Pricing","/pricing"],["Privacy","/privacy"],["Terms","/terms"],["GitHub","https://github.com/MuhammadTanveerAbbas/Subsight-Tracker"]] as const).map(([l,h]) => (
@@ -105,12 +88,16 @@ function PageFooter({ t }: { t:T }) {
 }
 
 function Label({ text, t }: { text:string; t:T }) {
-  return <span style={{ fontSize:10, letterSpacing:"0.18em", textTransform:"uppercase", color:t.green, fontFamily:"var(--font-mono)", display:"block", marginBottom:14 }}>// {text}</span>;
+  return <span style={{ fontSize: 12, letterSpacing: 0, color: t.greenInk, fontFamily:"var(--font-mono)", display:"block", marginBottom:14 }}>// {text}</span>;
 }
 
 function TermsPage() {
   const [themeKey, setThemeKey] = useState<TK>("dark");
   useEffect(() => { setThemeKey((localStorage.getItem("subsight-theme") as TK) || "dark"); }, []);
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", themeKey);
+    document.documentElement.classList.toggle("dark", themeKey === "dark");
+  }, [themeKey]);
   const toggle = () => { const n=themeKey==="dark"?"light":"dark" as TK; setThemeKey(n); localStorage.setItem("subsight-theme",n); };
   const t = themeKey === "dark" ? DARK : LIGHT;
 
@@ -121,7 +108,7 @@ function TermsPage() {
     },
     {
       title: "Description of Service",
-      body:  "Subsight is an open-source subscription tracking application that allows users to manually track recurring payments, view spending analytics, and receive AI-powered insights. The service is provided as-is under the MIT License. Self-hosted deployments are entirely the responsibility of the host operator.",
+      body:  "Subsight is an open-source subscription tracking application that allows users to manually track recurring payments, view spending analytics, and receive AI spending insights. The service is provided as-is under the MIT License. Self-hosted deployments are entirely the responsibility of the host operator.",
     },
     {
       title: "User Accounts",
@@ -133,7 +120,7 @@ function TermsPage() {
     },
     {
       title: "AI Features Disclaimer",
-      body:  "AI-powered features (auto-fill, spending insights) are provided for convenience and informational purposes only. Outputs are generated by third-party AI models (Groq / GPT-OSS) and may contain errors. Subsight makes no warranty about the accuracy of AI outputs. Do not use AI-generated financial insights as your sole basis for financial decisions.",
+      body:  "AI features (auto-fill, spending insights) are provided for convenience and informational purposes only. Outputs are generated by third-party AI models (Groq / GPT-OSS) and may contain errors. Subsight makes no warranty about the accuracy of AI outputs. Do not use AI-generated financial insights as your sole basis for financial decisions.",
     },
     {
       title: "Open Source License",
@@ -161,15 +148,15 @@ function TermsPage() {
         <div className="legal-content" style={{ maxWidth:780, margin:"0 auto", padding:"80px 24px 100px" }}>
           <div style={{ marginBottom:48, animation:"fadeUp 0.6s ease both" }}>
             <Label text="Legal" t={t}/>
-            <h1 style={{ fontFamily:"var(--font-display)", fontSize:"clamp(34px,5vw,56px)", fontWeight:800, letterSpacing:-2, color:t.text, marginBottom:14, lineHeight:1.06 }}>Terms of Service</h1>
+            <h1 style={{ fontFamily:"var(--font-display)", fontSize:"clamp(34px,5vw,56px)", fontWeight: 500, letterSpacing: 0, color:t.text, marginBottom:14, lineHeight:1.06 }}>Terms of Service</h1>
             <p style={{ fontSize:13.5, color:t.text2, fontFamily:"var(--font-mono)", lineHeight:1.75 }}>Last updated: March 24, 2026 · These terms govern your use of Subsight. By using the service, you agree to the following.</p>
           </div>
           <div style={{ display:"flex", flexDirection:"column" }}>
             {sections.map((s,i) => (
               <div key={i} className="legal-section" style={{ padding:"30px 0", borderBottom:`1px solid ${t.border}`, display:"flex", gap:22 }}>
-                <span className="legal-num" style={{ fontFamily:"var(--font-mono)", fontSize:11, color:t.green, letterSpacing:"0.1em", marginTop:4, flexShrink:0, minWidth:28 }}>{String(i+1).padStart(2,"0")}</span>
+                <span className="legal-num" style={{ fontFamily:"var(--font-mono)", fontSize:11, color: t.greenInk, letterSpacing: 0, marginTop:4, flexShrink:0, minWidth:28 }}>{String(i+1).padStart(2,"0")}</span>
                 <div>
-                  <h2 style={{ fontFamily:"var(--font-display)", fontSize:19, fontWeight:700, color:t.text, marginBottom:12, letterSpacing:-0.3 }}>{s.title}</h2>
+                  <h2 style={{ fontFamily:"var(--font-display)", fontSize:19, fontWeight: 500, color:t.text, marginBottom:12, letterSpacing: 0 }}>{s.title}</h2>
                   <p style={{ fontSize:14, color:t.text2, fontFamily:"var(--font-mono)", lineHeight:1.82 }}>{s.body}</p>
                 </div>
               </div>

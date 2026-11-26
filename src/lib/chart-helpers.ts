@@ -31,9 +31,10 @@ export function buildCatData(subs: Sub[]) {
     const cat = s.category || "Other";
     catMap[cat] = (catMap[cat] || 0) + s.amount;
   });
+  // One accent leads; the rest are neutral steps of the same ramp.
   const colors = [
-    "#22c55e", "#3b82f6", "#f59e0b", "#ef4444",
-    "#8b5cf6", "#06b6d4", "#ec4899", "#14b8a6",
+    "#22c55e", "#6b7280", "#9ca3af", "#4b5563",
+    "#d1d5db", "#374151", "#e5e7eb", "#1f2937",
   ];
   return Object.entries(catMap)
     .sort((a, b) => b[1] - a[1])

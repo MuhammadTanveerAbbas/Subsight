@@ -13,6 +13,19 @@
 import type { Sub } from "@/app/(app)/dashboard/dashboard-types";
 import type { VaultItem } from "@/lib/types";
 
+export interface ExportFilter {
+  category?: string;
+  fromDate?: string;
+}
+
+function filterSubs(subs: Sub[], filter: ExportFilter = {}): Sub[] {
+  return subs.filter((sub) => {
+    if (filter.category && sub.category !== filter.category) return false;
+    if (filter.fromDate && sub.nextDate && sub.nextDate < filter.fromDate) return false;
+    return true;
+  });
+}
+
 /* ── shared helpers ────────────────────────────────────────────────────── */
 
 /** Create a browser download from text and release the object URL afterwards. */
@@ -61,7 +74,8 @@ function monthlyAmount(s: Sub): number {
  * Download a structured backup. Vault data is included when provided so a
  * single file can restore both trackers.
  */
-export function exportSubscriptionsJSON(subs: Sub[], vault: VaultItem[] = []): void {
+export function exportSubscriptionsJSON(subs: Sub[], vault: VaultItem[] = [], filter: ExportFilter = {}): void {
+  subs = filterSubs(subs, filter);
   const payload = {
     schemaVersion: 1,
     exportedAt: new Date().toISOString(),
@@ -109,8 +123,8 @@ const SUB_HEADERS = [
 ];
 
 /** Download subscriptions as a UTF-8 CSV with quoted values where needed. */
-export function exportSubscriptionsCSV(subs: Sub[]): void {
-  const rows = subs.map((s) => [
+export function exportSubscriptionsCSV(subs: Sub[], filter: ExportFilter = {}): void {
+  const rows = filterSubs(subs, filter).map((s) => [
     s.name, s.category, s.amount, s.currency, s.cycle,
     s.nextDate, s.status, s.autoRenew ? "Yes" : "No", s.provider, s.notes,
   ]);
@@ -144,7 +158,9 @@ export function exportVaultCSV(items: VaultItem[]): void {
 export async function exportSubscriptionsPDF(
   subs: Sub[],
   vault: VaultItem[] = [],
+  filter: ExportFilter = {},
 ): Promise<void> {
+  subs = filterSubs(subs, filter);
   const [{ jsPDF }, { autoTable }] = await Promise.all([
     import("jspdf"),
     import("jspdf-autotable"),
@@ -244,4 +260,84 @@ export async function exportSubscriptionsPDF(
   }
 
   doc.save(`subsight-export-${timestamp()}.pdf`);
+}
+
+/* ── ICS ───────────────────────────────────────────────────────────────── */
+
+function icsEscape(value: string): string {
+  return value
+    .replace(/\\/g, "\\\\")
+    .replace(/,/g, "\\,")
+    .replace(/;/g, "\\;")
+    .replace(/\r?\n/g, "\\n");
+}
+
+function nextDay(date: string): string {
+  const parsed = new Date(`${date}T00:00:00Z`);
+  parsed.setUTCDate(parsed.getUTCDate() + 1);
+  return parsed.toISOString().slice(0, 10).replace(/-/g, "");
+}
+
+/** Build a calendar file of dated renewals. Undated subscriptions are skipped. */
+export function buildICS(subs: Sub[], filter: ExportFilter = {}): string {
+  const stamp = new Date().toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z";
+  const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Subsight//EN"];
+  for (const sub of filterSubs(subs, filter)) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(sub.nextDate)) continue;
+    const start = sub.nextDate.replace(/-/g, "");
+    lines.push(
+      "BEGIN:VEVENT",
+      `UID:${sub.id}@subsight`,
+      `DTSTAMP:${stamp}`,
+      `DTSTART;VALUE=DATE:${start}`,
+      `DTEND;VALUE=DATE:${nextDay(sub.nextDate)}`,
+      `SUMMARY:${icsEscape(sub.name)}`,
+      `DESCRIPTION:${icsEscape(`${sub.amount.toFixed(2)} ${sub.currency} · ${sub.cycle}`)}`,
+      "END:VEVENT",
+    );
+  }
+  lines.push("END:VCALENDAR");
+  return lines.join("\r\n") + "\r\n";
+}
+
+export function exportSubscriptionsICS(subs: Sub[], filter: ExportFilter = {}): void {
+  downloadBlob(
+    buildICS(subs, filter),
+    `subsight-renewals-${timestamp()}.ics`,
+    "text/calendar;charset=utf-8",
+  );
+}
+
+/* ── Wallos import ─────────────────────────────────────────────────────── */
+
+/** Parse a Wallos JSON backup into preview rows. Invalid rows are dropped. */
+export function importWallosJSON(text: string): Sub[] {
+  const parsed = JSON.parse(text) as unknown;
+  const rows = Array.isArray(parsed)
+    ? parsed
+    : ((parsed as { subscriptions?: unknown[] })?.subscriptions ?? []);
+
+  return rows.flatMap((value, index): Sub[] => {
+    const row = value as Record<string, unknown>;
+    const name = String(row.name ?? "").trim();
+    const amount = Number(row.amount ?? row.price ?? 0);
+    if (!name || !Number.isFinite(amount) || amount <= 0) return [];
+    const cycle = String(row.billing_cycle ?? row.billingCycle ?? row.cycle ?? "monthly").toLowerCase();
+    const nextDate = String(
+      row.next_renewal_date ?? row.nextRenewalDate ?? row.nextDate ?? "",
+    ).slice(0, 10);
+    return [{
+      id: `wallos-${index}`,
+      name: name.slice(0, 100),
+      category: String(row.category ?? "Other").slice(0, 50),
+      amount,
+      currency: String(row.currency ?? "USD").slice(0, 10),
+      cycle,
+      nextDate: /^\d{4}-\d{2}-\d{2}$/.test(nextDate) ? nextDate : "",
+      status: "active",
+      autoRenew: true,
+      provider: String(row.provider ?? "").slice(0, 100),
+      notes: String(row.notes ?? "").slice(0, 500),
+    }];
+  });
 }

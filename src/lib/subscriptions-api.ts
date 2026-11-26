@@ -27,6 +27,8 @@ export interface UpdateSubscriptionPayload {
   activeStatus?: boolean
   reminderEnabled?: boolean
   reminderDaysBefore?: 1 | 3 | 7 | 14
+  cancelByDate?: string | null
+  cancelState?: 'none' | 'planned' | 'canceled'
 }
 
 async function parseApiError(res: Response): Promise<string> {

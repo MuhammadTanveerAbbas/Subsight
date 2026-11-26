@@ -70,7 +70,7 @@ export default function SignInPage() {
   return (
     <AuthShell>
       <AuthCard>
-        <FormHeading title="Welcome back" subtitle="Sign in to your Subsight account" />
+        <FormHeading title="Sign in" subtitle="Sign in to your Subsight account" />
         {globalErr && <ErrorBanner msg={globalErr} />}
         <div className="flex flex-col gap-4">
           <AuthField
@@ -98,19 +98,19 @@ export default function SignInPage() {
             <Link
               href="/forgot-password"
               className="text-[12px] underline-offset-2 hover:underline"
-              style={{ ...authMono, color: "var(--green)" }}
+              style={{ ...authMono, color: "var(--green-ink)" }}
             >
               Forgot password?
             </Link>
           </div>
-          <SubmitButton label="Sign In" loading={loading} onClick={handleSubmit} />
+          <SubmitButton label="Sign in" loading={loading} onClick={handleSubmit} />
           <OrDivider />
           <GoogleButton onClick={handleGoogle} />
         </div>
         <AuthFooter>
           <p className="text-center text-[12.5px]" style={{ ...authMono, color: "var(--text3)" }}>
             Don&apos;t have an account?{" "}
-            <Link href="/sign-up" className="font-bold" style={{ color: "var(--green)" }}>
+            <Link href="/sign-up" className="font-medium" style={{ color: "var(--green-ink)" }}>
               Sign up free
             </Link>
           </p>

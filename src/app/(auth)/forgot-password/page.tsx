@@ -60,7 +60,7 @@ export default function ForgotPasswordPage() {
               </>
             }
           >
-            <PrimaryLink href="/sign-in">Back to Sign In <ArrowRight size={12} /></PrimaryLink>
+            <PrimaryLink href="/sign-in">Back to sign in <ArrowRight size={12} /></PrimaryLink>
           </StatusView>
         ) : (
           <>
@@ -92,7 +92,7 @@ export default function ForgotPasswordPage() {
             <AuthFooter>
               <p className="text-center text-[12.5px]" style={{ ...authMono, color: "var(--text3)" }}>
                 Remember your password?{" "}
-                <Link href="/sign-in" className="font-bold" style={{ color: "var(--green)" }}>
+                <Link href="/sign-in" className="font-medium" style={{ color: "var(--green-ink)" }}>
                   Sign in
                 </Link>
               </p>

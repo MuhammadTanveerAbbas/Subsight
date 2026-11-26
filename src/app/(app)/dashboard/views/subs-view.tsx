@@ -36,7 +36,7 @@ function DeleteConfirmModal({
       }}
     >
       <div
-        style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
+        style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.6)", }}
         onClick={onCancel}
       />
       <div
@@ -54,7 +54,7 @@ function DeleteConfirmModal({
             <div style={{ width: 32, height: 32, borderRadius: 8, background: t.redDim, border: `1px solid ${t.red}33`, display: "flex", alignItems: "center", justifyContent: "center" }}>
               <AlertTriangle size={14} color={t.red} />
             </div>
-            <span id="delete-dialog-title" style={{ fontSize: 15, fontWeight: 700, color: t.text, fontFamily: "var(--font-display)" }}>
+            <span id="delete-dialog-title" style={{ fontSize: 15, fontWeight: 500, color: t.text, fontFamily: "var(--font-display)" }}>
               Delete Subscription
             </span>
           </div>
@@ -74,7 +74,7 @@ function DeleteConfirmModal({
             onClick={onCancel}
             style={{
               flex: 1, background: t.surface2, color: t.text, border: `1px solid ${t.border}`,
-              borderRadius: 8, padding: "11px", fontSize: 13, fontWeight: 600,
+              borderRadius: 8, padding: "11px", fontSize: 13, fontWeight: 500,
               fontFamily: "var(--font-display)", cursor: "pointer",
             }}
           >
@@ -85,7 +85,7 @@ function DeleteConfirmModal({
             disabled={loading}
             style={{
               flex: 1, background: t.red, color: "#fff", border: "none",
-              borderRadius: 8, padding: "11px", fontSize: 13, fontWeight: 700,
+              borderRadius: 8, padding: "11px", fontSize: 13, fontWeight: 500,
               fontFamily: "var(--font-display)", cursor: loading ? "not-allowed" : "pointer",
               opacity: loading ? 0.7 : 1, display: "flex", alignItems: "center",
               justifyContent: "center", gap: 7,
@@ -200,7 +200,7 @@ function StatusFilter({ t, value, onChange }: { t: T; value: string; onChange: (
           cursor: "pointer", outline: "none",
           transition: "border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease",
           whiteSpace: "nowrap", minWidth: 136,
-          boxShadow: open ? `0 0 0 3px ${t.greenDim}` : "none",
+          boxShadow: open ? `0 0 0 2px ${t.greenBorder}` : "none",
         }}
       >
         {selected.Icon && (
@@ -378,11 +378,11 @@ export function SubsView({
         {/* Header */}
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
           <div>
-            <h2 style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 800, color: t.text, letterSpacing: -0.5 }}>
+            <h2 style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 500, color: t.text, letterSpacing: 0 }}>
               My Subscriptions
             </h2>
             <p style={{ fontSize: 11.5, color: t.text3, fontFamily: "var(--font-mono)", marginTop: 3, lineHeight: 1.5 }}>
-              {subs.length} tracked · <span style={{ color: t.green }}>
+              {subs.length} tracked · <span style={{ color: t.greenInk }}>
                 ${subs.filter((s) => s.status === "active").reduce((a, s) => a + s.amount, 0).toFixed(2)}/mo
               </span> active
             </p>
@@ -399,7 +399,7 @@ export function SubsView({
                 borderRadius: 8, padding: "8px 12px",
                 cursor: "pointer", fontSize: 12,
                 color: sim ? t.green : t.text2,
-                fontFamily: "var(--font-mono)", transition: "all 0.2s",
+                fontFamily: "var(--font-mono)", transition: "background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease",
               }}
             >
               {sim ? <ToggleRight size={14} /> : <ToggleLeft size={14} />} Simulation
@@ -410,7 +410,7 @@ export function SubsView({
               style={{
                 background: t.green, color: "#000", border: "none",
                 borderRadius: 8, padding: "8px 16px", cursor: "pointer",
-                fontSize: 13, fontWeight: 700, fontFamily: "var(--font-display)",
+                fontSize: 13, fontWeight: 500, fontFamily: "var(--font-display)",
                 display: "flex", alignItems: "center", gap: 6,
               }}
             >
@@ -459,9 +459,9 @@ export function SubsView({
             }}
           >
             <div style={{ width: 52, height: 52, borderRadius: 14, background: t.greenDim, border: `1px solid ${t.greenBorder}`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
-              <CreditCard size={22} color={t.green} strokeWidth={1.5} />
+              <CreditCard size={22} color={t.greenInk} strokeWidth={1.5} />
             </div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: t.text, fontFamily: "var(--font-display)", marginBottom: 8 }}>
+            <div style={{ fontSize: 15, fontWeight: 500, color: t.text, fontFamily: "var(--font-display)", marginBottom: 8 }}>
               No subscriptions yet
             </div>
             <p style={{ fontSize: 13, color: t.text3, fontFamily: "var(--font-mono)", marginBottom: 20, lineHeight: 1.6 }}>
@@ -471,7 +471,7 @@ export function SubsView({
               onClick={onAdd}
               style={{
                 background: t.green, color: "#000", border: "none", borderRadius: 9,
-                padding: "11px 22px", fontSize: 13, fontWeight: 700,
+                padding: "11px 22px", fontSize: 13, fontWeight: 500,
                 fontFamily: "var(--font-display)", cursor: "pointer",
                 display: "inline-flex", alignItems: "center", gap: 7,
               }}
@@ -496,9 +496,9 @@ export function SubsView({
                         scope="col"
                         style={{
                           padding: "10px 14px", textAlign: "left",
-                          fontSize: 9.5, color: t.text3,
-                          letterSpacing: "0.1em", textTransform: "uppercase",
-                          fontFamily: "var(--font-mono)", fontWeight: 600,
+                          fontSize: 12, color: t.text3,
+                          letterSpacing: 0,
+                          fontFamily: "var(--font-mono)", fontWeight: 500,
                           borderBottom: `1px solid ${t.border}`, whiteSpace: "nowrap",
                         }}
                       >
@@ -533,7 +533,7 @@ export function SubsView({
                             justifyContent: "center",
                             cursor: "pointer",
                             color: s.status === "active" ? t.green : t.text3,
-                            transition: "all 0.18s",
+                            transition: "background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease",
                             flexShrink: 0,
                           }}
                           onMouseEnter={(e) => {
@@ -560,11 +560,11 @@ export function SubsView({
                       </td>
                       {/* Name */}
                       <td style={{ padding: "11px 14px", maxWidth: 160 }}>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: t.text, fontFamily: "var(--font-display)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <div style={{ fontSize: 13, fontWeight: 500, color: t.text, fontFamily: "var(--font-display)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {s.name}
                         </div>
                         {s.provider && (
-                          <div style={{ fontSize: 10, color: t.text3, fontFamily: "var(--font-mono)", marginTop: 1 }}>
+                          <div style={{ fontSize: 12, color: t.text3, fontFamily: "var(--font-mono)", marginTop: 1 }}>
                             {s.provider}
                           </div>
                         )}
@@ -576,7 +576,7 @@ export function SubsView({
                         </span>
                       </td>
                       {/* Amount */}
-                      <td style={{ padding: "11px 14px", fontSize: 13, fontWeight: 700, color: t.text, fontFamily: "var(--font-mono)", whiteSpace: "nowrap" }}>
+                      <td style={{ padding: "11px 14px", fontSize: 13, fontWeight: 500, color: t.text, fontFamily: "var(--font-mono)", whiteSpace: "nowrap" }}>
                         {s.currency} {s.amount.toFixed(2)}
                       </td>
                       {/* Cycle */}
@@ -589,7 +589,7 @@ export function SubsView({
                       </td>
                       {/* Auto renew */}
                       <td style={{ padding: "11px 14px" }}>
-                        <span style={{ fontSize: 10, color: s.autoRenew ? t.green : t.text3, fontFamily: "var(--font-mono)" }}>
+                        <span style={{ fontSize: 12, color: s.autoRenew ? t.green : t.text3, fontFamily: "var(--font-mono)" }}>
                           {s.autoRenew ? "Yes" : "No"}
                         </span>
                       </td>
@@ -603,7 +603,7 @@ export function SubsView({
                           <button
                             onClick={() => setEditing(s)}
                             aria-label={`Edit ${s.name}`}
-                            style={{ background: "none", border: "none", cursor: "pointer", color: t.text3, padding: 5, borderRadius: 6, transition: "all 0.15s" }}
+                            style={{ background: "none", border: "none", cursor: "pointer", color: t.text3, padding: 5, borderRadius: 6, transition: "background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease" }}
                             onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = t.green; (e.currentTarget as HTMLElement).style.background = t.greenDim; }}
                             onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = t.text3; (e.currentTarget as HTMLElement).style.background = "transparent"; }}
                           >
@@ -612,7 +612,7 @@ export function SubsView({
                           <button
                             onClick={() => setPendingDelete(s)}
                             aria-label={`Delete ${s.name}`}
-                            style={{ background: "none", border: "none", cursor: "pointer", color: t.text3, padding: 5, borderRadius: 6, transition: "all 0.15s" }}
+                            style={{ background: "none", border: "none", cursor: "pointer", color: t.text3, padding: 5, borderRadius: 6, transition: "background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease" }}
                             onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = t.red; (e.currentTarget as HTMLElement).style.background = t.redDim; }}
                             onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = t.text3; (e.currentTarget as HTMLElement).style.background = "transparent"; }}
                           >
@@ -636,7 +636,7 @@ export function SubsView({
         {/* Simulation summary */}
         {sim && (
           <div style={{ background: t.surface, border: `1px solid ${t.border}`, borderRadius: 12, padding: "18px 22px" }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: t.text, fontFamily: "var(--font-display)", marginBottom: 14 }}>
+            <div style={{ fontSize: 13, fontWeight: 500, color: t.text, fontFamily: "var(--font-display)", marginBottom: 14 }}>
               Simulation Summary
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(160px,1fr))", gap: 12 }}>
@@ -646,10 +646,10 @@ export function SubsView({
                 { label: "Annual Savings",   value: `$${(simInactive * 12).toFixed(2)}/yr` },
               ].map((item) => (
                 <div key={item.label} style={{ background: t.surface2, borderRadius: 8, padding: "13px 15px" }}>
-                  <div style={{ fontSize: 10, color: t.text3, fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>
+                  <div style={{ fontSize: 12, color: t.text3, fontFamily: "var(--font-mono)", letterSpacing: 0, marginBottom: 6 }}>
                     {item.label}
                   </div>
-                  <div style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 800, color: t.text }}>
+                  <div style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 500, color: t.text }}>
                     {item.value}
                   </div>
                 </div>

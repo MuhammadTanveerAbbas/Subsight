@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { exportSubscriptionsJSON, exportSubscriptionsCSV } from '../export'
+import { exportSubscriptionsJSON, exportSubscriptionsCSV, buildICS, exportSubscriptionsICS, importWallosJSON } from '../export'
 import type { Sub } from '@/app/(app)/dashboard/dashboard-types'
 
 /* ── mock browser APIs ──────────────────────────────────────────────── */
@@ -130,5 +130,57 @@ describe('exportSubscriptionsCSV', () => {
     exportSubscriptionsCSV(subs)
     expect(captured).toContain('Yes')
     expect(captured).toContain('No')
+  })
+})
+
+/* ── ICS tests ───────────────────────────────────────────────────────── */
+
+describe('buildICS', () => {
+  it('creates one all-day event per dated subscription', () => {
+    const ics = buildICS(subs)
+    expect(ics.startsWith('BEGIN:VCALENDAR\r\n')).toBe(true)
+    expect(ics.match(/BEGIN:VEVENT/g)).toHaveLength(1)
+    expect(ics).toContain('DTSTART;VALUE=DATE:20260801')
+    expect(ics).toContain('DTEND;VALUE=DATE:20260802')
+    expect(ics).toContain('SUMMARY:Netflix')
+  })
+
+  it('escapes commas in names', () => {
+    const ics = buildICS([{ ...subs[1]!, nextDate: '2026-09-01' }])
+    expect(ics).toContain('SUMMARY:Service\\, "Special"')
+  })
+
+  it('applies a category filter', () => {
+    const ics = buildICS(subs, { category: 'Streaming' })
+    expect(ics).toContain('SUMMARY:Netflix')
+    expect(ics).not.toContain('SUMMARY:Service')
+  })
+
+  it('creates a browser download', () => {
+    exportSubscriptionsICS(subs)
+    expect(createObjectURLMock).toHaveBeenCalledOnce()
+    expect(clickMock).toHaveBeenCalledOnce()
+  })
+})
+
+/* ── Wallos import tests ─────────────────────────────────────────────── */
+
+describe('importWallosJSON', () => {
+  it('maps valid rows and drops rows without a name or amount', () => {
+    const json = JSON.stringify({
+      subscriptions: [
+        {
+          name: 'Netflix', amount: 15.99, billing_cycle: 'monthly',
+          currency: 'USD', category: 'Streaming', next_renewal_date: '2026-12-01',
+        },
+        { name: '', amount: 10, billing_cycle: 'monthly' },
+      ],
+    })
+    const result = importWallosJSON(json)
+    expect(result).toHaveLength(1)
+    expect(result[0]).toMatchObject({
+      name: 'Netflix', amount: 15.99, cycle: 'monthly',
+      currency: 'USD', category: 'Streaming', nextDate: '2026-12-01',
+    })
   })
 })

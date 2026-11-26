@@ -11,7 +11,7 @@ export default function GlobalError({
       <body>
         <div className="flex min-h-screen items-center justify-center p-4">
           <div className="text-center space-y-4 max-w-md">
-            <h1 className="text-2xl font-bold">Critical error</h1>
+            <h1 className="text-2xl font-medium">Critical error</h1>
             <p className="text-muted-foreground">
               A critical error occurred. Please refresh the page.
             </p>

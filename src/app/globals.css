@@ -9,79 +9,81 @@
 
 /* Custom design tokens. White is the default, dark is an explicit override. */
 :root {
-  --bg: #f8f8f6;
-  --surface: #ffffff;
-  --surface2: #f2f2ef;
-  --surface3: #eaeae6;
-  --border: #e4e4e0;
-  --border2: #d0d0ca;
-  --text: #111111;
-  --text2: #545450;
-  --text3: #6b6b64;
+  --bg: #ffffff;
+  --surface: #f5f5f5;
+  --surface2: #ebebeb;
+  --surface3: #e1e1e1;
+  --border: #d4d4d4;
+  --border2: #bcbcbc;
+  --text: #000000;
+  --text2: rgba(0,0,0,0.62);
+  --text3: rgba(0,0,0,0.42);
   --green: #16a34a;
-  --green2: #15803d;
+  --green2: #128038;
+  --green-ink: #15743c;
   --green-dim: rgba(22,163,74,0.08);
   --green-border: rgba(22,163,74,0.22);
-  --green-glow: rgba(22,163,74,0.10);
+  --green-glow: rgba(22,163,74,0);
   --red: #dc2626;
   --red-dim: rgba(220,38,38,0.10);
   --amber: #d97706;
   --amber-dim: rgba(217,119,6,0.10);
   --blue: #2563eb;
   --blue-dim: rgba(37,99,235,0.10);
-  --sidebar-bg: #f0f0ee;
-  --nav-bg: rgba(248,248,246,0.92);
-  --shadow: rgba(0,0,0,0.12);
-  --grid: rgba(0,0,0,0.04);
+  --sidebar-bg: #ffffff;
+  --nav-bg: rgba(247,247,243,0.94);
+  --shadow: rgba(0,0,0,0.10);
+  --grid: rgba(0,0,0,0.03);
 }
 
 [data-theme="dark"] {
-  --bg: #080808;
-  --surface: #111111;
-  --surface2: #181818;
+  --bg: #000000;
+  --surface: #0a0a0a;
+  --surface2: #141414;
   --surface3: #1e1e1e;
-  --border: #1f1f1f;
-  --border2: #2a2a2a;
-  --text: #f0f0f0;
-  --text2: #a0a0a0;
-  --text3: #858585;
+  --border: #2a2a2a;
+  --border2: #3a3a3a;
+  --text: #ffffff;
+  --text2: rgba(255,255,255,0.62);
+  --text3: rgba(255,255,255,0.45);
   --green: #22c55e;
   --green2: #16a34a;
+  --green-ink: #4ade80;
   --green-dim: rgba(34,197,94,0.08);
   --green-border: rgba(34,197,94,0.22);
-  --green-glow: rgba(34,197,94,0.14);
+  --green-glow: rgba(34,197,94,0);
   --red: #ef4444;
   --red-dim: rgba(239,68,68,0.10);
   --amber: #f59e0b;
   --amber-dim: rgba(245,158,11,0.10);
   --blue: #3b82f6;
   --blue-dim: rgba(59,130,246,0.10);
-  --sidebar-bg: #0c0c0c;
-  --nav-bg: rgba(8,8,8,0.92);
-  --shadow: rgba(0,0,0,0.70);
-  --grid: rgba(255,255,255,0.025);
+  --sidebar-bg: #000000;
+  --nav-bg: rgba(11,12,10,0.94);
+  --shadow: rgba(0,0,0,0.50);
+  --grid: rgba(255,255,255,0.03);
 }
 
 @layer base {
   :root {
-    --background: 60 33% 97%;
-    --foreground: 0 0% 7%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 10%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 10%;
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+    --card: 0 0% 96%;
+    --card-foreground: 0 0% 0%;
+    --popover: 0 0% 96%;
+    --popover-foreground: 0 0% 0%;
     --primary: 142 72% 37%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 60 12% 94%;
+    --secondary: 0 0% 92%;
     --secondary-foreground: 0 0% 20%;
-    --muted: 60 12% 94%;
-    --muted-foreground: 0 0% 35%;
+    --muted: 0 0% 92%;
+    --muted-foreground: 0 0% 38%;
     --accent: 142 72% 37%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 72% 45%;
     --destructive-foreground: 0 0% 100%;
-    --border: 60 10% 89%;
-    --input: 60 10% 89%;
+    --border: 0 0% 83%;
+    --input: 0 0% 83%;
     --ring: 142 50% 45%;
     --radius: 0.5rem;
     --chart-1: 142 72% 37%;
@@ -126,14 +128,15 @@
   }
   html {
     scroll-behavior: smooth;
-    overflow-x: hidden;
+    overflow-x: clip;
     width: 100%;
   }
   body {
     @apply bg-background text-foreground;
-    overflow-x: hidden;
+    overflow-x: clip;
     width: 100%;
   }
+  .brand-mark { filter: none !important; }
   /* Focus visible for keyboard navigation only */
   :focus-visible {
     outline: 2px solid var(--green, #22c55e);
@@ -167,10 +170,10 @@
 /* ── Consistent native <select> styling ──────────────────────────────────── */
 /* SVG chevron encoded as a CSS variable so it reacts to theme changes       */
 :root {
-  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b6b64' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
+  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' stroke='%236b6b64' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
 }
 [data-theme="dark"] {
-  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23858585' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
+  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' stroke='%239a9a9a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
 }
 
 select {
@@ -182,41 +185,48 @@ select {
   /* Custom chevron arrow */
   background-image: var(--select-arrow);
   background-repeat: no-repeat;
-  background-position: right 11px center;
-  background-size: 10px 6px;
+  background-position: right 12px center;
+  background-size: 11px 7px;
 
   /* Layout & spacing */
   display: block;
   width: 100%;
-  padding: 9px 32px 9px 12px;
+  padding: 10px 36px 10px 14px;
 
   /* Typography */
   font-size: 13px;
   font-family: var(--font-mono, 'Courier New', monospace);
   color: var(--text, #f0f0f0);
-  line-height: 1.4;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
 
   /* Appearance */
-  background-color: var(--surface2, #181818);
-  border: 1px solid var(--border, #1f1f1f);
-  border-radius: 8px;
+  background-color: var(--surface, #0a0a0a);
+  border: 1px solid var(--border, #2a2a2a);
+  border-radius: 10px;
   cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 
   /* Transition */
-  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
 
   /* Remove inner outline in Firefox */
   outline: none;
 }
 
 select:hover:not(:disabled) {
-  border-color: var(--border2, #2a2a2a);
+  border-color: var(--border2, #3a3a3a);
+  background-color: var(--surface2, #141414);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
 }
 
 select:focus-visible {
   outline: none;
-  border-color: var(--green-border, rgba(34,197,94,0.22));
-  box-shadow: 0 0 0 3px var(--green-dim, rgba(34,197,94,0.08));
+  border-color: var(--green, #22c55e);
+  background-color: var(--surface2, #141414);
+  box-shadow: 0 0 0 3px var(--green-dim, rgba(34,197,94,0.08)),
+              0 2px 6px rgba(0,0,0,0.12);
 }
 
 select:focus:not(:focus-visible) {
@@ -224,16 +234,28 @@ select:focus:not(:focus-visible) {
 }
 
 select:disabled {
-  opacity: 0.45;
+  opacity: 0.4;
   cursor: not-allowed;
+  background-color: var(--surface, #0a0a0a);
+}
+
+select:active:not(:disabled) {
+  transform: translateY(1px);
 }
 
 /* Option elements inherit base colors from the browser but we nudge the bg */
 select option {
-  background-color: var(--surface2, #181818);
+  background-color: var(--surface, #0a0a0a);
   color: var(--text, #f0f0f0);
   font-family: var(--font-mono, 'Courier New', monospace);
   font-size: 13px;
+  padding: 8px 12px;
+}
+
+select option:checked {
+  background: linear-gradient(90deg, var(--green-dim), transparent);
+  color: var(--green-ink, #4ade80);
+  font-weight: 500;
 }
 
 /* ── Dropdown panel animation keyframes ──────────────────────────────────── */
@@ -266,16 +288,6 @@ select option {
 }
 
 @layer utilities {
-  .gradient-text {
-    @apply bg-gradient-to-r from-primary via-emerald-400 to-teal-400 bg-clip-text text-transparent;
-  }
-  .gradient-border {
-    @apply relative before:absolute before:inset-0 before:rounded-lg before:p-[1px] before:bg-gradient-to-r before:from-primary before:via-emerald-400 before:to-teal-400 before:-z-10;
-  }
-  .animate-gradient {
-    background-size: 200% 200%;
-    animation: gradient 3s ease infinite;
-  }
   .scrollbar-thin {
     scrollbar-width: thin;
   }
@@ -288,10 +300,6 @@ select option {
   }
   .scrollbar-thin::-webkit-scrollbar {
     width: 8px;
-  }
-  @keyframes gradient {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
   }
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(18px); }

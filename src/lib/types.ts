@@ -175,14 +175,15 @@ export const VAULT_CATEGORIES = [
 ] as const;
 export type VaultCategory = (typeof VAULT_CATEGORIES)[number];
 
+// One accent leads; every other category is a neutral step of the ramp.
 export const VAULT_CATEGORY_COLORS: Record<string, string> = {
-  Housing: "#3b82f6",
-  Food: "#f59e0b",
-  Transport: "#06b6d4",
-  Shopping: "#a78bfa",
-  Health: "#ef4444",
-  Entertainment: "#ec4899",
-  Travel: "#f97316",
+  Housing: "#6b7280",
+  Food: "#9ca3af",
+  Transport: "#4b5563",
+  Shopping: "#d1d5db",
+  Health: "#374151",
+  Entertainment: "#e5e7eb",
+  Travel: "#1f2937",
   Education: "#22c55e",
   Utilities: "#64748b",
   Other: "#6b7280",
