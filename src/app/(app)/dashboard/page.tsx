@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import {
   DARK, LIGHT, NAV_GROUPS, NAV_BOTTOM, NAV_ALL,
-  type TK, type Sub, type SubStatus,
+  type TK, type T, type Sub, type SubStatus,
 } from "./dashboard-constants";
 
 const VALID_TABS = new Set(NAV_ALL.map((n) => n.id));
@@ -62,9 +62,17 @@ function Skeleton({ w = "100%", h = 16, r = 6 }: { w?: string | number; h?: numb
   );
 }
 
-function LoadingSkeleton() {
+function LoadingSkeleton({ t }: { t: T }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 20,
+      ...({
+        "--surface": t.surface,
+        "--surface2": t.surface2,
+        "--surface3": t.surface3,
+        "--border": t.border,
+        "--border2": t.border2,
+      } as React.CSSProperties)
+    }}>
       {/* KPI row: same grid + class as the overview so the four boxes sit in one row */}
       <div className="kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 14 }}>
         {[0,1,2,3].map(i => (
@@ -368,7 +376,7 @@ export default function Dashboard() {
 
   /* ── Render view with skeleton loader ─────────────────────────────── */
   const renderView = () => {
-    if (loading) return <LoadingSkeleton />;
+    if (loading) return <LoadingSkeleton t={t} />;
     switch (active) {
       case "plan":          return <PlanView t={t} subs={subs} />;
       case "calendar":      return <CalendarView t={t} subs={subs} />;
