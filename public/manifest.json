@@ -8,15 +8,10 @@
   "theme_color": "#22c55e",
   "icons": [
     {
-      "src": "/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    },
-    {
       "src": "/Subsight.png",
-      "sizes": "48x48",
-      "type": "image/x-icon"
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
