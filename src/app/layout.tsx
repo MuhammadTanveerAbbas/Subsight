@@ -40,9 +40,9 @@ export const metadata: Metadata = {
     images: [
       {
         url: "/opengraph-image",
-        width: 1600,
-        height: 900,
-        alt: "Subsight Tracker",
+        width: 1200,
+        height: 630,
+        alt: "Subsight - Start tracking free",
       },
     ],
   },
@@ -52,7 +52,14 @@ export const metadata: Metadata = {
     description:
       "Track subscriptions with AI spending insights. Privacy-first and secure.",
     creator: "@m_tanveerabbas",
-    images: ["/opengraph-image"],
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "Subsight - Start tracking free",
+      },
+    ],
   },
   robots: {
     index: true,
