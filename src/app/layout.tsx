@@ -29,6 +29,9 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Muhammad Tanveer Abbas" }],
   creator: "Muhammad Tanveer Abbas",
+  alternates: {
+    canonical: "https://subsight-tracker.vercel.app",
+  },
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -109,6 +112,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem('subsight-theme');var d=t==='dark';document.documentElement.setAttribute('data-theme',d?'dark':'light');document.documentElement.classList.toggle('dark',d)}catch(e){document.documentElement.setAttribute('data-theme','light')}` }} />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#22c55e" />
+        <meta property="og:logo" content="https://subsight-tracker.vercel.app/Subsight.png" />
       </head>
       <body className="font-body antialiased" suppressHydrationWarning>
         <ErrorBoundary>
