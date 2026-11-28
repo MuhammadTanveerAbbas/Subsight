@@ -10,8 +10,32 @@ import { cn } from "@/lib/utils";
 import "lenis/dist/lenis.css";
 import "./globals.css";
 
+const SITE_URL = "https://subsight-tracker.vercel.app";
+
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "Subsight",
+  applicationCategory: "FinanceApplication",
+  operatingSystem: "Web",
+  description:
+    "Track and manage your subscriptions with AI spending insights. Privacy-first and secure. Free tier available.",
+  url: SITE_URL,
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "USD",
+    description: "Free tier available",
+  },
+  author: {
+    "@type": "Person",
+    name: "Muhammad Tanveer Abbas",
+    url: "https://muhammadtanveerabbas.vercel.app/",
+  },
+};
+
 export const metadata: Metadata = {
-  metadataBase: new URL("https://subsight-tracker.vercel.app"),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Subsight - Subscription Tracker",
     template: "%s | Subsight",
@@ -30,12 +54,12 @@ export const metadata: Metadata = {
   authors: [{ name: "Muhammad Tanveer Abbas" }],
   creator: "Muhammad Tanveer Abbas",
   alternates: {
-    canonical: "https://subsight-tracker.vercel.app",
+    canonical: SITE_URL,
   },
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://subsight-tracker.vercel.app",
+    url: SITE_URL,
     title: "Subsight - Privacy-First Subscription Tracker",
     description:
       "Track subscriptions with AI spending insights. Privacy-first and secure.",
@@ -51,6 +75,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
+    site: "@m_tanveerabbas",
     title: "Subsight - Privacy-First Subscription Tracker",
     description:
       "Track subscriptions with AI spending insights. Privacy-first and secure.",
@@ -77,10 +102,11 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
+      { url: "/favicon.svg", type: "image/svg+xml", sizes: "any" },
+      { url: "/favicon-32x32.png", type: "image/png", sizes: "32x32" },
       { url: "/Subsight.png", type: "image/png", sizes: "any" },
-      { url: "/Subsight.png", sizes: "any" },
     ],
-    shortcut: "/Subsight.png",
+    shortcut: "/favicon-32x32.png",
     apple: "/Subsight.png",
   },
 };
@@ -112,7 +138,11 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem('subsight-theme');var d=t==='dark';document.documentElement.setAttribute('data-theme',d?'dark':'light');document.documentElement.classList.toggle('dark',d)}catch(e){document.documentElement.setAttribute('data-theme','light')}` }} />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#22c55e" />
-        <meta property="og:logo" content="https://subsight-tracker.vercel.app/Subsight.png" />
+        <meta property="og:logo" content={`${SITE_URL}/Subsight.png`} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        />
       </head>
       <body className="font-body antialiased" suppressHydrationWarning>
         <ErrorBoundary>
